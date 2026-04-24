@@ -9,6 +9,8 @@ import {
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useServices } from '@/hooks/useServices'
+import { isDemoMode } from '@/lib/userStore'
+import { DEMO_DEALS } from '@/lib/demo-data'
 
 // ─── Stage config (keys match DB values) ─────────────────────────────────────
 
@@ -519,8 +521,13 @@ export default function PipelinePage() {
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null)
   const [showNewDeal, setShowNewDeal] = useState(false)
 
-  // ── Fetch all deals from Supabase ──────────────────────────────────────────
+  // ── Fetch all deals from Supabase (or demo data) ──────────────────────────
   const fetchDeals = useCallback(async () => {
+    if (isDemoMode()) {
+      setDeals(DEMO_DEALS as unknown as Deal[])
+      setLoading(false)
+      return
+    }
     const supabase = createClient()
     const { data, error: err } = await supabase
       .from('deals')
@@ -536,6 +543,9 @@ export default function PipelinePage() {
 
   // ── Change stage ───────────────────────────────────────────────────────────
   const handleStageChange = async (id: string, stage: DealStage) => {
+    setDeals(prev => prev.map(d => d.id === id ? { ...d, stage } : d))
+    setSelectedDeal(prev => prev?.id === id ? { ...prev, stage } : prev)
+    if (isDemoMode()) return
     const supabase = createClient()
     const { error: err } = await supabase
       .from('deals')

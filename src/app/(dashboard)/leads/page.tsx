@@ -11,6 +11,8 @@ import {
 import toast from 'react-hot-toast'
 import { createClient } from '@/lib/supabase/client'
 import { useServices } from '@/hooks/useServices'
+import { isDemoMode } from '@/lib/userStore'
+import { DEMO_LEADS } from '@/lib/demo-data'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1157,6 +1159,10 @@ export default function LeadsPage() {
   const [showNewLead, setShowNewLead] = useState(false)
 
   useEffect(() => {
+    if (isDemoMode()) {
+      setLeads(DEMO_LEADS as unknown as Lead[])
+      return
+    }
     const supabase = createClient()
     supabase.from('leads').select('*').order('last_contact', { ascending: false }).then(({ data }) => {
       if (data) setLeads(data.map(r => dbToLead(r as Record<string, unknown>)))

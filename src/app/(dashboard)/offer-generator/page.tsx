@@ -7,6 +7,8 @@ import {
   CheckSquare, Square, User, Briefcase,
 } from 'lucide-react'
 import { useServices, UNIT_LABELS } from '@/hooks/useServices'
+import { isDemoMode } from '@/lib/userStore'
+import { DEMO_DEALS } from '@/lib/demo-data'
 
 // ─── Modules config ───────────────────────────────────────────────────────────
 
@@ -209,6 +211,20 @@ export default function OfferGeneratorPage() {
   const [generated, setGenerated] = useState(false)
 
   useEffect(() => {
+    if (isDemoMode()) {
+      const demoClients: StoredLead[] = DEMO_DEALS
+        .filter(d => !['przegrana', 'nie_teraz'].includes(d.stage))
+        .map(d => ({
+          id: d.id,
+          firstName: d.contact_name?.split(' ')[0] ?? '',
+          lastName: d.contact_name?.split(' ').slice(1).join(' ') ?? '',
+          company: d.title,
+        }))
+      setCrmLeads(demoClients)
+      setUseCustom(false)
+      setPreparedBy('AM Automations')
+      return
+    }
     const leads = loadLeadClients()
     setCrmLeads(leads)
     if (leads.length > 0) setUseCustom(false)

@@ -7,6 +7,8 @@ import {
   RotateCcw, Clock, Zap, Users, Loader2, RefreshCw,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { isDemoMode } from '@/lib/userStore'
+import { DEMO_OUTREACH } from '@/lib/demo-data'
 
 interface OutreachItem {
   id: string
@@ -206,8 +208,14 @@ export default function OutreachPage() {
   const [loading, setLoading] = useState(true)
   const [generatingAll, setGeneratingAll] = useState(false)
 
-  // Fetch leads from Supabase and build initial queue
+  // Fetch leads from Supabase (or demo data) and build initial queue
   useEffect(() => {
+    if (isDemoMode()) {
+      setQueue(DEMO_OUTREACH as unknown as OutreachItem[])
+      setLoading(false)
+      return
+    }
+
     async function loadLeads() {
       const supabase = createClient()
       const { data, error } = await supabase
@@ -225,7 +233,6 @@ export default function OutreachPage() {
         const label = ((row.ai_score_label as string) ?? 'warm') as 'hot' | 'warm' | 'cold'
         const icebreaker = (row.ai_icebreaker as string) ?? ''
 
-        // Assign outreach type based on score label
         const type: OutreachItem['type'] =
           label === 'hot'  ? 'dm-pierwszy' :
           label === 'warm' ? 'zaproszenie' :

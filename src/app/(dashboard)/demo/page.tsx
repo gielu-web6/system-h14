@@ -11,6 +11,8 @@ import {
 import { useAppUser } from '@/contexts/UserContext'
 import { createClient } from '@/lib/supabase/client'
 import { useTasks } from '@/hooks/useTasks'
+import { isDemoMode, getCurrentUser } from '@/lib/userStore'
+import { DEMO_KPI, DEMO_PNL } from '@/lib/demo-data'
 
 interface KpiData {
   leadsThisMonth: number
@@ -142,6 +144,16 @@ export default function DashboardPage() {
   const [kpiLoading, setKpiLoading] = useState(true)
 
   useEffect(() => {
+    if (isDemoMode()) {
+      setKpi({
+        leadsThisMonth: DEMO_KPI.leadsThisMonth,
+        activeDeals: DEMO_KPI.activeDeals,
+        revenueThisMonth: DEMO_KPI.revenueThisMonth,
+      })
+      setKpiLoading(false)
+      return
+    }
+
     async function loadKpi() {
       const supabase = createClient()
       const now = new Date()
@@ -177,10 +189,13 @@ export default function DashboardPage() {
     loadKpi()
   }, [])
 
+  const isDemo = isDemoMode()
+  const replyRateValue = isDemo ? DEMO_KPI.replyRate : '—'
+
   const kpiCards = [
     { label: 'Leady w tym miesiącu', value: kpiLoading ? '…' : String(kpi.leadsThisMonth),      icon: Users,        color: '#6366f1', href: '/leads',    sub: 'dodane w tym miesiącu' },
     { label: 'Aktywne deale',        value: kpiLoading ? '…' : String(kpi.activeDeals),          icon: TrendingUp,   color: '#22c55e', href: '/pipeline', sub: 'w toku (bez zakończonych)' },
-    { label: 'Reply rate',           value: '—',                                                  icon: MessageSquare,color: '#f59e0b', href: '/outreach', sub: 'wkrótce dostępne' },
+    { label: 'Reply rate',           value: replyRateValue,                                       icon: MessageSquare,color: '#f59e0b', href: '/outreach', sub: isDemo ? 'ze wszystkich wiadomości' : 'wkrótce dostępne' },
     { label: 'Przychód miesiąc',     value: kpiLoading ? '…' : formatPLN(kpi.revenueThisMonth), icon: DollarSign,   color: '#06b6d4', href: '/finance',  sub: 'opłacone faktury' },
   ]
 
@@ -191,7 +206,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-[22px] font-bold text-white tracking-tight">
-            Dzień dobry, {user?.fullName ?? 'tam'} 👋
+            Dzień dobry, {isDemo ? 'Adrian' : (user?.fullName ?? 'tam')} 👋
           </h1>
           <p className="text-[13px] text-white/40 mt-0.5">
             {today}
@@ -232,24 +247,86 @@ export default function DashboardPage() {
       </div>
 
       {/* Cel miesięczny */}
+      {(() => {
+        const goalRevenue = isDemo ? DEMO_KPI.monthlyGoal : 0
+        const currentRevenue = kpi.revenueThisMonth
+        const pct = goalRevenue > 0 ? Math.min(100, Math.round(currentRevenue / goalRevenue * 100)) : 0
+        return (
       <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Target size={15} className="text-[#6366f1]" />
             <span className="text-[13px] font-semibold text-white">Cel przychodowy — bieżący miesiąc</span>
           </div>
-          <span className="text-[13px] text-white/30">0%</span>
+          <span className="text-[13px] text-white/30">{pct}%</span>
         </div>
         <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
-          <div className="h-full rounded-full bg-gradient-to-r from-[#6366f1] to-[#8b5cf6]" style={{ width: '0%' }} />
+          <div className="h-full rounded-full bg-gradient-to-r from-[#6366f1] to-[#8b5cf6]" style={{ width: `${pct}%` }} />
         </div>
         <div className="flex items-center justify-between mt-2">
-          <span className="text-[11px] text-white/30">Dodaj przychód w zakładce Finanse</span>
+          <span className="text-[11px] text-white/30">{isDemo ? `${formatPLN(currentRevenue)} z ${formatPLN(goalRevenue)} celu` : 'Dodaj przychód w zakładce Finanse'}</span>
           <Link href="/finance" className="text-[11px] text-[#6366f1]/60 hover:text-[#6366f1] transition-colors">
             Przejdź →
           </Link>
         </div>
       </div>
+        )
+      })()}
+
+      {/* P&L mini chart (demo only) */}
+      {isDemo && (
+        <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp size={15} className="text-[#6366f1]" />
+            <p className="text-[14px] font-semibold text-white">P&L — ostatnie 6 miesięcy</p>
+          </div>
+          <div className="flex items-end gap-2 h-[80px]">
+            {DEMO_PNL.map((m) => {
+              const max = Math.max(...DEMO_PNL.map(x => x.revenue))
+              const revH = Math.round((m.revenue / max) * 76)
+              const costH = Math.round((m.costs / max) * 76)
+              return (
+                <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
+                  <div className="flex items-end gap-0.5 w-full justify-center" style={{ height: 76 }}>
+                    <div className="w-[45%] rounded-t-[3px] bg-[#6366f1]/70" style={{ height: revH }} title={`Przychód: ${m.revenue} PLN`} />
+                    <div className="w-[45%] rounded-t-[3px] bg-red-500/40" style={{ height: costH }} title={`Koszty: ${m.costs} PLN`} />
+                  </div>
+                  <span className="text-[10px] text-white/30">{m.month}</span>
+                </div>
+              )
+            })}
+          </div>
+          <div className="flex items-center gap-4 mt-3">
+            <span className="flex items-center gap-1.5 text-[11px] text-white/40"><span className="w-3 h-2 rounded-sm bg-[#6366f1]/70 inline-block" /> Przychód</span>
+            <span className="flex items-center gap-1.5 text-[11px] text-white/40"><span className="w-3 h-2 rounded-sm bg-red-500/40 inline-block" /> Koszty</span>
+            <span className="ml-auto text-[11px] text-[#22c55e]">+52% vs 6 mies. temu</span>
+          </div>
+        </div>
+      )}
+
+      {/* Sugerowane leady (demo only) */}
+      {isDemo && (
+        <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Clock size={15} className="text-[#f59e0b]" />
+            <p className="text-[14px] font-semibold text-white">Skontaktuj się dziś</p>
+            <span className="text-[11px] text-white/30 ml-1">— system sugeruje kogo ruszyć</span>
+          </div>
+          <div className="space-y-2">
+            {DEMO_KPI.suggestedLeads.map((name, i) => (
+              <div key={i} className="flex items-center gap-3 p-2.5 rounded-[8px] bg-white/[0.03] border border-white/[0.05]">
+                <div className="w-7 h-7 rounded-full bg-[#f59e0b]/15 flex items-center justify-center flex-shrink-0">
+                  <span className="text-[11px] font-bold text-[#f59e0b]">{name.split(' ').map(w => w[0]).join('').slice(0,2)}</span>
+                </div>
+                <span className="text-[13px] text-white">{name}</span>
+                <Link href="/outreach" className="ml-auto text-[11px] text-[#6366f1]/60 hover:text-[#6366f1] transition-colors">
+                  Wyślij →
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Grid: start guide + tasks */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-4">

@@ -9,6 +9,8 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { createClient } from '@/lib/supabase/client'
+import { isDemoMode } from '@/lib/userStore'
+import { DEMO_INCOMES, DEMO_EXPENSES } from '@/lib/demo-data'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -807,6 +809,11 @@ export default function FinancePage() {
   const [showInvoice, setShowInvoice] = useState(false)
 
   useEffect(() => {
+    if (isDemoMode()) {
+      setIncomes(DEMO_INCOMES as unknown as IncomeEntry[])
+      setExpenses(DEMO_EXPENSES as unknown as ExpenseEntry[])
+      return
+    }
     const supabase = createClient()
     const load = async () => {
       const [{ data: inc }, { data: exp }] = await Promise.all([

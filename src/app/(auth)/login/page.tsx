@@ -2,9 +2,13 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Zap, Eye, EyeOff, ArrowRight, User } from 'lucide-react'
+import { Zap, Eye, EyeOff, ArrowRight, Play } from 'lucide-react'
 import { USERS, DEMO_PASSWORD } from '@/lib/userStore'
 import { useAppUser } from '@/contexts/UserContext'
+
+// Separate real users from the demo account
+const REAL_USERS = USERS.filter(u => u.id !== 'demo')
+const DEMO_USER  = USERS.find(u => u.id === 'demo')!
 
 export default function LoginPage() {
   const router = useRouter()
@@ -30,7 +34,14 @@ export default function LoginPage() {
 
     setLoading(true)
     await new Promise(r => setTimeout(r, 600))
-    switchUser(selectedUser)   // aktualizuje zarówno localStorage jak i kontekst
+    switchUser(selectedUser)
+    router.push('/demo')
+  }
+
+  const handleDemoLogin = async () => {
+    setLoading(true)
+    await new Promise(r => setTimeout(r, 500))
+    switchUser('demo')
     router.push('/demo')
   }
 
@@ -52,7 +63,7 @@ export default function LoginPage() {
       </div>
 
       <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-[400px]">
+        <div className="w-full max-w-[420px] space-y-4">
 
           <div className="text-center mb-8">
             <h1 className="text-[28px] font-bold text-white tracking-tight mb-2">System H14</h1>
@@ -61,6 +72,43 @@ export default function LoginPage() {
             </p>
           </div>
 
+          {/* ── Demo account card ─────────────────────────────── */}
+          <div className="bg-[#0d1f12] border border-[#22c55e]/25 rounded-[16px] p-5 shadow-2xl shadow-black/40">
+            <div className="flex items-center gap-3 mb-3">
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center text-[14px] font-bold flex-shrink-0"
+                style={{ background: DEMO_USER.color + '25', border: `2px solid ${DEMO_USER.color}`, color: DEMO_USER.color }}
+              >
+                {DEMO_USER.initials}
+              </div>
+              <div>
+                <p className="text-[14px] font-semibold text-white leading-tight">Konto Demo</p>
+                <p className="text-[11px] text-white/40 leading-tight">Wejdź z przykładowymi danymi — bez hasła</p>
+              </div>
+              <span className="ml-auto px-2 py-0.5 rounded-full bg-[#22c55e]/15 text-[#22c55e] text-[10px] font-bold uppercase tracking-wide">Demo</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-[#22c55e]/90 hover:bg-[#22c55e] disabled:opacity-60 text-white text-[13px] font-semibold transition-all shadow-lg shadow-green-500/20"
+            >
+              {loading ? (
+                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Ładowanie...</>
+              ) : (
+                <><Play size={13} fill="white" /> Wejdź do Demo</>
+              )}
+            </button>
+          </div>
+
+          {/* ── Divider ───────────────────────────────────────── */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-white/[0.06]" />
+            <span className="text-[11px] text-white/25">lub zaloguj się na swoje konto</span>
+            <div className="flex-1 h-px bg-white/[0.06]" />
+          </div>
+
+          {/* ── Real accounts card ────────────────────────────── */}
           <div className="bg-[#0F0F1A] border border-white/[0.08] rounded-[16px] p-6 shadow-2xl shadow-black/40">
             <form onSubmit={handleLogin} className="space-y-5">
 
@@ -68,7 +116,7 @@ export default function LoginPage() {
               <div>
                 <label className="block text-[12px] font-medium text-white/50 mb-2.5">Wybierz profil</label>
                 <div className="grid grid-cols-2 gap-3">
-                  {USERS.map((u) => (
+                  {REAL_USERS.map((u) => (
                     <button
                       key={u.id}
                       type="button"

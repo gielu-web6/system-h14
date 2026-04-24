@@ -5,17 +5,25 @@ import {
   PieChart, Pie, Cell,
 } from 'recharts'
 import { TrendingUp, Target, BarChart3, AlertCircle } from 'lucide-react'
+import {
+  DEMO_SEGMENT_PERFORMANCE,
+  DEMO_PIPELINE_VELOCITY,
+  DEMO_WIN_LOSS_REASONS,
+  DEMO_REVENUE_FORECAST,
+  DEMO_OUTREACH_FUNNEL,
+} from '@/lib/demo-data'
+
 type SegmentRow = { segment: string; leads: number; replyRate: number; closeRate: number; avgTicket: number; revenue: number }
 type PipelineRow  = { stage: string; avgDays: number }
 type WinLossRow   = { reason: string; percentage: number; color: string }
 type ForecastRow  = { period: string; amount: number; deals: number; probability: string }
 type FunnelRow    = { stage: string; count: number; color: string }
 
-const SEGMENT_PERFORMANCE: SegmentRow[] = []
-const PIPELINE_VELOCITY: PipelineRow[]  = []
-const WIN_LOSS_REASONS: WinLossRow[]    = []
-const REVENUE_FORECAST: ForecastRow[]   = []
-const OUTREACH_FUNNEL: FunnelRow[]      = []
+const SEGMENT_PERFORMANCE: SegmentRow[] = DEMO_SEGMENT_PERFORMANCE
+const PIPELINE_VELOCITY: PipelineRow[]  = DEMO_PIPELINE_VELOCITY
+const WIN_LOSS_REASONS: WinLossRow[]    = DEMO_WIN_LOSS_REASONS
+const REVENUE_FORECAST: ForecastRow[]   = DEMO_REVENUE_FORECAST
+const OUTREACH_FUNNEL: FunnelRow[]      = DEMO_OUTREACH_FUNNEL
 
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null

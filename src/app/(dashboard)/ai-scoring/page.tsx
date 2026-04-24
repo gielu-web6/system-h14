@@ -6,6 +6,8 @@ import {
   AlertCircle, Users,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { isDemoMode } from '@/lib/userStore'
+import { DEMO_LEADS } from '@/lib/demo-data'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -78,8 +80,28 @@ function ScoreBar({ value }: { value: number }) {
 export default function AiScoringPage() {
   const [leads, setLeads] = useState<ScoredLead[]>([])
   const [loading, setLoading] = useState(true)
+  const [expanded, setExpanded] = useState<string | null>(null)
 
   useEffect(() => {
+    if (isDemoMode()) {
+      const mapped: ScoredLead[] = [...DEMO_LEADS]
+        .sort((a, b) => b.aiScore - a.aiScore)
+        .map(l => ({
+          id: l.id,
+          firstName: l.firstName,
+          lastName: l.lastName,
+          company: l.company,
+          position: l.position,
+          aiScore: l.aiScore,
+          aiLabel: l.aiLabel,
+          problem: l.problem,
+          icebreaker: l.icebreaker,
+        }))
+      setLeads(mapped)
+      setLoading(false)
+      return
+    }
+
     async function loadLeads() {
       const supabase = createClient()
       const { data, error } = await supabase
@@ -253,26 +275,77 @@ export default function AiScoringPage() {
             <span className="text-center">Firma</span>
           </div>
           <div className="divide-y divide-white/[0.04]">
-            {leads.map((lead) => (
-              <div key={lead.id} className="grid grid-cols-[1fr_120px_80px_80px] gap-2 px-5 py-3 items-center hover:bg-white/[0.02] transition-colors">
-                <div className="min-w-0">
-                  <p className="text-[13px] font-semibold text-white truncate">{lead.firstName} {lead.lastName}</p>
-                  <p className="text-[11px] text-white/40 truncate">{lead.position}</p>
-                  {lead.problem && (
-                    <p className="text-[10px] text-white/25 truncate mt-0.5 italic">{lead.problem}</p>
+            {leads.map((lead) => {
+              const isOpen = expanded === lead.id
+              // Approximate per-criteria breakdown from total score
+              const s = lead.aiScore
+              const icp     = Math.min(25, Math.round(s * 0.28))
+              const signals = Math.min(25, Math.round(s * 0.26))
+              const activity= Math.min(25, Math.round(s * 0.24))
+              const potential=Math.min(25, s - icp - signals - activity)
+              return (
+                <div key={lead.id}>
+                  <button
+                    onClick={() => setExpanded(isOpen ? null : lead.id)}
+                    className="w-full grid grid-cols-[1fr_120px_80px_80px] gap-2 px-5 py-3 items-center hover:bg-white/[0.02] transition-colors text-left"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-semibold text-white truncate">{lead.firstName} {lead.lastName}</p>
+                      <p className="text-[11px] text-white/40 truncate">{lead.position} · {lead.company}</p>
+                    </div>
+                    <div className="min-w-0">
+                      <ScoreBar value={lead.aiScore} />
+                    </div>
+                    <div className="flex justify-center">
+                      <ScoreBadge label={lead.aiLabel} />
+                    </div>
+                    <div className="flex justify-center">
+                      <span className="text-[10px] text-white/30">{isOpen ? '▲' : '▼'}</span>
+                    </div>
+                  </button>
+
+                  {isOpen && (
+                    <div className="px-5 pb-4 pt-1 bg-white/[0.015] border-t border-white/[0.04] space-y-3">
+                      {/* Breakdown bars */}
+                      <div className="grid grid-cols-2 gap-3">
+                        {[
+                          { label: 'Dopasowanie do ICP',  val: icp,      color: '#6366f1' },
+                          { label: 'Sygnały zakupowe',    val: signals,  color: '#f59e0b' },
+                          { label: 'Aktywność online',    val: activity, color: '#22c55e' },
+                          { label: 'Potencjał projektu',  val: potential,color: '#a78bfa' },
+                        ].map(c => (
+                          <div key={c.label} className="p-2.5 rounded-[8px] bg-white/[0.03] border border-white/[0.06]">
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-[10px] text-white/50">{c.label}</span>
+                              <span className="text-[11px] font-bold" style={{ color: c.color }}>{c.val}/25</span>
+                            </div>
+                            <div className="h-1 bg-white/[0.06] rounded-full">
+                              <div className="h-full rounded-full" style={{ width: `${(c.val/25)*100}%`, background: c.color }} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Problem */}
+                      {lead.problem && (
+                        <div className="p-3 rounded-[8px] bg-amber-500/[0.07] border border-amber-500/20">
+                          <p className="text-[10px] font-semibold text-amber-400 uppercase tracking-wide mb-1">Zidentyfikowany problem</p>
+                          <p className="text-[12px] text-white/70 leading-snug">{lead.problem}</p>
+                        </div>
+                      )}
+
+                      {/* Icebreaker */}
+                      {lead.icebreaker && (
+                        <div className="p-3 rounded-[8px] bg-[#6366f1]/[0.08] border border-[#6366f1]/20">
+                          <p className="text-[10px] font-semibold text-[#a5b4fc] uppercase tracking-wide mb-1">Wygenerowany icebreaker</p>
+                          <p className="text-[12px] text-white/80 leading-snug italic">„{lead.icebreaker}"</p>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
-                <div className="min-w-0">
-                  <ScoreBar value={lead.aiScore} />
-                </div>
-                <div className="flex justify-center">
-                  <ScoreBadge label={lead.aiLabel} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[11px] text-white/50 truncate text-center">{lead.company || '—'}</p>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}

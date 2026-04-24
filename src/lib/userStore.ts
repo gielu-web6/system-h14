@@ -12,6 +12,7 @@ export interface AppUser {
 export const USERS: AppUser[] = [
   { id: 'adrian', name: 'Adrian', fullName: 'Adrian', company: 'AM Automations', initials: 'A', color: '#6366f1' },
   { id: 'maciek', name: 'Maciek', fullName: 'Maciek', company: 'AM Automations', initials: 'M', color: '#8b5cf6' },
+  { id: 'demo',   name: 'Demo',   fullName: 'Demo',   company: 'AM Automations', initials: 'D', color: '#22c55e' },
 ]
 
 export const DEMO_PASSWORD = 'Zyś'
@@ -37,4 +38,8 @@ export function setCurrentUser(id: string): void {
 export function clearCurrentUser(): void {
   if (typeof window === 'undefined') return
   localStorage.removeItem(KEY)
+}
+
+export function isDemoMode(): boolean {
+  return getCurrentUser()?.id === 'demo'
 }
