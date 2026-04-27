@@ -71,18 +71,19 @@ export async function POST(req: NextRequest) {
         value: variant.price,
       }).eq('id', dealId),
 
-      // Insert income (50% deposit)
-      getSupabaseAdmin().from('income').insert({
-        deal_id: dealId,
-        client_name: clientName,
-        project_name: deal?.title ?? variant_name,
+      // Insert income (50% deposit) into app_income — visible in Finance module
+      getSupabaseAdmin().from('app_income').insert({
+        client: clientName,
+        project: deal?.title ?? variant_name,
         amount: Math.round(variant.price * 0.5),
-        currency: 'PLN',
-        payment_type: 'zaliczka',
-        status: 'oczekujaca',
-        due_date: dueDate,
-        invoice_date: format(new Date(), 'yyyy-MM-dd'),
-        project_type: deal?.project_type ?? null,
+        vat_rate: 23,
+        vat_amount: Math.round(variant.price * 0.5 * 0.23),
+        gross_amount: Math.round(variant.price * 0.5 * 1.23),
+        net_profit: Math.round(variant.price * 0.5),
+        type: 'zaliczka',
+        status: 'oczekująca',
+        date: format(new Date(), 'yyyy-MM-dd'),
+        from_invoice: false,
       }),
 
       // Insert notification

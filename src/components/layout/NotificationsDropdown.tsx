@@ -9,6 +9,7 @@ import {
   Users, AlertCircle, ArrowRight,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useAppUser } from '@/contexts/UserContext'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -42,17 +43,27 @@ function notifStyle(type: string) {
 export function useNotifications() {
   const [notifications, setNotifications] = useState<AppNotification[]>([])
   const [loading, setLoading] = useState(true)
+  const { user } = useAppUser()
 
   const load = useCallback(async () => {
     const supabase = createClient()
-    const { data } = await supabase
+    let q = supabase
       .from('notifications')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(50)
+
+    // Show notifications for this user OR global notifications (user_id IS NULL)
+    if (user?.id) {
+      q = q.or(`user_id.is.null,user_id.eq.${user.id}`)
+    } else {
+      q = q.is('user_id', null)
+    }
+
+    const { data } = await q
     setNotifications((data as AppNotification[]) ?? [])
     setLoading(false)
-  }, [])
+  }, [user?.id])
 
   useEffect(() => {
     load()
