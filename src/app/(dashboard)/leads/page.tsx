@@ -30,6 +30,13 @@ interface Lead {
   segment: string
   aiScore: number
   aiLabel: AiScore
+  // real per-criteria scores (0–25 each)
+  aiIcpScore: number
+  aiSignalsScore: number
+  aiActivityScore: number
+  aiPotentialScore: number
+  aiReasoning: string
+  aiScoredAt: string | null
   status: 'nowy' | 'kontakt' | 'zainteresowany' | 'pipeline' | 'nieaktywny'
   lastContact: string
   problem: string
@@ -58,6 +65,12 @@ function dbToLead(row: Record<string, unknown>): Lead {
     segment: (row.segment as string) ?? 'usługi',
     aiScore: (row.ai_score_num as number) ?? 50,
     aiLabel: ((row.ai_score_label as string) ?? 'warm') as AiScore,
+    aiIcpScore:       (row.ai_icp_score       as number) ?? 0,
+    aiSignalsScore:   (row.ai_signals_score   as number) ?? 0,
+    aiActivityScore:  (row.ai_activity_score  as number) ?? 0,
+    aiPotentialScore: (row.ai_potential_score as number) ?? 0,
+    aiReasoning:      (row.ai_reasoning       as string) ?? '',
+    aiScoredAt:       (row.ai_scored_at       as string) ?? null,
     status: ((row.app_status as string) ?? 'nowy') as Lead['status'],
     lastContact: (row.last_contact as string) ?? new Date().toISOString().slice(0, 10),
     problem: (row.ai_problem as string) ?? '',
@@ -74,25 +87,31 @@ function dbToLead(row: Record<string, unknown>): Lead {
 
 function leadToDb(lead: Lead) {
   return {
-    first_name: lead.firstName,
-    last_name: lead.lastName,
-    company: lead.company,
-    position: lead.position,
-    email: lead.email,
-    phone: lead.phone,
-    city: lead.city,
-    segment: lead.segment,
-    ai_score_num: lead.aiScore,
+    first_name:  lead.firstName,
+    last_name:   lead.lastName,
+    company:     lead.company,
+    position:    lead.position,
+    email:       lead.email,
+    phone:       lead.phone,
+    city:        lead.city,
+    segment:     lead.segment,
+    ai_score_num:   lead.aiScore,
     ai_score_label: lead.aiLabel,
-    app_status: lead.status,
-    last_contact: lead.lastContact,
-    ai_problem: lead.problem,
-    ai_icebreaker: lead.icebreaker,
+    ai_icp_score:       lead.aiIcpScore,
+    ai_signals_score:   lead.aiSignalsScore,
+    ai_activity_score:  lead.aiActivityScore,
+    ai_potential_score: lead.aiPotentialScore,
+    ai_reasoning:       lead.aiReasoning || null,
+    ai_scored_at:       lead.aiScoredAt  || null,
+    app_status:     lead.status,
+    last_contact:   lead.lastContact,
+    ai_problem:     lead.problem,
+    ai_icebreaker:  lead.icebreaker,
     company_website: lead.website ?? null,
-    linkedin_url: lead.linkedin ?? null,
-    instagram_url: lead.instagram ?? null,
-    notes: lead.notes ?? null,
-    scan_data: lead.scanData ?? null,
+    linkedin_url:    lead.linkedin ?? null,
+    instagram_url:   lead.instagram ?? null,
+    notes:      lead.notes    ?? null,
+    scan_data:  lead.scanData ?? null,
     service_ids: lead.service_ids ?? [],
     outreach_history: lead.outreachHistory,
   }
@@ -295,6 +314,12 @@ function NewLeadModal({
       segment: form.segment,
       aiScore: 50,
       aiLabel: 'warm',
+      aiIcpScore: 0,
+      aiSignalsScore: 0,
+      aiActivityScore: 0,
+      aiPotentialScore: 0,
+      aiReasoning: '',
+      aiScoredAt: null,
       status: 'nowy',
       lastContact: new Date().toISOString().slice(0, 10),
       problem: '',
@@ -339,10 +364,16 @@ function NewLeadModal({
         if (result) {
           const updatedLead: Lead = {
             ...savedLead,
-            aiScore: result.total_score ?? 50,
-            aiLabel: result.label ?? 'warm',
-            problem: result.problem ?? '',
-            icebreaker: result.icebreaker ?? '',
+            aiScore:          result.total_score    ?? 50,
+            aiLabel:          result.label          ?? 'warm',
+            aiIcpScore:       result.icp_score      ?? 0,
+            aiSignalsScore:   result.signals_score  ?? 0,
+            aiActivityScore:  result.activity_score ?? 0,
+            aiPotentialScore: result.potential_score ?? 0,
+            aiReasoning:      result.reasoning      ?? '',
+            aiScoredAt:       new Date().toISOString(),
+            problem:          result.problem    ?? '',
+            icebreaker:       result.icebreaker ?? '',
           }
           onUpdate(updatedLead)
           toast.success(`Lead ${savedLead.firstName} ${savedLead.lastName} oceniony: ${result.total_score}/100`)
@@ -807,7 +838,7 @@ function EditLeadModal({
 
 function LeadScanPanel({ lead, onScanned }: { lead: Lead; onScanned: (data: Partial<Lead>) => void }) {
   const [loading, setLoading] = useState(false)
-  const [done, setDone] = useState(!!lead.problem)
+  const [done, setDone] = useState(!!lead.aiScoredAt)
 
   const scan = async () => {
     setLoading(true)
@@ -816,29 +847,36 @@ function LeadScanPanel({ lead, onScanned }: { lead: Lead; onScanned: (data: Part
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          leadId: lead.id,
           leadData: {
             first_name: lead.firstName,
-            last_name: lead.lastName,
-            company: lead.company,
-            position: lead.position,
-            industry: lead.segment,
-            linkedin_url: lead.linkedin,
+            last_name:  lead.lastName,
+            company:    lead.company,
+            position:   lead.position,
+            industry:   lead.segment,
+            linkedin_url:    lead.linkedin,
             company_website: lead.website,
-            segment: lead.segment,
-            notes: lead.notes ?? '',
+            segment:    lead.segment,
+            notes:      lead.notes ?? '',
           },
         }),
       })
       const { result } = await res.json()
       if (result) {
         onScanned({
-          aiScore: result.total_score ?? lead.aiScore,
-          aiLabel: result.label ?? lead.aiLabel,
-          problem: result.problem ?? lead.problem,
-          icebreaker: result.icebreaker ?? lead.icebreaker,
+          aiScore:          result.total_score    ?? lead.aiScore,
+          aiLabel:          result.label          ?? lead.aiLabel,
+          aiIcpScore:       result.icp_score      ?? 0,
+          aiSignalsScore:   result.signals_score  ?? 0,
+          aiActivityScore:  result.activity_score ?? 0,
+          aiPotentialScore: result.potential_score ?? 0,
+          aiReasoning:      result.reasoning      ?? '',
+          aiScoredAt:       new Date().toISOString(),
+          problem:          result.problem    ?? lead.problem,
+          icebreaker:       result.icebreaker ?? lead.icebreaker,
         })
         setDone(true)
-        toast.success('Lead przeskanowany przez AI!')
+        toast.success(`Lead oceniony: ${result.total_score}/100`)
       }
     } catch {
       toast.error('Błąd skanowania AI')
@@ -1003,18 +1041,18 @@ function LeadPanel({
               </div>
               <div className="space-y-2">
                 {[
-                  { label: 'Dopasowanie do ICP', value: Math.round(currentLead.aiScore * 0.28) },
-                  { label: 'Sygnały zakupowe', value: Math.round(currentLead.aiScore * 0.26) },
-                  { label: 'Aktywność online', value: Math.round(currentLead.aiScore * 0.24) },
-                  { label: 'Potencjał projektu', value: Math.round(currentLead.aiScore * 0.22) },
+                  { label: 'Dopasowanie do ICP',  value: currentLead.aiIcpScore,       color: '#6366f1' },
+                  { label: 'Sygnały zakupowe',    value: currentLead.aiSignalsScore,   color: '#f59e0b' },
+                  { label: 'Aktywność online',    value: currentLead.aiActivityScore,  color: '#22c55e' },
+                  { label: 'Potencjał projektu',  value: currentLead.aiPotentialScore, color: '#a78bfa' },
                 ].map(c => (
                   <div key={c.label}>
                     <div className="flex justify-between text-[10px] mb-0.5">
                       <span className="text-white/50">{c.label}</span>
-                      <span className="text-white/70">{c.value}/25</span>
+                      <span className="font-semibold" style={{ color: c.color }}>{c.value}/25</span>
                     </div>
                     <div className="h-1 bg-white/[0.06] rounded-full">
-                      <div className="h-full rounded-full bg-[#6366f1]" style={{ width: `${Math.min(100, (c.value / 25) * 100)}%` }} />
+                      <div className="h-full rounded-full" style={{ width: `${Math.min(100, (c.value / 25) * 100)}%`, background: c.color }} />
                     </div>
                   </div>
                 ))}
@@ -1030,6 +1068,11 @@ function LeadPanel({
                   <p className="text-[10px] text-white/40 uppercase tracking-wide mb-1">Icebreaker AI</p>
                   <p className="text-[12px] text-[#a5b4fc]/80 leading-relaxed italic">&quot;{currentLead.icebreaker}&quot;</p>
                 </div>
+              )}
+              {currentLead.aiScoredAt && (
+                <p className="mt-2 text-[10px] text-white/20">
+                  Oceniono: {new Date(currentLead.aiScoredAt).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}
+                </p>
               )}
             </div>
 

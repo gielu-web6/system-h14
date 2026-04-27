@@ -79,10 +79,16 @@ Odpowiedz TYLKO JSON-em w tym formacie:
     if (leadId) {
       const supabase = await createClient()
       await supabase.from('leads').update({
-        ai_score_num:   result.total_score ?? 0,
-        ai_score_label: result.label ?? 'warm',
-        ai_problem:     result.problem ?? null,
-        ai_icebreaker:  result.icebreaker ?? null,
+        ai_score_num:         result.total_score    ?? 0,
+        ai_score_label:       result.label          ?? 'warm',
+        ai_problem:           result.problem        ?? null,
+        ai_icebreaker:        result.icebreaker     ?? null,
+        ai_icp_score:         result.icp_score      ?? 0,
+        ai_signals_score:     result.signals_score  ?? 0,
+        ai_activity_score:    result.activity_score ?? 0,
+        ai_potential_score:   result.potential_score ?? 0,
+        ai_reasoning:         result.reasoning      ?? null,
+        ai_scored_at:         new Date().toISOString(),
       }).eq('id', leadId)
     }
 

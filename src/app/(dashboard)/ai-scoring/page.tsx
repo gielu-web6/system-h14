@@ -1,15 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   BrainCircuit, Flame, Thermometer, Snowflake,
-  AlertCircle, Users,
+  Users, RefreshCw, Play, Loader2, CheckCircle2, Clock,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { isDemoMode } from '@/lib/userStore'
 import { DEMO_LEADS } from '@/lib/demo-data'
+import toast from 'react-hot-toast'
 
-// ─── Types ─────────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ScoredLead {
   id: string
@@ -19,40 +20,62 @@ interface ScoredLead {
   position: string
   aiScore: number
   aiLabel: 'hot' | 'warm' | 'cold'
+  // real per-criteria scores (0–25 each)
+  icpScore: number
+  signalsScore: number
+  activityScore: number
+  potentialScore: number
   problem: string
   icebreaker: string
+  reasoning: string
+  scoredAt: string | null
+  // raw data for re-scoring
+  industry: string
+  linkedin: string
+  website: string
+  segment: string
+  notes: string
 }
 
-// ─── Criteria ─────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const CRITERIA = [
-  {
-    label: 'Dopasowanie do ICP',
-    weight: '25 pkt',
-    color: '#6366f1',
-    desc: 'Sprawdzamy czy firma pasuje do Twojego Idealnego Profilu Klienta: branża, wielkość, lokalizacja, stanowisko decydenta.',
-  },
-  {
-    label: 'Sygnały zakupowe',
-    weight: '25 pkt',
-    color: '#f59e0b',
-    desc: 'Aktywność sugerująca intencję zakupową: posty o problemach, zatrudnienia w sprzedaży/marketingu, zmiany technologii, wzrost firmy.',
-  },
-  {
-    label: 'Aktywność online',
-    weight: '25 pkt',
-    color: '#22c55e',
-    desc: 'Częstotliwość i jakość aktywności na LinkedIn/IG. Aktywne profile = wyższa szansa na odpowiedź na DM.',
-  },
-  {
-    label: 'Potencjał projektu',
-    weight: '25 pkt',
-    color: '#a78bfa',
-    desc: 'Szacowany budżet i zakres projektu na podstawie wielkości firmy, branży i sygnałów z profilu.',
-  },
-]
+function scoreLabelOf(score: number): 'hot' | 'warm' | 'cold' {
+  if (score >= 70) return 'hot'
+  if (score >= 40) return 'warm'
+  return 'cold'
+}
 
-// ─── Score badge ─────────────────────────────────────────────────────────────
+function dbToScoredLead(row: Record<string, unknown>): ScoredLead {
+  const raw = (row.ai_score_num as number) ?? 0
+  const icp      = (row.ai_icp_score      as number) ?? 0
+  const signals  = (row.ai_signals_score  as number) ?? 0
+  const activity = (row.ai_activity_score as number) ?? 0
+  const potential= (row.ai_potential_score as number) ?? 0
+  return {
+    id:           row.id as string,
+    firstName:    (row.first_name    as string) ?? '',
+    lastName:     (row.last_name     as string) ?? '',
+    company:      (row.company       as string) ?? '',
+    position:     (row.position      as string) ?? '',
+    aiScore:      raw,
+    aiLabel:      ((row.ai_score_label as string) ?? scoreLabelOf(raw)) as ScoredLead['aiLabel'],
+    icpScore:     icp,
+    signalsScore: signals,
+    activityScore: activity,
+    potentialScore: potential,
+    problem:      (row.ai_problem    as string) ?? '',
+    icebreaker:   (row.ai_icebreaker as string) ?? '',
+    reasoning:    (row.ai_reasoning  as string) ?? '',
+    scoredAt:     (row.ai_scored_at  as string) ?? null,
+    industry:     (row.industry      as string) ?? '',
+    linkedin:     (row.linkedin_url  as string) ?? '',
+    website:      (row.company_website as string) ?? '',
+    segment:      (row.segment       as string) ?? '',
+    notes:        (row.notes         as string) ?? '',
+  }
+}
+
+// ─── UI components ────────────────────────────────────────────────────────────
 
 function ScoreBadge({ label }: { label: 'hot' | 'warm' | 'cold' }) {
   if (label === 'hot')  return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 text-[10px] font-bold"><Flame size={9}/>Hot</span>
@@ -60,271 +83,407 @@ function ScoreBadge({ label }: { label: 'hot' | 'warm' | 'cold' }) {
   return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400 text-[10px] font-bold"><Snowflake size={9}/>Cold</span>
 }
 
-function ScoreBar({ value }: { value: number }) {
-  const color = value >= 70 ? '#ef4444' : value >= 40 ? '#f97316' : '#3b82f6'
+function ScoreBar({ value, max = 100 }: { value: number; max?: number }) {
+  const pct = Math.min(100, (value / max) * 100)
+  const color = max === 100
+    ? (value >= 70 ? '#ef4444' : value >= 40 ? '#f97316' : '#3b82f6')
+    : '#6366f1'
   return (
     <div className="flex items-center gap-2">
       <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full">
-        <div
-          className="h-full rounded-full transition-all"
-          style={{ width: `${value}%`, background: color }}
-        />
+        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
       </div>
-      <span className="text-[11px] font-bold text-white w-6 text-right">{value}</span>
+      <span className="text-[11px] font-bold text-white w-7 text-right">{value}</span>
     </div>
   )
+}
+
+const CRITERIA = [
+  { key: 'icpScore',       label: 'Dopasowanie do ICP',  color: '#6366f1', desc: 'Branża, wielkość firmy, stanowisko decydenta' },
+  { key: 'signalsScore',   label: 'Sygnały zakupowe',    color: '#f59e0b', desc: 'Aktywność sugerująca intencję zakupową' },
+  { key: 'activityScore',  label: 'Aktywność online',    color: '#22c55e', desc: 'Aktywność na LinkedIn/IG — wyższy = łatwiejszy DM' },
+  { key: 'potentialScore', label: 'Potencjał projektu',  color: '#a78bfa', desc: 'Szacowany budżet i zakres projektu' },
+] as const
+
+// ─── Score all (batch) ────────────────────────────────────────────────────────
+
+async function scoreOneLead(lead: ScoredLead): Promise<Partial<ScoredLead>> {
+  const res = await fetch('/api/ai/score-lead', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      leadId: lead.id,
+      leadData: {
+        first_name: lead.firstName,
+        last_name:  lead.lastName,
+        company:    lead.company,
+        position:   lead.position,
+        industry:   lead.industry || lead.segment,
+        linkedin_url:     lead.linkedin,
+        company_website:  lead.website,
+        segment:    lead.segment,
+        notes:      lead.notes,
+      },
+    }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const { result } = await res.json()
+  return {
+    aiScore:        result.total_score    ?? lead.aiScore,
+    aiLabel:        result.label          ?? lead.aiLabel,
+    icpScore:       result.icp_score      ?? 0,
+    signalsScore:   result.signals_score  ?? 0,
+    activityScore:  result.activity_score ?? 0,
+    potentialScore: result.potential_score ?? 0,
+    problem:        result.problem        ?? '',
+    icebreaker:     result.icebreaker     ?? '',
+    reasoning:      result.reasoning      ?? '',
+    scoredAt:       new Date().toISOString(),
+  }
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AiScoringPage() {
-  const [leads, setLeads] = useState<ScoredLead[]>([])
-  const [loading, setLoading] = useState(true)
-  const [expanded, setExpanded] = useState<string | null>(null)
+  const [leads, setLeads]         = useState<ScoredLead[]>([])
+  const [loading, setLoading]     = useState(true)
+  const [expanded, setExpanded]   = useState<string | null>(null)
+  const [scoring, setScoring]     = useState<Set<string>>(new Set())
+  const [batchRunning, setBatch]  = useState(false)
+  const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0 })
+  const abortRef = useRef(false)
 
-  useEffect(() => {
+  const loadLeads = useCallback(async () => {
+    setLoading(true)
     if (isDemoMode()) {
       const mapped: ScoredLead[] = [...DEMO_LEADS]
         .sort((a, b) => b.aiScore - a.aiScore)
         .map(l => ({
-          id: l.id,
-          firstName: l.firstName,
-          lastName: l.lastName,
-          company: l.company,
-          position: l.position,
-          aiScore: l.aiScore,
-          aiLabel: l.aiLabel,
-          problem: l.problem,
-          icebreaker: l.icebreaker,
+          id: l.id, firstName: l.firstName, lastName: l.lastName,
+          company: l.company, position: l.position,
+          aiScore: l.aiScore, aiLabel: l.aiLabel,
+          icpScore: 0, signalsScore: 0, activityScore: 0, potentialScore: 0,
+          problem: l.problem, icebreaker: l.icebreaker, reasoning: '',
+          scoredAt: null, industry: '', linkedin: '', website: '', segment: '', notes: '',
         }))
       setLeads(mapped)
       setLoading(false)
       return
     }
 
-    async function loadLeads() {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from('leads')
-        .select('id, first_name, last_name, company, position, ai_score_num, ai_score_label, ai_problem, ai_icebreaker')
-        .order('ai_score_num', { ascending: false })
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('leads')
+      .select(`id, first_name, last_name, company, position, industry, segment,
+               linkedin_url, company_website, notes,
+               ai_score_num, ai_score_label, ai_problem, ai_icebreaker,
+               ai_icp_score, ai_signals_score, ai_activity_score, ai_potential_score,
+               ai_reasoning, ai_scored_at`)
+      .order('ai_score_num', { ascending: false })
 
-      if (error) {
-        console.error('Błąd ładowania leadów:', error)
-        setLoading(false)
-        return
-      }
-
-      const mapped: ScoredLead[] = (data ?? []).map((row) => ({
-        id: row.id as string,
-        firstName: (row.first_name as string) ?? '',
-        lastName: (row.last_name as string) ?? '',
-        company: (row.company as string) ?? '',
-        position: (row.position as string) ?? '',
-        aiScore: (row.ai_score_num as number) ?? 50,
-        aiLabel: ((row.ai_score_label as string) ?? 'warm') as 'hot' | 'warm' | 'cold',
-        problem: (row.ai_problem as string) ?? '',
-        icebreaker: (row.ai_icebreaker as string) ?? '',
-      }))
-
-      setLeads(mapped)
-      setLoading(false)
+    if (error) {
+      toast.error('Błąd ładowania leadów')
+      console.error(error)
+    } else {
+      setLeads((data ?? []).map(r => dbToScoredLead(r as Record<string, unknown>)))
     }
-    loadLeads()
+    setLoading(false)
   }, [])
 
-  const hot  = leads.filter(l => l.aiLabel === 'hot').length
-  const warm = leads.filter(l => l.aiLabel === 'warm').length
-  const cold = leads.filter(l => l.aiLabel === 'cold').length
-  const total = leads.length
+  useEffect(() => { void loadLeads() }, [loadLeads])
+
+  const rescoreLead = useCallback(async (lead: ScoredLead) => {
+    if (isDemoMode()) { toast('Demo mode — scoring wyłączony'); return }
+    setScoring(s => new Set(s).add(lead.id))
+    try {
+      const updates = await scoreOneLead(lead)
+      setLeads(prev => prev
+        .map(l => l.id === lead.id ? { ...l, ...updates } : l)
+        .sort((a, b) => b.aiScore - a.aiScore))
+      toast.success(`${lead.firstName}: ${updates.aiScore}/100`)
+    } catch {
+      toast.error(`Błąd scoringu: ${lead.firstName}`)
+    } finally {
+      setScoring(s => { const n = new Set(s); n.delete(lead.id); return n })
+    }
+  }, [])
+
+  const unscored = leads.filter(l => !l.scoredAt && !isDemoMode())
+
+  const runBatchScoring = useCallback(async () => {
+    if (isDemoMode() || batchRunning) return
+    const targets = leads.filter(l => !l.scoredAt)
+    if (!targets.length) { toast('Wszystkie leady mają już scoring'); return }
+
+    abortRef.current = false
+    setBatch(true)
+    setBatchProgress({ done: 0, total: targets.length })
+
+    for (let i = 0; i < targets.length; i++) {
+      if (abortRef.current) break
+      const lead = targets[i]
+      setScoring(s => new Set(s).add(lead.id))
+      try {
+        const updates = await scoreOneLead(lead)
+        setLeads(prev =>
+          prev.map(l => l.id === lead.id ? { ...l, ...updates } : l)
+              .sort((a, b) => b.aiScore - a.aiScore)
+        )
+      } catch {
+        // continue — don't abort on single failure
+      }
+      setScoring(s => { const n = new Set(s); n.delete(lead.id); return n })
+      setBatchProgress({ done: i + 1, total: targets.length })
+
+      // 1.5s pause between calls to avoid rate limiting
+      if (i < targets.length - 1) await new Promise(r => setTimeout(r, 1500))
+    }
+
+    setBatch(false)
+    toast.success('Batch scoring zakończony!')
+  }, [leads, batchRunning])
+
+  const stopBatch = () => { abortRef.current = true; setBatch(false) }
+
+  const hot   = leads.filter(l => l.aiLabel === 'hot'  && l.scoredAt).length
+  const warm  = leads.filter(l => l.aiLabel === 'warm' && l.scoredAt).length
+  const cold  = leads.filter(l => l.aiLabel === 'cold' && l.scoredAt).length
+  const scored = leads.filter(l => !!l.scoredAt).length
+  const total  = leads.length
 
   return (
     <div className="max-w-[1200px] space-y-6">
+
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-[20px] font-bold text-white flex items-center gap-2">
             <BrainCircuit size={20} className="text-[#6366f1]" />
             AI Scoring Leadów
           </h1>
-          <p className="text-[12px] text-white/40 mt-0.5">Automatyczna ocena każdego leadu w skali 0-100</p>
+          <p className="text-[12px] text-white/40 mt-0.5">
+            {loading ? 'Ładowanie…' : `${scored}/${total} ocenionych · ${unscored.length} czeka na scoring`}
+          </p>
         </div>
-        {total > 0 && (
-          <span className="text-[12px] text-white/40 bg-white/[0.05] border border-white/[0.08] px-3 py-1.5 rounded-[8px]">
-            {total} leadów ocenionych
-          </span>
+
+        {!loading && !isDemoMode() && (
+          <div className="flex items-center gap-2">
+            {batchRunning ? (
+              <>
+                <span className="text-[12px] text-white/50 flex items-center gap-1.5">
+                  <Loader2 size={12} className="animate-spin" />
+                  {batchProgress.done}/{batchProgress.total} leadów…
+                </span>
+                <button onClick={stopBatch}
+                  className="px-3 py-1.5 rounded-[8px] bg-red-500/15 border border-red-500/30 text-red-400 text-[12px] font-medium hover:bg-red-500/20 transition-all">
+                  Zatrzymaj
+                </button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => void loadLeads()}
+                  className="p-1.5 rounded-[8px] bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-white transition-all" title="Odśwież">
+                  <RefreshCw size={14} />
+                </button>
+                {unscored.length > 0 && (
+                  <button onClick={() => void runBatchScoring()}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#6366f1] hover:bg-[#5254cc] text-white text-[12px] font-bold transition-all shadow-lg shadow-indigo-500/20">
+                    <Play size={13} /> Oceń wszystkich bez scoringu ({unscored.length})
+                  </button>
+                )}
+              </>
+            )}
+          </div>
         )}
       </div>
 
-      {/* Status bar */}
-      {loading ? (
+      {/* Loading */}
+      {loading && (
         <div className="flex items-center gap-3 p-4 rounded-[12px] bg-white/[0.03] border border-white/[0.07]">
           <div className="w-4 h-4 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
           <p className="text-[13px] text-white/40">Ładowanie leadów…</p>
         </div>
-      ) : total === 0 ? (
+      )}
+
+      {/* Empty state */}
+      {!loading && total === 0 && (
         <div className="flex items-center gap-3 p-4 rounded-[12px] bg-white/[0.03] border border-white/[0.07]">
           <Users size={16} className="text-white/30 flex-shrink-0" />
-          <div className="flex-1">
-            <p className="text-[13px] font-semibold text-white/60">Brak leadów do oceny</p>
-            <p className="text-[11px] text-white/30">
-              Najpierw dodaj leadów w zakładce <span className="text-white/50">Leady</span>, potem AI oceni każdego automatycznie.
-            </p>
+          <div>
+            <p className="text-[13px] font-semibold text-white/60">Brak leadów</p>
+            <p className="text-[11px] text-white/30">Dodaj leadów w zakładce Leady, AI oceni ich automatycznie.</p>
           </div>
         </div>
-      ) : null}
+      )}
 
-      {/* Methodology + Distribution */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
+      {/* Stats + methodology */}
+      {!loading && total > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4">
 
-        {/* Methodology */}
-        <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
-          <p className="text-[14px] font-semibold text-white mb-1">Metodologia scoringu</p>
-          <p className="text-[12px] text-white/40 mb-4">Każdy lead oceniany jest na 4 kryteriach (maks. 25 pkt każde = 100 pkt łącznie)</p>
-          <div className="space-y-4">
-            {CRITERIA.map((c) => (
-              <div key={c.label} className="p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.05]">
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: c.color }} />
-                    <span className="text-[13px] font-semibold text-white">{c.label}</span>
+          {/* Methodology */}
+          <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
+            <p className="text-[14px] font-semibold text-white mb-1">Metodologia scoringu</p>
+            <p className="text-[12px] text-white/40 mb-4">4 kryteria po max 25 pkt = 100 pkt łącznie</p>
+            <div className="space-y-3">
+              {CRITERIA.map(c => (
+                <div key={c.key} className="p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.05]">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: c.color }} />
+                      <span className="text-[12px] font-semibold text-white">{c.label}</span>
+                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: c.color + '20', color: c.color }}>max 25</span>
                   </div>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: c.color + '20', color: c.color }}>
-                    max {c.weight}
-                  </span>
+                  <p className="text-[11px] text-white/45 ml-4">{c.desc}</p>
                 </div>
-                <p className="text-[12px] text-white/50 leading-relaxed">{c.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Distribution */}
-        <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
-          <p className="text-[14px] font-semibold text-white mb-1">Rozkład bazy leadów</p>
-          <p className="text-[12px] text-white/40 mb-4">
-            {loading ? 'Ładowanie…' : total === 0 ? 'Brak ocenionych leadów' : `${total} leadów łącznie`}
-          </p>
-
-          {!loading && total > 0 && (
-            <div className="space-y-3 mb-4">
-              <div className="flex items-center gap-2">
-                <Flame size={12} className="text-red-400 flex-shrink-0" />
-                <div className="flex-1 h-2 bg-white/[0.06] rounded-full overflow-hidden">
-                  <div className="h-full bg-red-500 rounded-full" style={{ width: `${total ? (hot / total) * 100 : 0}%` }} />
-                </div>
-                <span className="text-[11px] text-white/50 w-8 text-right">{hot}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Thermometer size={12} className="text-orange-400 flex-shrink-0" />
-                <div className="flex-1 h-2 bg-white/[0.06] rounded-full overflow-hidden">
-                  <div className="h-full bg-orange-500 rounded-full" style={{ width: `${total ? (warm / total) * 100 : 0}%` }} />
-                </div>
-                <span className="text-[11px] text-white/50 w-8 text-right">{warm}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Snowflake size={12} className="text-blue-400 flex-shrink-0" />
-                <div className="flex-1 h-2 bg-white/[0.06] rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${total ? (cold / total) * 100 : 0}%` }} />
-                </div>
-                <span className="text-[11px] text-white/50 w-8 text-right">{cold}</span>
-              </div>
-            </div>
-          )}
-
-          {!loading && total === 0 && (
-            <div className="flex flex-col items-center justify-center py-8 gap-2">
-              <div className="w-16 h-16 rounded-full bg-white/[0.04] border-2 border-dashed border-white/10 flex items-center justify-center">
-                <BrainCircuit size={24} className="text-white/20" />
-              </div>
-              <p className="text-[12px] text-white/30 text-center mt-1">Dodaj leadów i uruchom scoring</p>
-            </div>
-          )}
-
-          <div className="grid grid-cols-3 gap-2 mt-2 pt-4 border-t border-white/[0.07]">
-            <div className="text-center">
-              <Flame size={16} className="text-red-400 mx-auto mb-1" />
-              <p className="text-[16px] font-bold text-white">{loading ? '…' : hot}</p>
-              <p className="text-[9px] text-white/40 uppercase tracking-wide">Hot leads</p>
-            </div>
-            <div className="text-center">
-              <Thermometer size={16} className="text-orange-400 mx-auto mb-1" />
-              <p className="text-[16px] font-bold text-white">{loading ? '…' : warm}</p>
-              <p className="text-[9px] text-white/40 uppercase tracking-wide">Warm leads</p>
-            </div>
-            <div className="text-center">
-              <Snowflake size={16} className="text-blue-400 mx-auto mb-1" />
-              <p className="text-[16px] font-bold text-white">{loading ? '…' : cold}</p>
-              <p className="text-[9px] text-white/40 uppercase tracking-wide">Cold leads</p>
+              ))}
             </div>
           </div>
+
+          {/* Distribution */}
+          <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5 flex flex-col">
+            <p className="text-[14px] font-semibold text-white mb-1">Rozkład bazy</p>
+            <p className="text-[12px] text-white/40 mb-4">{scored} z {total} leadów ocenionych</p>
+
+            {scored > 0 && (
+              <div className="space-y-3 mb-4">
+                {[
+                  { icon: Flame, color: 'text-red-400', bar: '#ef4444', count: hot, label: 'Hot' },
+                  { icon: Thermometer, color: 'text-orange-400', bar: '#f97316', count: warm, label: 'Warm' },
+                  { icon: Snowflake, color: 'text-blue-400', bar: '#3b82f6', count: cold, label: 'Cold' },
+                ].map(({ icon: Icon, color, bar, count, label }) => (
+                  <div key={label} className="flex items-center gap-2">
+                    <Icon size={12} className={`${color} flex-shrink-0`} />
+                    <div className="flex-1 h-2 bg-white/[0.06] rounded-full overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${scored ? (count / scored) * 100 : 0}%`, background: bar }} />
+                    </div>
+                    <span className="text-[11px] text-white/50 w-6 text-right">{count}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {unscored.length > 0 && (
+              <div className="mt-auto p-3 rounded-[10px] bg-amber-500/[0.07] border border-amber-500/20">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <Clock size={12} className="text-amber-400" />
+                  <p className="text-[12px] font-semibold text-amber-400">{unscored.length} leadów bez scoringu</p>
+                </div>
+                <p className="text-[10px] text-white/40">Kliknij &quot;Oceń wszystkich&quot; aby uruchomić batch scoring</p>
+              </div>
+            )}
+
+            {scored > 0 && (
+              <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/[0.07]">
+                {[
+                  { icon: Flame, color: 'text-red-400', count: hot, label: 'Hot leads' },
+                  { icon: Thermometer, color: 'text-orange-400', count: warm, label: 'Warm' },
+                  { icon: Snowflake, color: 'text-blue-400', count: cold, label: 'Cold' },
+                ].map(({ icon: Icon, color, count, label }) => (
+                  <div key={label} className="text-center">
+                    <Icon size={16} className={`${color} mx-auto mb-1`} />
+                    <p className="text-[16px] font-bold text-white">{count}</p>
+                    <p className="text-[9px] text-white/40 uppercase tracking-wide">{label}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Leads table */}
       {!loading && total > 0 && (
         <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] overflow-hidden">
-          <div className="px-5 py-4 border-b border-white/[0.07]">
-            <p className="text-[14px] font-semibold text-white">Wszystkie ocenione leady</p>
-            <p className="text-[12px] text-white/40 mt-0.5">Posortowane od najwyższego score</p>
+          <div className="px-5 py-4 border-b border-white/[0.07] flex items-center justify-between">
+            <div>
+              <p className="text-[14px] font-semibold text-white">Wszystkie leady</p>
+              <p className="text-[12px] text-white/40 mt-0.5">Posortowane od najwyższego score</p>
+            </div>
           </div>
-          <div className="grid grid-cols-[1fr_120px_80px_80px] gap-2 px-5 py-2 border-b border-white/[0.05] text-[10px] font-semibold text-white/30 uppercase tracking-wide">
+
+          <div className="grid grid-cols-[1fr_140px_80px_80px_36px] gap-2 px-5 py-2 border-b border-white/[0.05] text-[10px] font-semibold text-white/30 uppercase tracking-wide">
             <span>Lead</span>
             <span>Score</span>
             <span className="text-center">Label</span>
-            <span className="text-center">Firma</span>
+            <span className="text-center">Scoring</span>
+            <span />
           </div>
+
           <div className="divide-y divide-white/[0.04]">
             {leads.map((lead) => {
-              const isOpen = expanded === lead.id
-              // Approximate per-criteria breakdown from total score
-              const s = lead.aiScore
-              const icp     = Math.min(25, Math.round(s * 0.28))
-              const signals = Math.min(25, Math.round(s * 0.26))
-              const activity= Math.min(25, Math.round(s * 0.24))
-              const potential=Math.min(25, s - icp - signals - activity)
+              const isOpen    = expanded === lead.id
+              const isScoring = scoring.has(lead.id)
+              const hasScore  = !!lead.scoredAt
+
               return (
                 <div key={lead.id}>
-                  <button
-                    onClick={() => setExpanded(isOpen ? null : lead.id)}
-                    className="w-full grid grid-cols-[1fr_120px_80px_80px] gap-2 px-5 py-3 items-center hover:bg-white/[0.02] transition-colors text-left"
-                  >
-                    <div className="min-w-0">
+                  {/* Row */}
+                  <div className="grid grid-cols-[1fr_140px_80px_80px_36px] gap-2 px-5 py-3 items-center hover:bg-white/[0.02] transition-colors">
+                    {/* Name */}
+                    <button onClick={() => setExpanded(isOpen ? null : lead.id)} className="text-left min-w-0">
                       <p className="text-[13px] font-semibold text-white truncate">{lead.firstName} {lead.lastName}</p>
                       <p className="text-[11px] text-white/40 truncate">{lead.position} · {lead.company}</p>
-                    </div>
-                    <div className="min-w-0">
-                      <ScoreBar value={lead.aiScore} />
-                    </div>
-                    <div className="flex justify-center">
-                      <ScoreBadge label={lead.aiLabel} />
-                    </div>
-                    <div className="flex justify-center">
-                      <span className="text-[10px] text-white/30">{isOpen ? '▲' : '▼'}</span>
-                    </div>
-                  </button>
+                    </button>
 
+                    {/* Score bar */}
+                    <button onClick={() => setExpanded(isOpen ? null : lead.id)} className="min-w-0">
+                      {hasScore
+                        ? <ScoreBar value={lead.aiScore} />
+                        : <span className="text-[11px] text-white/25 italic">nie oceniony</span>
+                      }
+                    </button>
+
+                    {/* Label */}
+                    <div className="flex justify-center">
+                      {hasScore ? <ScoreBadge label={lead.aiLabel} /> : <span className="text-[10px] text-white/20">—</span>}
+                    </div>
+
+                    {/* Status */}
+                    <div className="flex justify-center">
+                      {isScoring ? (
+                        <Loader2 size={13} className="animate-spin text-[#6366f1]" />
+                      ) : hasScore ? (
+                        <CheckCircle2 size={13} className="text-green-400" />
+                      ) : (
+                        <Clock size={13} className="text-white/20" />
+                      )}
+                    </div>
+
+                    {/* Re-score button */}
+                    <button
+                      onClick={() => void rescoreLead(lead)}
+                      disabled={isScoring || batchRunning || isDemoMode()}
+                      title={hasScore ? 'Re-score' : 'Oceń teraz'}
+                      className="p-1.5 rounded-[6px] text-white/30 hover:text-[#a5b4fc] hover:bg-[#6366f1]/10 disabled:opacity-30 transition-all"
+                    >
+                      <RefreshCw size={12} />
+                    </button>
+                  </div>
+
+                  {/* Expanded detail */}
                   {isOpen && (
-                    <div className="px-5 pb-4 pt-1 bg-white/[0.015] border-t border-white/[0.04] space-y-3">
-                      {/* Breakdown bars */}
-                      <div className="grid grid-cols-2 gap-3">
-                        {[
-                          { label: 'Dopasowanie do ICP',  val: icp,      color: '#6366f1' },
-                          { label: 'Sygnały zakupowe',    val: signals,  color: '#f59e0b' },
-                          { label: 'Aktywność online',    val: activity, color: '#22c55e' },
-                          { label: 'Potencjał projektu',  val: potential,color: '#a78bfa' },
-                        ].map(c => (
-                          <div key={c.label} className="p-2.5 rounded-[8px] bg-white/[0.03] border border-white/[0.06]">
-                            <div className="flex items-center justify-between mb-1.5">
-                              <span className="text-[10px] text-white/50">{c.label}</span>
-                              <span className="text-[11px] font-bold" style={{ color: c.color }}>{c.val}/25</span>
-                            </div>
-                            <div className="h-1 bg-white/[0.06] rounded-full">
-                              <div className="h-full rounded-full" style={{ width: `${(c.val/25)*100}%`, background: c.color }} />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                    <div className="px-5 pb-5 pt-2 bg-white/[0.015] border-t border-white/[0.04] space-y-4">
+
+                      {/* Per-criteria breakdown */}
+                      {hasScore && (
+                        <div className="grid grid-cols-2 gap-3">
+                          {CRITERIA.map(c => {
+                            const val = lead[c.key as keyof ScoredLead] as number
+                            return (
+                              <div key={c.key} className="p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.06]">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-[11px] text-white/50">{c.label}</span>
+                                  <span className="text-[12px] font-bold" style={{ color: c.color }}>{val}/25</span>
+                                </div>
+                                <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                                  <div className="h-full rounded-full transition-all" style={{ width: `${(val / 25) * 100}%`, background: c.color }} />
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
 
                       {/* Problem */}
                       {lead.problem && (
@@ -337,9 +496,37 @@ export default function AiScoringPage() {
                       {/* Icebreaker */}
                       {lead.icebreaker && (
                         <div className="p-3 rounded-[8px] bg-[#6366f1]/[0.08] border border-[#6366f1]/20">
-                          <p className="text-[10px] font-semibold text-[#a5b4fc] uppercase tracking-wide mb-1">Wygenerowany icebreaker</p>
-                          <p className="text-[12px] text-white/80 leading-snug italic">„{lead.icebreaker}"</p>
+                          <p className="text-[10px] font-semibold text-[#a5b4fc] uppercase tracking-wide mb-1">Icebreaker AI</p>
+                          <p className="text-[12px] text-white/80 leading-snug italic">&quot;{lead.icebreaker}&quot;</p>
                         </div>
+                      )}
+
+                      {/* Reasoning */}
+                      {lead.reasoning && (
+                        <div className="p-3 rounded-[8px] bg-white/[0.03] border border-white/[0.06]">
+                          <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1">Uzasadnienie AI</p>
+                          <p className="text-[12px] text-white/55 leading-snug">{lead.reasoning}</p>
+                        </div>
+                      )}
+
+                      {/* No score yet */}
+                      {!hasScore && (
+                        <button
+                          onClick={() => void rescoreLead(lead)}
+                          disabled={isScoring || batchRunning || isDemoMode()}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-[#6366f1]/10 border border-[#6366f1]/30 text-[#a5b4fc] text-[12px] font-semibold hover:bg-[#6366f1]/20 disabled:opacity-50 transition-all"
+                        >
+                          {isScoring
+                            ? <><Loader2 size={13} className="animate-spin" /> Oceniam…</>
+                            : <><BrainCircuit size={13} /> Oceń ten lead teraz</>
+                          }
+                        </button>
+                      )}
+
+                      {lead.scoredAt && (
+                        <p className="text-[10px] text-white/20 text-right">
+                          Ostatni scoring: {new Date(lead.scoredAt).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}
+                        </p>
                       )}
                     </div>
                   )}
@@ -349,18 +536,6 @@ export default function AiScoringPage() {
           </div>
         </div>
       )}
-
-      {/* Alert box */}
-      <div className="flex items-start gap-3 p-4 rounded-[12px] bg-amber-500/[0.07] border border-amber-500/20">
-        <AlertCircle size={15} className="text-amber-400 flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="text-[12px] font-semibold text-amber-400">Scoring odświeżany co 12h</p>
-          <p className="text-[11px] text-white/40 mt-0.5 leading-relaxed">
-            AI automatycznie przeocenia leady co 12 godzin na podstawie nowych sygnałów z LinkedIn i aktywności online.
-            Leady oznaczone jako Hot powinny otrzymać wiadomość w ciągu 12h.
-          </p>
-        </div>
-      </div>
     </div>
   )
 }
