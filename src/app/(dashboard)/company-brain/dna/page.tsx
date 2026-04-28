@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   Brain, Save, Loader2, Plus, X, ChevronRight, CheckCircle2,
   Building2, Target, TrendingUp, Megaphone, Star, BarChart3, Eye,
+  RefreshCw, MessageSquare, Send, ChevronDown, ChevronUp,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -210,9 +211,140 @@ function TagList({ items, onChange, placeholder }: {
   )
 }
 
+// ─── AI Interview component ───────────────────────────────────────────────────
+
+interface InterviewQuestion {
+  field: string
+  question: string
+  hint: string
+  category: string
+}
+
+function AIInterviewTab({ onDNASaved }: { onDNASaved: () => void }) {
+  const [questions, setQuestions]   = useState<InterviewQuestion[]>([])
+  const [answers, setAnswers]       = useState<Record<string, string>>({})
+  const [saving, setSaving]         = useState<Record<string, boolean>>({})
+  const [saved, setSaved]           = useState<Record<string, boolean>>({})
+  const [loading, setLoading]       = useState(true)
+  const [expanded, setExpanded]     = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('/api/company-brain/interview')
+      .then(r => r.json())
+      .then(d => {
+        setQuestions(d.questions ?? [])
+        if ((d.questions ?? []).length > 0) setExpanded(d.questions[0].field)
+      })
+      .catch(() => toast.error('Błąd pobierania pytań'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const saveAnswer = async (q: InterviewQuestion) => {
+    const answer = answers[q.field]?.trim()
+    if (!answer) { toast.error('Wpisz odpowiedź'); return }
+
+    setSaving(s => ({ ...s, [q.field]: true }))
+    try {
+      const res = await fetch('/api/company-brain/interview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ field: q.field, question: q.question, answer }),
+      })
+      if (!res.ok) throw new Error((await res.json()).error)
+      setSaved(s => ({ ...s, [q.field]: true }))
+      setQuestions(prev => prev.filter(p => p.field !== q.field))
+      toast.success('Odpowiedź zapisana do DNA ✓')
+      onDNASaved()
+    } catch (e: unknown) {
+      toast.error((e as Error).message ?? 'Błąd zapisu')
+    } finally {
+      setSaving(s => ({ ...s, [q.field]: false }))
+    }
+  }
+
+  if (loading) return (
+    <div className="flex items-center gap-3 py-8 justify-center">
+      <Loader2 size={16} className="animate-spin text-white/40" />
+      <span className="text-[13px] text-white/40">Analizuję brakującą wiedzę…</span>
+    </div>
+  )
+
+  if (questions.length === 0) return (
+    <div className="py-10 text-center space-y-3">
+      <CheckCircle2 size={32} className="text-green-400 mx-auto" />
+      <p className="text-[14px] font-semibold text-white">DNA jest kompletne!</p>
+      <p className="text-[12px] text-white/40">Wszystkie kluczowe informacje zostały uzupełnione.</p>
+    </div>
+  )
+
+  const categories = [...new Set(questions.map(q => q.category))]
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 p-3 rounded-[10px] bg-[#6366f1]/[0.07] border border-[#6366f1]/20">
+        <MessageSquare size={14} className="text-[#a5b4fc] flex-shrink-0" />
+        <p className="text-[12px] text-white/60">
+          <span className="text-[#a5b4fc] font-semibold">{questions.length} pytań</span> o brakującą wiedzę.
+          Odpowiedz na te które znasz — AI automatycznie uzupełni DNA.
+        </p>
+      </div>
+
+      {categories.map(category => (
+        <div key={category}>
+          <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-2">{category}</p>
+          <div className="space-y-2">
+            {questions.filter(q => q.category === category).map(q => (
+              <div key={q.field} className="bg-white/[0.03] border border-white/[0.07] rounded-[12px] overflow-hidden">
+                <button
+                  onClick={() => setExpanded(expanded === q.field ? null : q.field)}
+                  className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-white/[0.02] transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-medium text-white">{q.question}</p>
+                    {q.hint && <p className="text-[11px] text-white/35 mt-0.5 italic">{q.hint}</p>}
+                  </div>
+                  {expanded === q.field
+                    ? <ChevronUp size={13} className="text-white/30 flex-shrink-0 mt-0.5" />
+                    : <ChevronDown size={13} className="text-white/30 flex-shrink-0 mt-0.5" />
+                  }
+                </button>
+
+                {expanded === q.field && (
+                  <div className="px-4 pb-4 border-t border-white/[0.05] pt-3 space-y-2">
+                    <textarea
+                      value={answers[q.field] ?? ''}
+                      onChange={e => setAnswers(a => ({ ...a, [q.field]: e.target.value }))}
+                      placeholder={`Twoja odpowiedź… (${q.hint})`}
+                      rows={4}
+                      className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[12px] text-white placeholder:text-white/25 focus:outline-none focus:border-[#6366f1]/50 transition-colors resize-none"
+                    />
+                    <button
+                      onClick={() => void saveAnswer(q)}
+                      disabled={saving[q.field] || !answers[q.field]?.trim()}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-[7px] bg-[#6366f1] hover:bg-[#5254cc] disabled:opacity-40 text-white text-[12px] font-semibold transition-all"
+                    >
+                      {saving[q.field]
+                        ? <><Loader2 size={12} className="animate-spin" /> Zapisuję…</>
+                        : saved[q.field]
+                        ? <><CheckCircle2 size={12} /> Zapisano!</>
+                        : <><Send size={12} /> Zapisz odpowiedź do DNA</>
+                      }
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 
 const TABS = [
+  { id: 'interview', label: 'AI Wywiad',   icon: MessageSquare },
   { id: 'basics',   label: 'Podstawy',   icon: Building2  },
   { id: 'services', label: 'Usługi',     icon: Star       },
   { id: 'icp',      label: 'Klient ICP', icon: Target     },
@@ -229,9 +361,10 @@ type TabId = typeof TABS[number]['id']
 
 export default function DNAEditorPage() {
   const [dna, setDna]       = useState<DNA>(EMPTY_DNA)
-  const [tab, setTab]       = useState<TabId>('basics')
+  const [tab, setTab]       = useState<TabId>('interview')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving]   = useState(false)
+  const [syncing, setSyncing] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -244,6 +377,21 @@ export default function DNAEditorPage() {
       setLoading(false)
     }
   }, [])
+
+  const syncFromFiles = async () => {
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/company-brain/sync', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      toast.success(`Zsynchronizowano ${data.synced} plików z DNA ✓`)
+      await load()
+    } catch (e: unknown) {
+      toast.error((e as Error).message ?? 'Błąd synchronizacji')
+    } finally {
+      setSyncing(false)
+    }
+  }
 
   useEffect(() => { void load() }, [load])
 
@@ -301,16 +449,27 @@ export default function DNAEditorPage() {
           <h1 className="text-[20px] font-bold text-white flex items-center gap-2">
             <Brain size={20} className="text-[#6366f1]" /> Company DNA Editor
           </h1>
-          <p className="text-[12px] text-white/40 mt-0.5">Profil firmy wstrzykiwany do każdego AI call w systemie</p>
+          <p className="text-[12px] text-white/40 mt-0.5">Profil firmy zasilany automatycznie z plików kontekstowych</p>
         </div>
-        <button
-          onClick={() => void save()}
-          disabled={saving}
-          className="flex items-center gap-2 px-4 py-2 rounded-[10px] bg-[#6366f1] hover:bg-[#5254cc] disabled:opacity-50 text-white text-[13px] font-bold transition-all shadow-lg shadow-indigo-500/20"
-        >
-          {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-          {saving ? 'Zapisuję…' : 'Zapisz DNA'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => void syncFromFiles()}
+            disabled={syncing}
+            title="Zaciągnij dane ze wszystkich przetworzonych plików"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.08] disabled:opacity-50 text-white/60 hover:text-white text-[12px] font-semibold transition-all"
+          >
+            {syncing ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
+            {syncing ? 'Synchronizuję…' : 'Sync z plików'}
+          </button>
+          <button
+            onClick={() => void save()}
+            disabled={saving}
+            className="flex items-center gap-2 px-4 py-2 rounded-[10px] bg-[#6366f1] hover:bg-[#5254cc] disabled:opacity-50 text-white text-[13px] font-bold transition-all shadow-lg shadow-indigo-500/20"
+          >
+            {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+            {saving ? 'Zapisuję…' : 'Zapisz DNA'}
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -333,6 +492,11 @@ export default function DNAEditorPage() {
 
       {/* Tab content */}
       <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-6">
+
+        {/* ── AI INTERVIEW ── */}
+        {tab === 'interview' && (
+          <AIInterviewTab onDNASaved={load} />
+        )}
 
         {/* ── BASICS ── */}
         {tab === 'basics' && (

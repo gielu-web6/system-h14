@@ -24,10 +24,8 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   await supabase.from('context_files').update({ processing_status: 'processing' }).eq('id', fileId)
 
   try {
-    // Delete old chunks
     await supabase.from('context_chunks').delete().eq('file_id', fileId)
 
-    // Generate summary and key facts
     const summaryRes = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{
@@ -47,7 +45,6 @@ Odpowiedz jako JSON: {"summary": "...", "key_facts": ["...", "..."]}`,
 
     const { summary, key_facts } = JSON.parse(summaryRes.choices[0].message.content ?? '{}')
 
-    // Chunk and embed
     const chunksCount = await chunkAndEmbed(fileId, file.raw_text, file.category, file.priority ?? 1)
 
     await supabase.from('context_files').update({
@@ -58,7 +55,6 @@ Odpowiedz jako JSON: {"summary": "...", "key_facts": ["...", "..."]}`,
       processed_at: new Date().toISOString(),
     }).eq('id', fileId)
 
-    // Optionally update DNA from key documents
     await updateDNAFromFile(file.raw_text, file.category)
 
     return NextResponse.json({ success: true, chunks: chunksCount })
@@ -72,41 +68,218 @@ Odpowiedz jako JSON: {"summary": "...", "key_facts": ["...", "..."]}`,
   }
 }
 
-async function updateDNAFromFile(text: string, category: string) {
-  const relevantCategories = ['icp_profil', 'strategia_firmy', 'opis_uslug']
-  if (!relevantCategories.includes(category)) return
+// ─── Category-specific extraction prompts ─────────────────────────────────────
+
+const CATEGORY_PROMPTS: Record<string, string> = {
+  strategia_firmy: `Przeanalizuj ten dokument strategiczny firmy i wyciągnij TYLKO informacje faktycznie zawarte w tekście.
+Zwróć JSON (null dla pól których nie ma):
+{
+  "company_name": string|null,
+  "company_tagline": string|null,
+  "company_description": string|null,
+  "core_usp": string|null,
+  "secondary_usps": string[]|null,
+  "competitive_advantages": string[]|null,
+  "brand_words": string[]|null,
+  "brand_avoid_words": string[]|null,
+  "content_pillars": string[]|null,
+  "founded_year": number|null,
+  "team_size": string|null,
+  "location": string|null,
+  "founder_voice": string|null
+}`,
+
+  opis_uslug: `Przeanalizuj ten dokument opisujący usługi firmy i wyciągnij TYLKO informacje faktycznie zawarte.
+Zwróć JSON (null dla pól których nie ma):
+{
+  "services": [{"name": string, "description": string, "price_range": string, "delivery_time": string, "usp": string}]|null,
+  "price_range_min": number|null,
+  "price_range_max": number|null,
+  "avg_ticket": number|null,
+  "deal_below_which_skip": number|null,
+  "core_usp": string|null
+}`,
+
+  strategia_sprzedazy: `Przeanalizuj ten dokument strategii sprzedaży i wyciągnij TYLKO informacje faktycznie zawarte.
+Zwróć JSON (null dla pól których nie ma):
+{
+  "avg_sales_cycle_days": number|null,
+  "close_rate_percent": number|null,
+  "avg_followups_to_close": number|null,
+  "top_objections": [{"objection": string, "best_response": string, "frequency": "high"|"medium"|"low"}]|null,
+  "sales_process": [{"step": number, "name": string, "description": string, "avg_days": number}]|null,
+  "competitive_advantages": string[]|null,
+  "deal_below_which_skip": number|null
+}`,
+
+  strategia_marketingu: `Przeanalizuj ten dokument strategii marketingowej i wyciągnij TYLKO informacje faktycznie zawarte.
+Zwróć JSON (null dla pól których nie ma):
+{
+  "content_archetype": string|null,
+  "content_tone": string|null,
+  "content_vocabulary": string[]|null,
+  "content_avoid": string[]|null,
+  "content_pillars": string[]|null,
+  "posting_channels": string[]|null,
+  "posting_frequency": string|null,
+  "founder_voice": string|null,
+  "brand_words": string[]|null,
+  "brand_avoid_words": string[]|null
+}`,
+
+  case_studies: `Przeanalizuj ten dokument z case studies i wyciągnij TYLKO informacje faktycznie zawarte.
+Zwróć JSON (null dla pól których nie ma):
+{
+  "case_studies": [{"client_industry": string, "problem": string, "solution": string, "result": string, "timeframe": string, "can_mention": true}]|null,
+  "testimonials": [{"text": string, "author": string, "company": string, "verified": false}]|null
+}`,
+
+  cennik: `Przeanalizuj ten cennik i wyciągnij TYLKO informacje faktycznie zawarte.
+Zwróć JSON (null dla pól których nie ma):
+{
+  "price_range_min": number|null,
+  "price_range_max": number|null,
+  "avg_ticket": number|null,
+  "deal_below_which_skip": number|null,
+  "services": [{"name": string, "description": string, "price_range": string, "delivery_time": string, "usp": string}]|null
+}`,
+
+  konkurencja: `Przeanalizuj ten dokument analizy konkurencji i wyciągnij TYLKO informacje faktycznie zawarte.
+Zwróć JSON (null dla pól których nie ma):
+{
+  "main_competitors": [{"name": string, "weakness": string, "how_we_win": string}]|null,
+  "competitive_advantages": string[]|null
+}`,
+
+  icp_profil: `Przeanalizuj ten dokument profilu idealnego klienta (ICP) i wyciągnij TYLKO informacje faktycznie zawarte.
+Zwróć JSON (null dla pól których nie ma):
+{
+  "icp_description": string|null,
+  "icp_company_size": string|null,
+  "icp_revenue_min": number|null,
+  "icp_industry": string[]|null,
+  "icp_decision_maker": string|null,
+  "icp_pain_points": string[]|null,
+  "icp_goals": string[]|null,
+  "icp_buying_triggers": string[]|null,
+  "icp_red_flags": string[]|null
+}`,
+
+  finanse: `Przeanalizuj ten dokument finansowy i wyciągnij TYLKO informacje faktycznie zawarte.
+Zwróć JSON (null dla pól których nie ma):
+{
+  "monthly_revenue_target": number|null,
+  "monthly_revenue_current": number|null,
+  "quarterly_deals_target": number|null,
+  "current_clients_count": number|null,
+  "target_clients_count": number|null
+}`,
+
+  szablony: `Przeanalizuj te szablony komunikacji i wyciągnij TYLKO informacje faktycznie zawarte.
+Zwróć JSON (null dla pól których nie ma):
+{
+  "content_tone": string|null,
+  "founder_voice": string|null,
+  "brand_words": string[]|null,
+  "brand_avoid_words": string[]|null,
+  "top_objections": [{"objection": string, "best_response": string, "frequency": "high"|"medium"|"low"}]|null
+}`,
+}
+
+// ─── Field type definitions for merge strategy ────────────────────────────────
+
+const ARRAY_OBJECT_FIELDS = new Set([
+  'services', 'top_objections', 'sales_process', 'main_competitors', 'case_studies', 'testimonials',
+])
+
+const ARRAY_STRING_FIELDS = new Set([
+  'secondary_usps', 'competitive_advantages', 'brand_words', 'brand_avoid_words',
+  'content_pillars', 'posting_channels', 'content_vocabulary', 'content_avoid',
+  'icp_industry', 'icp_pain_points', 'icp_goals', 'icp_buying_triggers', 'icp_red_flags',
+])
+
+const NUMBER_FIELDS = new Set([
+  'founded_year', 'price_range_min', 'price_range_max', 'avg_ticket', 'deal_below_which_skip',
+  'avg_sales_cycle_days', 'close_rate_percent', 'avg_followups_to_close', 'icp_revenue_min',
+  'monthly_revenue_target', 'monthly_revenue_current', 'quarterly_deals_target',
+  'current_clients_count', 'target_clients_count',
+])
+
+// ─── Merge: only fill gaps, never overwrite ───────────────────────────────────
+
+export function mergeDNAUpdates(
+  extracted: Record<string, unknown>,
+  existing: Record<string, unknown> | null,
+): Record<string, unknown> {
+  const updates: Record<string, unknown> = {}
+
+  for (const [field, value] of Object.entries(extracted)) {
+    if (value === null || value === undefined) continue
+
+    const current = existing?.[field]
+
+    if (ARRAY_OBJECT_FIELDS.has(field)) {
+      const newItems = Array.isArray(value) ? value : []
+      if (newItems.length === 0) continue
+      const existing_items = Array.isArray(current) ? current : []
+      // Append new objects — no complex dedup for objects
+      updates[field] = [...existing_items, ...newItems]
+    } else if (ARRAY_STRING_FIELDS.has(field)) {
+      const newItems = Array.isArray(value) ? (value as string[]).filter(Boolean) : []
+      if (newItems.length === 0) continue
+      const existingItems = Array.isArray(current) ? (current as string[]) : []
+      // Union — add only items not already present
+      const merged = [...existingItems]
+      for (const item of newItems) {
+        if (!merged.includes(item)) merged.push(item)
+      }
+      if (merged.length > existingItems.length) updates[field] = merged
+    } else if (NUMBER_FIELDS.has(field)) {
+      // Only fill if current is null/0
+      if (current === null || current === undefined || current === 0) {
+        updates[field] = value
+      }
+    } else {
+      // Scalar string — only fill if current is null/empty
+      const currentStr = typeof current === 'string' ? current.trim() : ''
+      if (!currentStr) {
+        updates[field] = value
+      }
+    }
+  }
+
+  return updates
+}
+
+// ─── Main DNA extraction function ─────────────────────────────────────────────
+
+export async function updateDNAFromFile(text: string, category: string) {
+  const prompt = CATEGORY_PROMPTS[category]
+  if (!prompt) return
 
   try {
     const supabase = getSupabaseAdmin()
+    const { data: existing } = await supabase.from('company_dna').select('*').limit(1).maybeSingle()
+
     const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{
         role: 'user',
-        content: `Przeanalizuj ten dokument firmowy (kategoria: ${category}) i wyciągnij informacje.
-Wyciągnij TYLKO to co faktycznie jest w dokumencie (nie wymyślaj):
-- core_usp (jeśli jest)
-- icp_description (jeśli jest)
-- icp_pain_points (lista stringów, jeśli są)
-- content_archetype (jeśli wnioskujesz jednoznacznie)
-
-Dokument:
-${text.slice(0, 3000)}
-
-Odpowiedz jako JSON. Pola których nie ma — ustaw jako null.
-{"core_usp": null, "icp_description": null, "icp_pain_points": null, "content_archetype": null}`,
+        content: `${prompt}\n\nDokument:\n${text.slice(0, 4000)}`,
       }],
       response_format: { type: 'json_object' },
       temperature: 0.1,
     })
 
-    const updates = JSON.parse(response.choices[0].message.content ?? '{}')
-    const filtered = Object.fromEntries(Object.entries(updates).filter(([, v]) => v !== null))
+    const extracted = JSON.parse(response.choices[0].message.content ?? '{}') as Record<string, unknown>
+    const updates = mergeDNAUpdates(extracted, existing as Record<string, unknown> | null)
 
-    if (Object.keys(filtered).length === 0) return
+    if (Object.keys(updates).length === 0) return
 
-    const { data: existing } = await supabase.from('company_dna').select('id').limit(1).maybeSingle()
     if (existing?.id) {
-      await supabase.from('company_dna').update(filtered).eq('id', existing.id)
+      await supabase.from('company_dna').update(updates).eq('id', existing.id)
+    } else {
+      await supabase.from('company_dna').insert(updates)
     }
   } catch (e) {
     console.error('[CompanyBrain] DNA auto-update failed:', e)

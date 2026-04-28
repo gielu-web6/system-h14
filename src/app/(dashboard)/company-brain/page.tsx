@@ -6,6 +6,7 @@ import {
   Brain, FileText, Edit3, TestTube, CheckCircle2, Clock,
   XCircle, AlertTriangle, TrendingUp, Layers, Loader2,
   ArrowRight, Sparkles, Users, MessageSquare, BarChart3, Zap,
+  RefreshCw,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -84,25 +85,45 @@ function CategoryBadge({ category }: { category: string }) {
 export default function CompanyBrainPage() {
   const [dna, setDna]     = useState<DNA | null>(null)
   const [files, setFiles] = useState<FileSummary[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading]   = useState(true)
+  const [syncing, setSyncing]   = useState(false)
+  const [missingCount, setMissingCount] = useState<number | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [dnaRes, filesRes] = await Promise.all([
+      const [dnaRes, filesRes, interviewRes] = await Promise.all([
         fetch('/api/company-brain/dna'),
         fetch('/api/company-brain/files'),
+        fetch('/api/company-brain/interview'),
       ])
       const { dna: d } = await dnaRes.json()
       const { files: f } = await filesRes.json()
+      const { total_empty } = await interviewRes.json()
       setDna(d)
       setFiles(f ?? [])
+      setMissingCount(typeof total_empty === 'number' ? total_empty : null)
     } catch {
       toast.error('Błąd ładowania Company Brain')
     } finally {
       setLoading(false)
     }
   }, [])
+
+  const syncFromFiles = useCallback(async () => {
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/company-brain/sync', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      toast.success(`Zsynchronizowano ${data.synced} plików → DNA zaktualizowane ✓`)
+      await load()
+    } catch (e: unknown) {
+      toast.error((e as Error).message ?? 'Błąd synchronizacji')
+    } finally {
+      setSyncing(false)
+    }
+  }, [load])
 
   useEffect(() => { void load() }, [load])
 
@@ -130,7 +151,16 @@ export default function CompanyBrainPage() {
             Baza wiedzy firmowej zasilająca każdy AI call w systemie H14
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => void syncFromFiles()}
+            disabled={syncing}
+            title="Zaciągnij wszystkie dane z przetworzonych plików do DNA"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-white/[0.05] border border-white/[0.08] text-white/60 text-[12px] font-medium hover:text-white hover:bg-white/[0.08] transition-all disabled:opacity-50"
+          >
+            {syncing ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
+            {syncing ? 'Synchronizuję…' : 'Sync z plików'}
+          </button>
           <Link href="/company-brain/test"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-white/[0.05] border border-white/[0.08] text-white/60 text-[12px] font-medium hover:text-white hover:bg-white/[0.08] transition-all">
             <TestTube size={13} /> Testuj kontekst
@@ -264,14 +294,21 @@ export default function CompanyBrainPage() {
             {/* Feature status */}
             <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
               <p className="text-[14px] font-semibold text-white mb-1">Status kontekstu per featura</p>
-              <p className="text-[11px] text-white/40 mb-4">Ile fragmentów wiedzy trafi do każdego AI call</p>
+              <p className="text-[11px] text-white/40 mb-4">Wiedza z plików kontekstowych zasilająca każdy AI call</p>
               <div className="space-y-2">
                 {FEATURE_CONTEXT.map(({ label, icon: Icon, categories }) => {
                   const count = getFeatureChunks(categories)
                   const hasDNA = completeness > 0
+                  const fileCategories = doneFiles.filter(f => categories.includes(f.category) && f.is_active)
+                  const ready = hasDNA && count > 0
+                  const partial = hasDNA && count === 0
                   return (
-                    <div key={label} className="flex items-center gap-3 p-2.5 rounded-[8px] bg-white/[0.03] border border-white/[0.05]">
-                      <Icon size={13} className="text-white/40 flex-shrink-0" />
+                    <div key={label} className={`flex items-center gap-3 p-2.5 rounded-[8px] border transition-colors ${
+                      ready ? 'bg-green-500/[0.04] border-green-500/15' :
+                      partial ? 'bg-amber-500/[0.04] border-amber-500/15' :
+                      'bg-white/[0.03] border-white/[0.05]'
+                    }`}>
+                      <Icon size={13} className={`flex-shrink-0 ${ready ? 'text-green-400' : partial ? 'text-amber-400' : 'text-white/30'}`} />
                       <span className="flex-1 text-[12px] text-white/70 truncate">{label}</span>
                       <div className="flex items-center gap-2">
                         {hasDNA && (
@@ -279,6 +316,8 @@ export default function CompanyBrainPage() {
                         )}
                         {count > 0 ? (
                           <span className="text-[10px] text-[#a5b4fc] font-semibold">{count} frag.</span>
+                        ) : fileCategories.length > 0 ? (
+                          <span className="text-[10px] text-amber-400/70">tylko DNA</span>
                         ) : (
                           <span className="text-[10px] text-white/25">brak plików</span>
                         )}
@@ -288,6 +327,27 @@ export default function CompanyBrainPage() {
                 })}
               </div>
             </div>
+
+            {/* AI Interview CTA */}
+            {missingCount !== null && missingCount > 0 && (
+              <div className="bg-[#16213E] border border-[#6366f1]/20 rounded-[14px] p-4">
+                <div className="flex items-start gap-3">
+                  <MessageSquare size={16} className="text-[#a5b4fc] flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-[13px] font-semibold text-white">
+                      {missingCount} brakujących informacji
+                    </p>
+                    <p className="text-[11px] text-white/40 mt-0.5 mb-3">
+                      AI chce zadać Ci pytania aby uzupełnić DNA z bazy wiedzy
+                    </p>
+                    <Link href="/company-brain/dna"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#6366f1]/20 border border-[#6366f1]/30 text-[#a5b4fc] text-[12px] font-semibold hover:bg-[#6366f1]/30 transition-all">
+                      <MessageSquare size={12} /> Odpowiedz na pytania AI
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Stats */}
             <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
