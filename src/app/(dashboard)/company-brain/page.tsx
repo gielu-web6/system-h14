@@ -183,6 +183,29 @@ export default function CompanyBrainPage() {
         </div>
       )}
 
+      {/* Sync CTA — shown when there are processed files but DNA is incomplete */}
+      {!loading && files.filter(f => f.processing_status === 'done').length > 0 && completeness < 80 && (
+        <div className="flex items-center gap-4 p-4 rounded-[12px] bg-amber-500/[0.07] border border-amber-500/25">
+          <AlertTriangle size={16} className="text-amber-400 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-[13px] font-semibold text-white">
+              Masz {files.filter(f => f.processing_status === 'done').length} przetworzonych plików — DNA nie jest jeszcze zsynchronizowane
+            </p>
+            <p className="text-[11px] text-white/50 mt-0.5">
+              Kliknij "Sync z plików" aby AI automatycznie zaciągnęło wszystkie informacje z Twojej bazy wiedzy do DNA
+            </p>
+          </div>
+          <button
+            onClick={() => void syncFromFiles()}
+            disabled={syncing}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-[8px] bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[12px] font-bold hover:bg-amber-500/30 transition-all disabled:opacity-50 whitespace-nowrap flex-shrink-0"
+          >
+            {syncing ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
+            {syncing ? 'Synchronizuję…' : 'Sync z plików teraz'}
+          </button>
+        </div>
+      )}
+
       {!loading && (
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
 

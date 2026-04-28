@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
+import { calculateDNACompleteness } from '@/app/api/company-brain/sync/route'
 
 export async function GET() {
   try {
@@ -29,11 +30,15 @@ export async function PUT(req: NextRequest) {
       .limit(1)
       .maybeSingle()
 
+    // Always recalculate completeness on every save
+    const completeness = calculateDNACompleteness(body as Record<string, unknown>)
+    const payload = { ...body, completeness_score: completeness }
+
     let result
     if (existing?.id) {
       const { data, error } = await supabase
         .from('company_dna')
-        .update(body)
+        .update(payload)
         .eq('id', existing.id)
         .select()
         .single()
@@ -42,7 +47,7 @@ export async function PUT(req: NextRequest) {
     } else {
       const { data, error } = await supabase
         .from('company_dna')
-        .insert(body)
+        .insert(payload)
         .select()
         .single()
       if (error) throw error
