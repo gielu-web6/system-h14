@@ -294,9 +294,6 @@ function NewLeadModal({
     email: '', phone: '', city: '', segment: 'usługi',
     website: '', linkedin: '', instagram: '',
   })
-  const [saved, setSaved] = useState(false)
-  const [scanning, setScanning] = useState(false)
-
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }))
 
@@ -337,55 +334,36 @@ function NewLeadModal({
     } catch {
       return
     }
-    setSaved(true)
 
-    // Trigger AI scoring in background
-    setScanning(true)
-    try {
-      const res = await fetch('/api/ai/score-lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          leadData: {
-            first_name: savedLead.firstName,
-            last_name: savedLead.lastName,
-            company: savedLead.company,
-            position: savedLead.position,
-            industry: form.segment,
-            linkedin_url: form.linkedin,
-            company_website: form.website,
-            segment: form.segment,
-            notes: '',
-          },
-        }),
+    // Close modal immediately — scoring runs in background
+    onClose()
+
+    // Fire AI scoring without blocking UI
+    fetch('/api/ai/score-lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ leadId: savedLead.id }),
+    })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        const result = data?.result
+        if (!result) return
+        onUpdate({
+          ...savedLead,
+          aiScore:          result.total_score    ?? 50,
+          aiLabel:          result.label          ?? 'warm',
+          aiIcpScore:       result.icp_score      ?? 0,
+          aiSignalsScore:   result.signals_score  ?? 0,
+          aiActivityScore:  result.activity_score ?? 0,
+          aiPotentialScore: result.potential_score ?? 0,
+          aiReasoning:      result.reasoning      ?? '',
+          aiScoredAt:       new Date().toISOString(),
+          problem:          result.problem    ?? '',
+          icebreaker:       result.icebreaker ?? '',
+        })
+        toast.success(`AI scoring: ${savedLead.firstName} ${savedLead.lastName} — ${result.total_score}/100`)
       })
-      if (res.ok) {
-        const { result } = await res.json()
-        if (result) {
-          const updatedLead: Lead = {
-            ...savedLead,
-            aiScore:          result.total_score    ?? 50,
-            aiLabel:          result.label          ?? 'warm',
-            aiIcpScore:       result.icp_score      ?? 0,
-            aiSignalsScore:   result.signals_score  ?? 0,
-            aiActivityScore:  result.activity_score ?? 0,
-            aiPotentialScore: result.potential_score ?? 0,
-            aiReasoning:      result.reasoning      ?? '',
-            aiScoredAt:       new Date().toISOString(),
-            problem:          result.problem    ?? '',
-            icebreaker:       result.icebreaker ?? '',
-          }
-          onUpdate(updatedLead)
-          toast.success(`Lead ${savedLead.firstName} ${savedLead.lastName} oceniony: ${result.total_score}/100`)
-        }
-      }
-    } catch {
-      // silent fail
-    } finally {
-      setScanning(false)
-    }
-
-    setTimeout(onClose, 1500)
+      .catch(() => {}) // silent fail — scoring optional
   }
 
   return (
@@ -402,21 +380,6 @@ function NewLeadModal({
           </button>
         </div>
 
-        {saved ? (
-          <div className="flex flex-col items-center justify-center py-12 gap-3">
-            <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
-              <CheckCircle2 size={22} className="text-green-400" />
-            </div>
-            <p className="text-[15px] font-semibold text-white">Lead zapisany!</p>
-            {scanning ? (
-              <div className="flex items-center gap-2 text-[12px] text-white/40">
-                <Loader2 size={12} className="animate-spin" /> AI scoring w toku...
-              </div>
-            ) : (
-              <p className="text-[12px] text-white/40">AI scoring zakończony</p>
-            )}
-          </div>
-        ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             {/* Basic info */}
             <div className="grid grid-cols-2 gap-3">
@@ -510,7 +473,6 @@ function NewLeadModal({
               </button>
             </div>
           </form>
-        )}
       </div>
     </div>
   )

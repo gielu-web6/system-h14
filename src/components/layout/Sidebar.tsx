@@ -21,6 +21,7 @@ import {
   BrainCircuit,
   BookOpen,
   Wand2,
+  Brain,
 } from 'lucide-react'
 import { useLayout } from './LayoutContext'
 import { useBrandTheme } from '@/contexts/BrandThemeContext'
@@ -69,6 +70,13 @@ const NAV_SECTIONS = [
     items: [
       { href: '/portal',              label: 'Portal Klienta',    icon: Globe },
       { href: '/offer-generator',     label: 'Generator Ofert',   icon: FileText },
+    ],
+  },
+  {
+    id: 'brain',
+    section: 'AI System',
+    items: [
+      { href: '/company-brain',       label: 'Company Brain',     icon: Brain },
     ],
   },
 ] as const

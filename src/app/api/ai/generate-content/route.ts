@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getOpenAI } from '@/lib/openai'
 import { getCompanyProfile, buildCompanyContext } from '@/lib/getCompanyProfile'
+import { buildContext } from '@/lib/company-brain/context-builder'
 
 export async function POST(req: NextRequest) {
   try {
     const { channel, content_type, title, hook, slideCount, linkedinProfileUrl } = await req.json()
 
-    const profile = await getCompanyProfile()
+    const [profile, brainCtx] = await Promise.all([
+      getCompanyProfile(),
+      buildContext('content_generator', {
+        query: `Post o: ${title ?? hook ?? 'firmowa treść'}, kanał: ${channel ?? 'linkedin'}, format: ${content_type ?? 'post'}`,
+      }).catch(() => null),
+    ])
     const companyCtx = buildCompanyContext(profile)
 
     const CHANNEL_LABELS: Record<string, string> = {
@@ -40,6 +46,7 @@ export async function POST(req: NextRequest) {
           role: 'system',
           content: `Jesteś ekspertem od content marketingu B2B w Polsce. Tworzysz treści dla firmy na podstawie jej danych.
 
+${brainCtx?.contextString ?? ''}
 KONTEKST FIRMY (Baza Wiedzy):
 ${companyCtx}
 

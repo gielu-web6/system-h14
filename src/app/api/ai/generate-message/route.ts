@@ -2,13 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getOpenAI } from '@/lib/openai'
 import { getCompanyProfile, buildCompanyContext } from '@/lib/getCompanyProfile'
 import { createClient } from '@/lib/supabase/server'
+import { buildContext } from '@/lib/company-brain/context-builder'
 
 export async function POST(req: NextRequest) {
   try {
     const { leadId, messageType, context } = await req.json()
-
-    const profile = await getCompanyProfile()
-    const companyCtx = buildCompanyContext(profile)
 
     let lead: Record<string, unknown> | null = null
     if (leadId) {
@@ -16,6 +14,14 @@ export async function POST(req: NextRequest) {
       const { data } = await supabase.from('leads').select('*').eq('id', leadId).single()
       lead = data
     }
+
+    const [profile, brainCtx] = await Promise.all([
+      getCompanyProfile(),
+      buildContext('outreach_generator', {
+        query: `Wiadomość do: ${lead?.company ?? ''} (${lead?.industry ?? ''}), stanowisko: ${lead?.position ?? ''}, typ: ${messageType ?? ''}`,
+      }).catch(() => null),
+    ])
+    const companyCtx = buildCompanyContext(profile)
 
     const MESSAGE_TYPE_LABELS: Record<string, string> = {
       connection_request: 'zaproszenie do znajomych na LinkedIn (max 200 znaków)',
@@ -38,6 +44,7 @@ export async function POST(req: NextRequest) {
           role: 'system',
           content: `Jesteś ekspertem od cold outreach B2B na LinkedIn. Piszesz wiadomości dla:
 
+${brainCtx?.contextString ?? ''}
 FIRMA NADAWCY:
 ${companyCtx}
 

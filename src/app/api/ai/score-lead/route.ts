@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getOpenAI } from '@/lib/openai'
 import { getCompanyProfile, buildCompanyContext } from '@/lib/getCompanyProfile'
 import { createClient } from '@/lib/supabase/server'
+import { buildContext } from '@/lib/company-brain/context-builder'
 
 async function scrapeUrl(url: string): Promise<string> {
   if (!url?.trim()) return ''
@@ -74,6 +75,11 @@ export async function POST(req: NextRequest) {
       scrapeUrl(lead.linkedin_url),
     ])
 
+    // Build Company Brain context (non-blocking — enriches prompt with firm-specific data)
+    const brainCtx = await buildContext('lead_scoring', {
+      query: `Lead: ${lead.company ?? ''}, stanowisko: ${lead.position ?? ''}, branża: ${lead.industry ?? lead.segment ?? ''}`,
+    }).catch(() => null)
+
     const scrapedContext = [
       websiteData && `\n--- DANE ZE STRONY WWW (${lead.company_website}) ---\n${websiteData}`,
       linkedinData && `\n--- DANE Z LINKEDIN ---\n${linkedinData}`,
@@ -102,6 +108,7 @@ ${scrapedContext}
           role: 'system',
           content: `Jesteś doświadczonym ekspertem od sprzedaży B2B. Oceniasz leady dogłębnie — analizujesz dane podstawowe ORAZ treść strony www i profilu LinkedIn, żeby wyciągnąć wnioski których nie widać na pierwszy rzut oka.
 
+${brainCtx?.contextString ?? ''}
 DANE TWOJEJ FIRMY (firmy oceniającej leady):
 ${companyCtx}
 

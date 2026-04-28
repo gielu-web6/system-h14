@@ -47,6 +47,10 @@ const BREADCRUMB_MAP: Record<string, { label: string; parent?: string }> = {
   '/offer-generator':       { label: 'Generator Ofert',   parent: 'Klient' },
   '/settings':              { label: 'Ustawienia' },
   '/notifications':         { label: 'Powiadomienia' },
+  '/company-brain':         { label: 'Company Brain',   parent: 'AI System' },
+  '/company-brain/dna':     { label: 'Company DNA',     parent: 'Company Brain' },
+  '/company-brain/files':   { label: 'Pliki kontekstowe', parent: 'Company Brain' },
+  '/company-brain/test':    { label: 'Tester kontekstu', parent: 'Company Brain' },
 }
 
 function useBreadcrumbs() {
@@ -129,7 +133,7 @@ export function Topbar() {
   const [notifOpen, setNotifOpen]     = useState(false)
   const [avatarOpen, setAvatarOpen]   = useState(false)
 
-  const { unreadCount } = useNotifications()
+  const { unreadCount, notifications, markRead, markAllRead } = useNotifications()
   const { user: appUser } = useAppUser()
   const companyName = useCompanyName()
   const { brandTheme } = useBrandTheme()
@@ -259,7 +263,15 @@ export function Topbar() {
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-accent ring-2 ring-[#1A1A2E]" />
               )}
             </button>
-            {notifOpen && <NotificationsDropdown onClose={() => setNotifOpen(false)} />}
+            {notifOpen && (
+              <NotificationsDropdown
+                onClose={() => setNotifOpen(false)}
+                notifications={notifications}
+                unreadCount={unreadCount}
+                markRead={markRead}
+                markAllRead={markAllRead}
+              />
+            )}
           </div>
 
           {/* Avatar */}

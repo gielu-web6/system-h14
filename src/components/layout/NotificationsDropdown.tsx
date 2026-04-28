@@ -118,8 +118,19 @@ export function useNotifications() {
 
 // ─── Dropdown panel ───────────────────────────────────────────────────────────
 
-export function NotificationsDropdown({ onClose }: { onClose: () => void }) {
-  const { notifications, unreadCount, markRead, markAllRead } = useNotifications()
+export function NotificationsDropdown({
+  onClose,
+  notifications,
+  unreadCount,
+  markRead,
+  markAllRead,
+}: {
+  onClose: () => void
+  notifications: AppNotification[]
+  unreadCount: number
+  markRead: (id: string) => void
+  markAllRead: () => void
+}) {
 
   return (
     <div className="absolute right-0 top-full mt-2 w-[360px] bg-[#0F0F1A] border border-white/10 rounded-[14px] shadow-2xl shadow-black/50 overflow-hidden z-50">
