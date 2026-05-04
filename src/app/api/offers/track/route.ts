@@ -1,21 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 
-
 const ENGAGEMENT_POINTS: Record<string, number> = {
   view:          15,
   section_price: 20,
   slider:        15,
   roi_calc:      25,
   hot_lead:      30,
+  cta_click:     40,
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as {
       slug: string
-      event_type: 'view' | 'section' | 'slider' | 'roi_calc' | 'time'
+      event_type: 'view' | 'section' | 'slider' | 'roi_calc' | 'time' | 'session_end' | 'cta_click'
       data?: Record<string, unknown>
+      // session_end fields sent directly
+      sessionId?: string
+      timeOnSections?: Record<string, number>
+      scrollDepth?: number
     }
 
     const { slug, event_type, data = {} } = body
@@ -25,10 +29,11 @@ export async function POST(req: NextRequest) {
       ?? req.headers.get('x-real-ip')
       ?? 'unknown'
 
-    // Get offer page
-    const { data: offerPage } = await getSupabaseAdmin()
+    const supabase = getSupabaseAdmin()
+
+    const { data: offerPage } = await supabase
       .from('offer_pages')
-      .select('id, deal_id, view_count')
+      .select('id, deal_id, view_count, company_name')
       .eq('public_slug', slug)
       .single()
 
@@ -37,24 +42,23 @@ export async function POST(req: NextRequest) {
     const offerPageId = offerPage.id
     const dealId = offerPage.deal_id
 
-    // ── Handle each event type ──────────────────────────────────────────────
-
+    // ── view ───────────────────────────────────────────────────────────────────
     if (event_type === 'view') {
-      // Get or create view record for this session
-      const { data: existing } = await getSupabaseAdmin()
-        .from('offer_page_views')
-        .select('id, duration_seconds')
-        .eq('offer_page_id', offerPageId)
-        .eq('ip_address', ip)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single()
+      const sessionId = (data.sessionId as string) || body.sessionId
+
+      // Get existing view for this session
+      const viewQuery = sessionId
+        ? supabase.from('offer_page_views').select('id, duration_seconds').eq('offer_page_id', offerPageId).eq('session_id', sessionId).limit(1).maybeSingle()
+        : supabase.from('offer_page_views').select('id, duration_seconds').eq('offer_page_id', offerPageId).eq('ip_address', ip).order('created_at', { ascending: false }).limit(1).maybeSingle()
+
+      const { data: existing } = await viewQuery
 
       if (!existing) {
-        await getSupabaseAdmin().from('offer_page_views').insert({
+        await supabase.from('offer_page_views').insert({
           offer_page_id: offerPageId,
           ip_address: ip,
           user_agent: req.headers.get('user-agent') ?? null,
+          session_id: sessionId ?? null,
           duration_seconds: 0,
           sections_viewed: [],
           slider_interactions: 0,
@@ -63,18 +67,18 @@ export async function POST(req: NextRequest) {
         })
       }
 
-      // Increment view_count on offer_pages
-      await getSupabaseAdmin()
+      await supabase
         .from('offer_pages')
         .update({
           view_count: (offerPage.view_count ?? 0) + 1,
           last_viewed_at: new Date().toISOString(),
+          status: 'viewed',
         })
         .eq('id', offerPageId)
 
-      // Check hot lead: 3+ views in last hour from same IP
+      // Hot lead check: 3+ views in last hour from same IP
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-      const { count } = await getSupabaseAdmin()
+      const { count } = await supabase
         .from('offer_page_views')
         .select('*', { count: 'exact', head: true })
         .eq('offer_page_id', offerPageId)
@@ -83,12 +87,11 @@ export async function POST(req: NextRequest) {
 
       if ((count ?? 0) >= 3 && dealId) {
         await Promise.all([
-          getSupabaseAdmin().from('deals').update({
+          supabase.from('deals').update({
             is_hot: true,
             hot_reason: 'Sprawdza ofertę wielokrotnie',
-            engagement_score: await incrementEngagement(dealId, ENGAGEMENT_POINTS.hot_lead),
           }).eq('id', dealId),
-          getSupabaseAdmin().from('notifications').insert({
+          supabase.from('notifications').insert({
             deal_id: dealId,
             type: 'hot_lead',
             title: 'Gorący lead!',
@@ -97,109 +100,199 @@ export async function POST(req: NextRequest) {
             is_read: false,
           }),
         ])
+        if (dealId) await incrementEngagement(dealId, ENGAGEMENT_POINTS.hot_lead)
       }
 
-      // Engagement: view
-      if (dealId) {
-        await incrementEngagement(dealId, ENGAGEMENT_POINTS.view)
-      }
+      if (dealId) await incrementEngagement(dealId, ENGAGEMENT_POINTS.view)
+
+      // Broadcast via Supabase Realtime
+      try {
+        await supabase.channel('offer-tracking').send({
+          type: 'broadcast',
+          event: 'offer_viewed',
+          payload: {
+            offerId: offerPageId,
+            clientName: offerPage.company_name,
+            eventType: 'view',
+            timestamp: new Date().toISOString(),
+          },
+        })
+      } catch { /* Realtime broadcast is best-effort */ }
     }
 
+    // ── section ────────────────────────────────────────────────────────────────
     if (event_type === 'section') {
       const section = (data.section as string) ?? ''
-      // Append section to sections_viewed for the latest view
-      const { data: view } = await getSupabaseAdmin()
+      const { data: view } = await supabase
         .from('offer_page_views')
         .select('id, sections_viewed')
         .eq('offer_page_id', offerPageId)
         .eq('ip_address', ip)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single()
+        .maybeSingle()
 
       if (view) {
         const prev: string[] = Array.isArray(view.sections_viewed) ? view.sections_viewed : []
         if (!prev.includes(section)) {
-          await getSupabaseAdmin()
+          await supabase
             .from('offer_page_views')
             .update({ sections_viewed: [...prev, section] })
             .eq('id', view.id)
 
-          // Pricing section = bonus engagement
           if (section === 'pricing' && dealId) {
             await incrementEngagement(dealId, ENGAGEMENT_POINTS.section_price)
           }
         }
       }
 
-      // Update offer_pages sections_viewed
-      const { data: op } = await getSupabaseAdmin()
+      const { data: op } = await supabase
         .from('offer_pages')
         .select('sections_viewed')
         .eq('id', offerPageId)
         .single()
       const prevSections = (op?.sections_viewed ?? {}) as Record<string, number>
       prevSections[section] = (prevSections[section] ?? 0) + 1
-      await getSupabaseAdmin().from('offer_pages').update({ sections_viewed: prevSections }).eq('id', offerPageId)
+      await supabase.from('offer_pages').update({ sections_viewed: prevSections }).eq('id', offerPageId)
     }
 
+    // ── slider ─────────────────────────────────────────────────────────────────
     if (event_type === 'slider') {
-      const { data: view } = await getSupabaseAdmin()
+      const { data: view } = await supabase
         .from('offer_page_views')
         .select('id, slider_interactions')
         .eq('offer_page_id', offerPageId)
         .eq('ip_address', ip)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single()
+        .maybeSingle()
 
       if (view) {
-        await getSupabaseAdmin()
+        await supabase
           .from('offer_page_views')
           .update({ slider_interactions: (view.slider_interactions ?? 0) + 1 })
           .eq('id', view.id)
       }
-
       if (dealId) await incrementEngagement(dealId, ENGAGEMENT_POINTS.slider)
     }
 
+    // ── roi_calc ───────────────────────────────────────────────────────────────
     if (event_type === 'roi_calc') {
-      const { data: view } = await getSupabaseAdmin()
+      const { data: view } = await supabase
         .from('offer_page_views')
         .select('id')
         .eq('offer_page_id', offerPageId)
         .eq('ip_address', ip)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single()
+        .maybeSingle()
 
       if (view) {
-        await getSupabaseAdmin()
-          .from('offer_page_views')
-          .update({ roi_calculator_used: true })
-          .eq('id', view.id)
+        await supabase.from('offer_page_views').update({ roi_calculator_used: true }).eq('id', view.id)
       }
-
       if (dealId) await incrementEngagement(dealId, ENGAGEMENT_POINTS.roi_calc)
     }
 
+    // ── time ───────────────────────────────────────────────────────────────────
     if (event_type === 'time') {
       const seconds = Number(data.seconds ?? 0)
-      const { data: view } = await getSupabaseAdmin()
+      const { data: view } = await supabase
         .from('offer_page_views')
         .select('id')
         .eq('offer_page_id', offerPageId)
         .eq('ip_address', ip)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single()
+        .maybeSingle()
 
       if (view) {
-        await getSupabaseAdmin()
+        await supabase.from('offer_page_views').update({ duration_seconds: seconds }).eq('id', view.id)
+      }
+    }
+
+    // ── session_end ────────────────────────────────────────────────────────────
+    if (event_type === 'session_end') {
+      const timeOnSections = (data.timeOnSections ?? body.timeOnSections ?? {}) as Record<string, number>
+      const scrollDepth = Number(data.scrollDepth ?? body.scrollDepth ?? 0)
+      const sessionId = (data.sessionId as string) || body.sessionId
+
+      const viewQuery = sessionId
+        ? supabase.from('offer_page_views').select('id').eq('offer_page_id', offerPageId).eq('session_id', sessionId).limit(1).maybeSingle()
+        : supabase.from('offer_page_views').select('id').eq('offer_page_id', offerPageId).eq('ip_address', ip).order('created_at', { ascending: false }).limit(1).maybeSingle()
+
+      const { data: view } = await viewQuery
+
+      if (view) {
+        await supabase
           .from('offer_page_views')
-          .update({ duration_seconds: seconds })
+          .update({
+            time_on_sections: timeOnSections,
+            scroll_depth: scrollDepth,
+          })
           .eq('id', view.id)
       }
+
+      // Alert if client spent 60+ seconds on pricing section
+      const pricingTime = Number(timeOnSections['pricing'] ?? 0)
+      if (pricingTime >= 60 && dealId) {
+        await supabase.from('notifications').insert({
+          deal_id: dealId,
+          type: 'pricing_attention',
+          title: 'Klient intensywnie przegląda cennik',
+          body: `${offerPage.company_name} spędził ${pricingTime}s na sekcji wyceny — zadzwoń teraz!`,
+          priority: 'high',
+          is_read: false,
+        })
+      }
+    }
+
+    // ── cta_click ──────────────────────────────────────────────────────────────
+    if (event_type === 'cta_click') {
+      const now = new Date().toISOString()
+      const sessionId = (data.sessionId as string) || body.sessionId
+
+      const viewQuery = sessionId
+        ? supabase.from('offer_page_views').select('id').eq('offer_page_id', offerPageId).eq('session_id', sessionId).limit(1).maybeSingle()
+        : supabase.from('offer_page_views').select('id').eq('offer_page_id', offerPageId).eq('ip_address', ip).order('created_at', { ascending: false }).limit(1).maybeSingle()
+
+      const { data: view } = await viewQuery
+
+      if (view) {
+        await supabase
+          .from('offer_page_views')
+          .update({ cta_clicked: true, cta_clicked_at: now })
+          .eq('id', view.id)
+      }
+
+      await supabase
+        .from('offer_pages')
+        .update({ cta_clicked: true, cta_clicked_at: now, status: 'cta_clicked' })
+        .eq('id', offerPageId)
+
+      if (dealId) {
+        await supabase.from('notifications').insert({
+          deal_id: dealId,
+          type: 'cta_clicked',
+          title: 'Klient kliknął "Akceptuję ofertę"!',
+          body: `${offerPage.company_name} jest gotowy do zamknięcia dealu — działaj teraz!`,
+          priority: 'urgent',
+          is_read: false,
+        })
+        await incrementEngagement(dealId, ENGAGEMENT_POINTS.cta_click)
+      }
+
+      // Broadcast
+      try {
+        await supabase.channel('offer-tracking').send({
+          type: 'broadcast',
+          event: 'cta_clicked',
+          payload: {
+            offerId: offerPageId,
+            clientName: offerPage.company_name,
+            timestamp: now,
+          },
+        })
+      } catch { /* best-effort */ }
     }
 
     return NextResponse.json({ ok: true })
@@ -209,7 +302,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-async function incrementEngagement(dealId: string, points: number): Promise<number> {
+async function incrementEngagement(dealId: string, points: number): Promise<void> {
   const { data } = await getSupabaseAdmin()
     .from('deals')
     .select('engagement_score')
@@ -218,5 +311,4 @@ async function incrementEngagement(dealId: string, points: number): Promise<numb
   const current = Number(data?.engagement_score ?? 0)
   const next = Math.min(100, current + points)
   await getSupabaseAdmin().from('deals').update({ engagement_score: next }).eq('id', dealId)
-  return next
 }

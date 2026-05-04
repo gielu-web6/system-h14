@@ -37,6 +37,11 @@ interface ScopeItem {
   included: boolean
 }
 
+interface Obiekcja {
+  zarzut: string
+  odpowiedz: string
+}
+
 interface OfferPage {
   id: string
   deal_id: string
@@ -44,6 +49,7 @@ interface OfferPage {
   company_name: string
   project_type?: string
   solution_description?: string
+  diagnoza_bolu?: string
   daily_loss_amount?: number
   monthly_loss_amount?: number
   yearly_loss_amount?: number
@@ -51,6 +57,9 @@ interface OfferPage {
   pricing_variants: PricingVariant[]
   timeline_items: TimelineItem[]
   scope_items: ScopeItem[]
+  obiekcje?: Obiekcja[]
+  client_logo_url?: string
+  your_logo_url?: string
   start_date?: string
   payment_terms?: string
   expires_at?: string
@@ -88,9 +97,9 @@ export default function OfferPublicPage() {
   const [acceptModalOpen, setAcceptModalOpen] = useState(false)
   const [accepted, setAccepted] = useState(false)
   const [acceptedStartDate, setAcceptedStartDate] = useState('')
-  const sessionRef = useRef<string>(Math.random().toString(36).slice(2))
-  const startTimeRef = useRef<number>(Date.now())
-  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
+  const sessionRef = useRef<string>('')
+  const sectionTimers = useRef<Record<string, number>>({})
+  const sectionStartTimes = useRef<Record<string, number>>({})
 
   // ── Load offer ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -111,21 +120,63 @@ export default function OfferPublicPage() {
       setSelectedVariant(recommended ?? null)
       setLoading(false)
 
-      // Track: view
-      track('view', { variant: recommended?.name })
+      // Track: view (with session ID)
+      const sid = sessionStorage.getItem('offer_session') || crypto.randomUUID()
+      sessionStorage.setItem('offer_session', sid)
+      sessionRef.current = sid
+      track('view', { variant: recommended?.name, sessionId: sid })
     }
     load()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug])
 
-  // ── Time tracking ──────────────────────────────────────────────────────────
+  // ── Section time tracking (Intersection Observer) ──────────────────────────
   useEffect(() => {
-    timerRef.current = setInterval(() => {
-      const seconds = Math.round((Date.now() - startTimeRef.current) / 1000)
-      track('time', { seconds })
-    }, 30000)
-    return () => clearInterval(timerRef.current)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (!offer) return
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const name = entry.target.getAttribute('data-section')
+        if (!name) return
+        if (entry.isIntersecting) {
+          sectionStartTimes.current[name] = Date.now()
+        } else if (sectionStartTimes.current[name]) {
+          const elapsed = Math.round((Date.now() - sectionStartTimes.current[name]) / 1000)
+          sectionTimers.current[name] = (sectionTimers.current[name] ?? 0) + elapsed
+          delete sectionStartTimes.current[name]
+        }
+      })
+    }, { threshold: 0.5 })
+    document.querySelectorAll('[data-section]').forEach(el => observer.observe(el))
+    return () => observer.disconnect()
+  }, [offer])
+
+  // ── Send session_end on page leave ─────────────────────────────────────────
+  useEffect(() => {
+    if (!slug) return
+    const sendEnd = () => {
+      Object.keys(sectionStartTimes.current).forEach(name => {
+        const elapsed = Math.round((Date.now() - sectionStartTimes.current[name]) / 1000)
+        sectionTimers.current[name] = (sectionTimers.current[name] ?? 0) + elapsed
+      })
+      const scrollDepth = Math.min(100, Math.round(
+        (window.scrollY + window.innerHeight) / Math.max(1, document.body.scrollHeight) * 100,
+      ))
+      navigator.sendBeacon('/api/offers/track', JSON.stringify({
+        slug,
+        event_type: 'session_end',
+        data: {
+          sessionId: sessionRef.current,
+          timeOnSections: sectionTimers.current,
+          scrollDepth,
+        },
+      }))
+    }
+    window.addEventListener('beforeunload', sendEnd)
+    window.addEventListener('pagehide', sendEnd)
+    return () => {
+      window.removeEventListener('beforeunload', sendEnd)
+      window.removeEventListener('pagehide', sendEnd)
+    }
   }, [slug])
 
   const track = useCallback((event_type: string, data?: Record<string, unknown>) => {
@@ -178,6 +229,11 @@ export default function OfferPublicPage() {
         <TimelineSection offer={offer} onVisible={() => trackSection('timeline')} />
       )}
 
+      {/* FAQ / Objections */}
+      {(offer.obiekcje?.length ?? 0) > 0 && (
+        <FaqSection offer={offer} onVisible={() => trackSection('faq')} />
+      )}
+
       {/* Pricing */}
       {(offer.pricing_variants?.length ?? 0) > 0 && (
         <PricingSection
@@ -188,7 +244,10 @@ export default function OfferPublicPage() {
             track('slider', { variant: v.name })
             trackSection('pricing')
           }}
-          onAccept={() => setAcceptModalOpen(true)}
+          onAccept={() => {
+            track('cta_click', { sessionId: sessionRef.current, variant: selectedVariant?.name })
+            setAcceptModalOpen(true)
+          }}
         />
       )}
 
@@ -223,12 +282,30 @@ function HeroSection({ offer, onVisible }: { offer: OfferPage; onVisible: () => 
   return (
     <section
       ref={ref}
+      data-section="hero"
       className="min-h-[60vh] flex flex-col items-center justify-center text-center px-6 py-20 bg-gradient-to-br from-[#6C5CE7]/5 via-white to-white"
     >
-      <FadeIn delay={0}>
+      {/* Logos row */}
+      {(offer.your_logo_url || offer.client_logo_url) && (
+        <FadeIn delay={0}>
+          <div className="flex items-center gap-6 mb-10">
+            {offer.your_logo_url && (
+              <img src={offer.your_logo_url} alt="Logo agencji" className="h-10 object-contain" />
+            )}
+            {offer.your_logo_url && offer.client_logo_url && (
+              <span className="text-gray-300 text-2xl font-light">×</span>
+            )}
+            {offer.client_logo_url && (
+              <img src={offer.client_logo_url} alt={`Logo ${offer.company_name}`} className="h-10 object-contain" />
+            )}
+          </div>
+        </FadeIn>
+      )}
+
+      <FadeIn delay={offer.your_logo_url || offer.client_logo_url ? 50 : 0}>
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#6C5CE7]/10 text-[#6C5CE7] text-sm font-medium mb-6">
           <span className="w-2 h-2 rounded-full bg-[#6C5CE7] animate-pulse" />
-          Przygotowane przez AM Automations
+          Indywidualna propozycja współpracy
         </div>
       </FadeIn>
 
@@ -242,6 +319,16 @@ function HeroSection({ offer, onVisible }: { offer: OfferPage; onVisible: () => 
       <FadeIn delay={200}>
         <p className="text-gray-500 text-lg mb-6">{today}</p>
       </FadeIn>
+
+      {/* Pain diagnosis callout */}
+      {offer.diagnoza_bolu && (
+        <FadeIn delay={250}>
+          <div className="max-w-xl mx-auto mb-6 px-5 py-4 rounded-2xl bg-gray-50 border border-gray-200 text-left">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Zidentyfikowaliśmy Wasz problem</p>
+            <p className="text-gray-700 text-base leading-relaxed">{offer.diagnoza_bolu}</p>
+          </div>
+        </FadeIn>
+      )}
 
       {expires && (
         <FadeIn delay={300}>
@@ -259,9 +346,11 @@ function HeroSection({ offer, onVisible }: { offer: OfferPage; onVisible: () => 
           >
             Zobacz ofertę
           </a>
-          <a href="#loss" className="px-8 py-4 rounded-2xl border border-gray-200 text-gray-600 font-medium text-lg hover:border-[#6C5CE7] transition-colors">
-            Ile tracę bez działania?
-          </a>
+          {(offer.daily_loss_amount ?? 0) > 0 && (
+            <a href="#loss" className="px-8 py-4 rounded-2xl border border-gray-200 text-gray-600 font-medium text-lg hover:border-[#6C5CE7] transition-colors">
+              Ile tracę bez działania?
+            </a>
+          )}
         </div>
       </FadeIn>
     </section>
@@ -301,7 +390,7 @@ function LossSection({ offer, onVisible }: { offer: OfferPage; onVisible: () => 
   }))
 
   return (
-    <section id="loss" ref={ref} className="py-20 px-6 bg-gray-50">
+    <section id="loss" ref={ref} data-section="loss" className="py-20 px-6 bg-gray-50">
       <div className="max-w-4xl mx-auto">
         <FadeIn>
           <div className="text-center mb-12">
@@ -402,7 +491,7 @@ function SolutionSection({ offer, onVisible }: { offer: OfferPage; onVisible: ()
   const included = (offer.scope_items ?? []).filter(s => s.included)
 
   return (
-    <section ref={ref} className="py-20 px-6 bg-white">
+    <section ref={ref} data-section="solution" className="py-20 px-6 bg-white">
       <div className="max-w-3xl mx-auto">
         <FadeIn>
           <div className="text-center mb-12">
@@ -457,7 +546,7 @@ function TimelineSection({ offer, onVisible }: { offer: OfferPage; onVisible: ()
   const endDate = addWeeks(startDate, offer.timeline_items?.length ?? 4)
 
   return (
-    <section ref={ref} className="py-20 px-6 bg-gray-50">
+    <section ref={ref} data-section="timeline" className="py-20 px-6 bg-gray-50">
       <div className="max-w-3xl mx-auto">
         <FadeIn>
           <div className="text-center mb-12">
@@ -514,7 +603,7 @@ function PricingSection({
   const ref = useRef<HTMLDivElement>(null)
 
   return (
-    <section id="pricing" ref={ref} className="py-20 px-6 bg-white">
+    <section id="pricing" ref={ref} data-section="pricing" className="py-20 px-6 bg-white">
       <div className="max-w-4xl mx-auto">
         <FadeIn>
           <div className="text-center mb-12">
@@ -710,6 +799,53 @@ function AcceptModal({
         </button>
       </div>
     </div>
+  )
+}
+
+// ─── FAQ / Objections Section ─────────────────────────────────────────────────
+
+function FaqSection({ offer, onVisible }: { offer: OfferPage; onVisible: () => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [openIdx, setOpenIdx] = useState<number | null>(null)
+  useIntersection(ref, onVisible)
+
+  const items = offer.obiekcje ?? []
+
+  return (
+    <section ref={ref} data-section="faq" className="py-20 px-6 bg-white">
+      <div className="max-w-3xl mx-auto">
+        <FadeIn>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Często zadawane pytania</h2>
+            <p className="text-gray-500 text-lg">Odpowiedzi na pytania, które mogą się pojawić</p>
+          </div>
+        </FadeIn>
+
+        <div className="space-y-3">
+          {items.map((item, i) => (
+            <FadeIn key={i} delay={i * 60}>
+              <button
+                onClick={() => setOpenIdx(openIdx === i ? null : i)}
+                className="w-full text-left bg-gray-50 hover:bg-gray-100 rounded-2xl border border-gray-200 px-6 py-5 transition-colors"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <p className="font-semibold text-gray-800 text-base">{item.zarzut}</p>
+                  <ChevronDown
+                    size={18}
+                    className={`text-gray-400 flex-shrink-0 transition-transform ${openIdx === i ? 'rotate-180' : ''}`}
+                  />
+                </div>
+                {openIdx === i && (
+                  <p className="mt-3 text-gray-600 leading-relaxed text-sm border-t border-gray-200 pt-3">
+                    {item.odpowiedz}
+                  </p>
+                )}
+              </button>
+            </FadeIn>
+          ))}
+        </div>
+      </div>
+    </section>
   )
 }
 
