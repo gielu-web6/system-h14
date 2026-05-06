@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getOpenAI } from '@/lib/openai'
 import { getCompanyProfile, buildCompanyContext } from '@/lib/getCompanyProfile'
+import { buildContext } from '@/lib/company-brain/context-builder'
 
 export async function POST(req: NextRequest) {
   try {
     const { objectionText } = await req.json()
 
-    const profile = await getCompanyProfile()
+    const [profile, brainCtx] = await Promise.all([
+      getCompanyProfile(),
+      buildContext('outreach_generator', {
+        query: `Obiekcja klienta: ${objectionText}. Case studies, dowody społeczne, argumenty sprzedażowe`,
+      }).catch(() => null),
+    ])
     const companyCtx = buildCompanyContext(profile)
 
     const openai = getOpenAI()
@@ -18,12 +24,13 @@ export async function POST(req: NextRequest) {
           role: 'system',
           content: `Jesteś ekspertem od sprzedaży B2B. Pomagasz odpowiadać na obiekcje klientów.
 
+${brainCtx?.contextString ?? ''}
 KONTEKST FIRMY:
 ${companyCtx}
 
 Zasady:
 - Nie odrzucaj obiekcji — validuj ją najpierw
-- Następnie zmień perspektywę lub podaj dowód
+- Następnie zmień perspektywę lub podaj konkretny dowód z case studies firmy
 - Zakończ pytaniem lub CTA
 - Ton: ${profile?.tone_of_voice || 'bezpośredni, empatyczny'}
 

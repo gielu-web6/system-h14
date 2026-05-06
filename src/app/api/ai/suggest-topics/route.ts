@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getOpenAI } from '@/lib/openai'
 import { getCompanyProfile, buildCompanyContext } from '@/lib/getCompanyProfile'
+import { buildContext } from '@/lib/company-brain/context-builder'
 
 export async function POST(req: NextRequest) {
   try {
     const { channel, profileUrl } = await req.json()
 
-    const profile = await getCompanyProfile()
+    const [profile, brainCtx] = await Promise.all([
+      getCompanyProfile(),
+      buildContext('content_generator', {
+        query: `Tematy postów na ${channel === 'instagram' ? 'Instagram karuzele' : 'LinkedIn'}, case studies, wartościowy content dla klientów`,
+      }).catch(() => null),
+    ])
     const companyCtx = buildCompanyContext(profile)
 
     const openai = getOpenAI()
@@ -20,11 +26,12 @@ export async function POST(req: NextRequest) {
             role: 'system',
             content: `Jesteś ekspertem od content marketingu na LinkedIn. Analizujesz profil LinkedIn i dane firmy, żeby zaproponować 3 wartościowe tematy na posty.
 
+${brainCtx?.contextString ?? ''}
 DANE FIRMY:
 ${companyCtx}
 
 Zasady:
-- Tematy mają być konkretne, oparte na wiedzy z bazy firmy
+- Tematy mają być konkretne, oparte na wiedzy i case studies firmy
 - Dopasowane do branży, usług i ICP firmy
 - Angażujące dla docelowej grupy odbiorców
 - Napisz tematy po polsku
@@ -68,12 +75,13 @@ Zaproponuj 3 tematy na posty LinkedIn które będą:
           role: 'system',
           content: `Jesteś ekspertem od content marketingu B2B. Proponujesz wartościowe tematy postów na ${channelLabel} dla firmy.
 
+${brainCtx?.contextString ?? ''}
 DANE FIRMY:
 ${companyCtx}
 
 Zasady:
 - Tematy muszą być konkretne i wartościowe — NIE generyczne
-- Oparte na usługach, problemach ICP i wiedzy eksperckiej firmy
+- Oparte na usługach, problemach ICP, case studies i wiedzy eksperckiej firmy
 - Każdy temat to gotowy tytuł posta, nie ogólna kategoria
 - Pisz po polsku
 

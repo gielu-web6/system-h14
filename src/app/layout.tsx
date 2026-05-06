@@ -3,6 +3,7 @@ import { Inter, Syne, DM_Sans } from 'next/font/google'
 import { ThemeProvider } from 'next-themes'
 import { UserProvider } from '@/contexts/UserContext'
 import { BrandThemeProvider } from '@/contexts/BrandThemeContext'
+import { UIThemeProvider } from '@/contexts/UIThemeContext'
 import './globals.css'
 
 const inter = Inter({
@@ -31,13 +32,23 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pl" className={`${inter.variable} ${syne.variable} ${dmSans.variable}`} suppressHydrationWarning>
+      <head>
+        {/* FOWT prevention — reads localStorage before React hydration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('h14-theme');if(t==='arctic-executive'){document.documentElement.setAttribute('data-theme','arctic-executive');}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="min-h-screen antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
-          <BrandThemeProvider>
-            <UserProvider>
-              {children}
-            </UserProvider>
-          </BrandThemeProvider>
+          <UIThemeProvider>
+            <BrandThemeProvider>
+              <UserProvider>
+                {children}
+              </UserProvider>
+            </BrandThemeProvider>
+          </UIThemeProvider>
         </ThemeProvider>
       </body>
     </html>

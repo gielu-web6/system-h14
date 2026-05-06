@@ -19,7 +19,10 @@ export const DEMO_PNL = [
   { month: 'Lut', revenue: 13500, costs: 5200, profit: 8300  },
   { month: 'Mar', revenue: 15200, costs: 5800, profit: 9400  },
   { month: 'Kwi', revenue: 18900, costs: 6200, profit: 12700 },
+  { month: 'Maj', revenue: 20400, costs: 4565, profit: 15835 },
 ]
+
+export const DEMO_PNL_TARGET = 20000
 
 // ─── Pipeline deals (matches pipeline/page.tsx Deal interface) ────────────────
 // Fields: id, title, contact_name, contact_email, contact_phone,
@@ -153,6 +156,7 @@ export interface DemoExpenseEntry {
 }
 
 export const DEMO_INCOMES: DemoIncomeEntry[] = [
+  // kwiecień 2026
   { id: 'di1',  client: 'MediaHouse Warsaw',  project: 'Wdrożenie AM Platform',          amount: 7296,  vatRate: 23, vatAmount: 1678, grossAmount: 8974,  netProfit: 7296,  type: 'zaliczka',  status: 'opłacona',   date: '2026-04-05', invoiceNumber: 'FV/2026/04/01' },
   { id: 'di2',  client: 'TopLine Agency',     project: 'CRM + Generator Treści + Portal', amount: 3600,  vatRate: 23, vatAmount: 828,  grossAmount: 4428,  netProfit: 3600,  type: 'zaliczka',  status: 'opłacona',   date: '2026-04-02', invoiceNumber: 'FV/2026/04/02' },
   { id: 'di3',  client: 'Kreacja Premium',    project: 'Pełne wdrożenie AM Platform',    amount: 3600,  vatRate: 23, vatAmount: 828,  grossAmount: 4428,  netProfit: 3600,  type: 'zaliczka',  status: 'opłacona',   date: '2026-03-28', invoiceNumber: 'FV/2026/03/12' },
@@ -163,9 +167,18 @@ export const DEMO_INCOMES: DemoIncomeEntry[] = [
   { id: 'di8',  client: 'MediaHouse Warsaw',  project: 'Rata końcowa',                   amount: 6000,  vatRate: 23, vatAmount: 1380, grossAmount: 7380,  netProfit: 6000,  type: 'końcowa',   status: 'oczekująca', date: '2026-04-30', invoiceNumber: 'FV/2026/04/07' },
   { id: 'di9',  client: 'GrowthLab',          project: 'Abonament – kwiecień',           amount: 990,   vatRate: 23, vatAmount: 228,  grossAmount: 1218,  netProfit: 990,   type: 'abonament', status: 'oczekująca', date: '2026-04-28', invoiceNumber: 'FV/2026/04/08' },
   { id: 'di10', client: 'Kreacja Premium',    project: 'Rata 2 z 3',                     amount: 3600,  vatRate: 23, vatAmount: 828,  grossAmount: 4428,  netProfit: 3600,  type: 'rata',      status: 'zaległa',    date: '2026-04-12', invoiceNumber: 'FV/2026/04/09' },
+  // maj 2026
+  { id: 'di11', client: 'Agencja Forma',      project: 'Wdrożenie AM Platform',          amount: 7200,  vatRate: 23, vatAmount: 1656, grossAmount: 8856,  netProfit: 7200,  type: 'zaliczka',  status: 'opłacona',   date: '2026-05-02', invoiceNumber: 'FV/2026/05/01' },
+  { id: 'di12', client: 'Sigma Marketing',    project: 'Abonament wsparcia – maj',       amount: 1500,  vatRate: 23, vatAmount: 345,  grossAmount: 1845,  netProfit: 1500,  type: 'abonament', status: 'opłacona',   date: '2026-05-01', invoiceNumber: 'FV/2026/05/02' },
+  { id: 'di13', client: 'Nova Agency',        project: 'Abonament – maj',                amount: 990,   vatRate: 23, vatAmount: 228,  grossAmount: 1218,  netProfit: 990,   type: 'abonament', status: 'opłacona',   date: '2026-05-01', invoiceNumber: 'FV/2026/05/03' },
+  { id: 'di14', client: 'Buzz Digital',       project: 'AM Platform – rata 2 z 3',       amount: 4800,  vatRate: 23, vatAmount: 1104, grossAmount: 5904,  netProfit: 4800,  type: 'rata',      status: 'opłacona',   date: '2026-05-03', invoiceNumber: 'FV/2026/05/04' },
+  { id: 'di15', client: 'GrowthLab',          project: 'Abonament – maj',                amount: 990,   vatRate: 23, vatAmount: 228,  grossAmount: 1218,  netProfit: 990,   type: 'abonament', status: 'opłacona',   date: '2026-05-01', invoiceNumber: 'FV/2026/05/05' },
+  { id: 'di16', client: 'TopLine Agency',     project: 'Rata końcowa – projekt',         amount: 6000,  vatRate: 23, vatAmount: 1380, grossAmount: 7380,  netProfit: 6000,  type: 'końcowa',   status: 'oczekująca', date: '2026-05-31', invoiceNumber: 'FV/2026/05/06' },
+  { id: 'di17', client: 'Kreacja Premium',    project: 'Rata 3 z 3',                     amount: 3600,  vatRate: 23, vatAmount: 828,  grossAmount: 4428,  netProfit: 3600,  type: 'rata',      status: 'oczekująca', date: '2026-05-28', invoiceNumber: 'FV/2026/05/07' },
 ]
 
 export const DEMO_EXPENSES: DemoExpenseEntry[] = [
+  // kwiecień 2026
   { id: 'de1',  name: 'OpenAI API',          category: 'narzędzia',     amount: 420,  vatRate: 0,  vatAmount: 0,   grossAmount: 420,  recurring: true,  date: '2026-04-01' },
   { id: 'de2',  name: 'Vercel Pro',           category: 'hosting',       amount: 240,  vatRate: 23, vatAmount: 55,  grossAmount: 295,  recurring: true,  date: '2026-04-01' },
   { id: 'de3',  name: 'Supabase Pro',         category: 'hosting',       amount: 200,  vatRate: 0,  vatAmount: 0,   grossAmount: 200,  recurring: true,  date: '2026-04-01' },
@@ -176,6 +189,14 @@ export const DEMO_EXPENSES: DemoExpenseEntry[] = [
   { id: 'de8',  name: 'Szkolenie Google Ads', category: 'szkolenia',     amount: 800,  vatRate: 23, vatAmount: 184, grossAmount: 984,  recurring: false, date: '2026-04-12' },
   { id: 'de9',  name: 'Sprzęt – microport',   category: 'sprzęt',        amount: 650,  vatRate: 23, vatAmount: 150, grossAmount: 800,  recurring: false, date: '2026-04-16' },
   { id: 'de10', name: 'Meta Ads własne',      category: 'marketing',     amount: 1200, vatRate: 23, vatAmount: 276, grossAmount: 1476, recurring: false, date: '2026-04-18' },
+  // maj 2026
+  { id: 'de11', name: 'OpenAI API',           category: 'narzędzia',     amount: 420,  vatRate: 0,  vatAmount: 0,   grossAmount: 420,  recurring: true,  date: '2026-05-01' },
+  { id: 'de12', name: 'Vercel Pro',            category: 'hosting',       amount: 240,  vatRate: 23, vatAmount: 55,  grossAmount: 295,  recurring: true,  date: '2026-05-01' },
+  { id: 'de13', name: 'Supabase Pro',          category: 'hosting',       amount: 200,  vatRate: 0,  vatAmount: 0,   grossAmount: 200,  recurring: true,  date: '2026-05-01' },
+  { id: 'de14', name: 'Canva Teams',           category: 'narzędzia',     amount: 180,  vatRate: 23, vatAmount: 41,  grossAmount: 221,  recurring: true,  date: '2026-05-01' },
+  { id: 'de15', name: 'Biuro – maj',           category: 'biuro',         amount: 1800, vatRate: 23, vatAmount: 414, grossAmount: 2214, recurring: true,  date: '2026-05-05' },
+  { id: 'de16', name: 'Księgowość',            category: 'księgowość',    amount: 500,  vatRate: 23, vatAmount: 115, grossAmount: 615,  recurring: true,  date: '2026-05-08' },
+  { id: 'de17', name: 'LinkedIn Sales Nav',    category: 'narzędzia',     amount: 600,  vatRate: 0,  vatAmount: 0,   grossAmount: 600,  recurring: true,  date: '2026-05-10' },
 ]
 
 // ─── Outreach queue (matches outreach/page.tsx OutreachItem interface) ────────

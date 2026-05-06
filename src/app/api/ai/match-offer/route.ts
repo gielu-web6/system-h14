@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getOpenAI } from '@/lib/openai'
 import { getCompanyProfile, buildCompanyContext } from '@/lib/getCompanyProfile'
+import { buildContext } from '@/lib/company-brain/context-builder'
 import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: NextRequest) {
   try {
-    const { leadId, dealId, diagnosisNotes, clientProblem } = await req.json()
-
-    const profile = await getCompanyProfile()
-    const companyCtx = buildCompanyContext(profile)
+    const { leadId, diagnosisNotes, clientProblem } = await req.json()
 
     const supabase = await createClient()
     let lead: Record<string, unknown> | null = null
@@ -17,6 +15,14 @@ export async function POST(req: NextRequest) {
       const { data } = await supabase.from('leads').select('*').eq('id', leadId).single()
       lead = data
     }
+
+    const [profile, brainCtx] = await Promise.all([
+      getCompanyProfile(),
+      buildContext('offer_generator', {
+        query: `Dopasowanie oferty: ${clientProblem || diagnosisNotes || 'usługi firmy, cennik, case studies'}`,
+      }).catch(() => null),
+    ])
+    const companyCtx = buildCompanyContext(profile)
 
     const openai = getOpenAI()
 
@@ -27,6 +33,7 @@ export async function POST(req: NextRequest) {
           role: 'system',
           content: `Jesteś ekspertem od dopasowania ofert B2B. Twoim zadaniem jest dopasowanie odpowiedniej usługi do klienta.
 
+${brainCtx?.contextString ?? ''}
 OFERTA FIRMY:
 ${companyCtx}
 

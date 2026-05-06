@@ -10,7 +10,8 @@ import {
 import toast from 'react-hot-toast'
 import { createClient } from '@/lib/supabase/client'
 import { isDemoMode } from '@/lib/userStore'
-import { DEMO_INCOMES, DEMO_EXPENSES } from '@/lib/demo-data'
+import { DEMO_INCOMES, DEMO_EXPENSES, DEMO_PNL, DEMO_PNL_TARGET } from '@/lib/demo-data'
+import { PLChart } from '@/components/finance/PLChart'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -586,6 +587,11 @@ function OverviewTab({ incomes, expenses }: { incomes: IncomeEntry[]; expenses: 
           </div>
         ))}
       </div>
+
+      {/* P&L chart */}
+      {isDemoMode() && (
+        <PLChart data={DEMO_PNL} target={DEMO_PNL_TARGET} />
+      )}
 
       {/* VAT info */}
       <div className="p-4 rounded-[12px] bg-white/[0.02] border border-white/[0.06]">

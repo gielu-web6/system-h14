@@ -11,7 +11,6 @@ import {
   Sparkles,
   CalendarDays,
   BarChart3,
-  Globe,
   FileText,
   TrendingUp,
   Settings,
@@ -19,8 +18,6 @@ import {
   X,
   Zap,
   BrainCircuit,
-  BookOpen,
-  Wand2,
   Brain,
 } from 'lucide-react'
 import { useLayout } from './LayoutContext'
@@ -34,7 +31,6 @@ const NAV_SECTIONS = [
     section: '',
     items: [
       { href: '/demo',                 label: 'Dashboard',         icon: LayoutDashboard },
-      { href: '/knowledge-base',       label: 'Baza Wiedzy',       icon: BookOpen },
     ],
   },
   {
@@ -52,7 +48,6 @@ const NAV_SECTIONS = [
     section: 'Content',
     items: [
       { href: '/content-generator',   label: 'Generator Treści',  icon: Sparkles },
-      { href: '/content-studio',      label: 'Content Studio',    icon: Wand2 },
       { href: '/content-calendar',    label: 'Kalendarz',         icon: CalendarDays },
     ],
   },
@@ -68,7 +63,6 @@ const NAV_SECTIONS = [
     id: 'client',
     section: 'Klient',
     items: [
-      { href: '/portal',              label: 'Portal Klienta',    icon: Globe },
       { href: '/offer-generator',     label: 'Generator Ofert',   icon: FileText },
     ],
   },

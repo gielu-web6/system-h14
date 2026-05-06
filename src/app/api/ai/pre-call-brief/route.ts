@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getOpenAI } from '@/lib/openai'
 import { getCompanyProfile, buildCompanyContext } from '@/lib/getCompanyProfile'
+import { buildContext } from '@/lib/company-brain/context-builder'
 import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: NextRequest) {
   try {
     const { leadId, dealId } = await req.json()
-
-    const profile = await getCompanyProfile()
-    const companyCtx = buildCompanyContext(profile)
 
     const supabase = await createClient()
     let lead: Record<string, unknown> | null = null
@@ -23,6 +21,14 @@ export async function POST(req: NextRequest) {
       deal = data
     }
 
+    const [profile, brainCtx] = await Promise.all([
+      getCompanyProfile(),
+      buildContext('outreach_generator', {
+        query: `Brief przed rozmową: ${(lead?.company as string) ?? ''} ${(lead?.industry as string) ?? ''} ${(deal?.client_problem as string) ?? ''} strategia sprzedaży, obiekcje, ICP`,
+      }).catch(() => null),
+    ])
+    const companyCtx = buildCompanyContext(profile)
+
     const openai = getOpenAI()
 
     const completion = await openai.chat.completions.create({
@@ -32,15 +38,16 @@ export async function POST(req: NextRequest) {
           role: 'system',
           content: `Jesteś asystentem sprzedaży B2B. Przygotowujesz briefing przed rozmową z klientem.
 
+${brainCtx?.contextString ?? ''}
 FIRMA SPRZEDAWCY:
 ${companyCtx}
 
 Przygotuj krótki brief (max 300 słów) zawierający:
 1. **Kim jest klient** (firma, branża, rola)
 2. **Zidentyfikowany problem** (na podstawie danych)
-3. **Sugerowane rozwiązanie** z oferty firmy
+3. **Sugerowane rozwiązanie** z oferty firmy — odwołaj się do konkretnych usług i case studies
 4. **3 pytania diagnozujące** które zadać na rozmowie
-5. **Potencjalne obiekcje** i jak je zbić
+5. **Potencjalne obiekcje** i jak je zbić argumentami firmy
 
 Odpowiedz w formacie markdown.`,
         },

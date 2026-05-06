@@ -13,6 +13,7 @@ import { useLayout } from './LayoutContext'
 import { SearchModal } from './SearchModal'
 import { NotificationsDropdown, useNotifications } from './NotificationsDropdown'
 import { BrandThemeSwitcher } from './BrandThemeSwitcher'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { useBrandTheme } from '@/contexts/BrandThemeContext'
 import { useAppUser } from '@/contexts/UserContext'
 import { USERS } from '@/lib/userStore'
@@ -235,6 +236,9 @@ export function Topbar() {
               </kbd>
             </span>
           </button>
+
+          {/* UI theme toggle (Dark Operator ↔ Arctic Executive) */}
+          <ThemeToggle />
 
           {/* Brand theme switcher */}
           <BrandThemeSwitcher />
