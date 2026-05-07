@@ -115,7 +115,7 @@ export default function LoginPage() {
               {/* Profile selection */}
               <div>
                 <label className="block text-[12px] font-medium text-white/50 mb-2.5">Wybierz profil</label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className={`grid gap-3 ${REAL_USERS.length <= 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                   {REAL_USERS.map((u) => (
                     <button
                       key={u.id}
@@ -140,6 +140,15 @@ export default function LoginPage() {
                       </div>
                       <span className={`text-[13px] font-semibold transition-colors ${selectedUser === u.id ? 'text-white' : 'text-white/60'}`}>
                         {u.fullName}
+                      </span>
+                      <span
+                        className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full"
+                        style={{
+                          background: u.role === 'sales' ? '#f59e0b20' : '#6366f120',
+                          color: u.role === 'sales' ? '#f59e0b' : '#a5b4fc',
+                        }}
+                      >
+                        {u.role === 'sales' ? 'Sales' : 'Admin'}
                       </span>
                     </button>
                   ))}
