@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
+import { sendTelegramAlert } from '@/lib/telegram'
 
 const ENGAGEMENT_POINTS: Record<string, number> = {
   view:          15,
@@ -65,6 +66,17 @@ export async function POST(req: NextRequest) {
           roi_calculator_used: false,
           pricing_variant_viewed: data.variant ?? null,
         })
+
+        // Alert 2 — first open
+        sendTelegramAlert({
+          target: 'sales',
+          message: `👀 <b>OFERTA OTWARTA</b>
+
+👤 ${offerPage.company_name}
+🕐 Czas: ${new Date().toLocaleTimeString('pl-PL')}
+
+<b>DZWOŃ TERAZ.</b>`,
+        }).catch(() => {})
       }
 
       await supabase
@@ -243,6 +255,19 @@ export async function POST(req: NextRequest) {
           priority: 'high',
           is_read: false,
         })
+      }
+
+      // Alert 3 — pricing section 2+ minutes
+      if (pricingTime >= 120) {
+        sendTelegramAlert({
+          target: 'sales',
+          message: `💰 <b>KLIENT NA CENNIKU!</b>
+
+👤 ${offerPage.company_name}
+⏱ Czyta cennik od ${Math.round(pricingTime / 60)} minut
+
+<b>To najlepszy moment na telefon.</b>`,
+        }).catch(() => {})
       }
     }
 

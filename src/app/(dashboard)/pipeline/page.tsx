@@ -404,6 +404,23 @@ function NewDealModal({
     setSaving(false)
     if (err) { setError(err.message); return }
     onAdd(data as Deal)
+
+    // Alert 9 — big deal >= 15 000 PLN
+    const dealValue = parseInt(form.value) || 0
+    if (dealValue >= 15000) {
+      fetch('/api/deals/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'big_deal',
+          dealId: (data as Deal).id,
+          company: form.company,
+          value: dealValue,
+          stage: form.stage,
+        }),
+      }).catch(() => {})
+    }
+
     setSaved(true)
     setTimeout(() => onClose(), 1200)
   }
@@ -546,15 +563,51 @@ export default function PipelinePage() {
     setDeals(prev => prev.map(d => d.id === id ? { ...d, stage } : d))
     setSelectedDeal(prev => prev?.id === id ? { ...prev, stage } : prev)
     if (isDemoMode()) return
+
+    const deal = deals.find(d => d.id === id)
     const supabase = createClient()
+    const updatePayload: Record<string, unknown> = { stage, updated_at: new Date().toISOString() }
+
+    if (stage === 'wygrana') updatePayload.won_at = new Date().toISOString()
+    if (stage === 'przegrana') updatePayload.lost_at = new Date().toISOString()
+
     const { error: err } = await supabase
       .from('deals')
-      .update({ stage, updated_at: new Date().toISOString() })
+      .update(updatePayload)
       .eq('id', id)
 
     if (err) { console.error(err); return }
     setDeals(prev => prev.map(d => d.id === id ? { ...d, stage } : d))
     setSelectedDeal(prev => prev?.id === id ? { ...prev, stage } : prev)
+
+    // Fire Telegram alerts (fire-and-forget)
+    if (deal) {
+      if (stage === 'wygrana') {
+        fetch('/api/deals/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'won',
+            dealId: id,
+            company: deal.title,
+            value: deal.value,
+            assignedTo: deal.assigned_to ?? undefined,
+          }),
+        }).catch(() => {})
+      }
+      if (stage === 'przegrana') {
+        fetch('/api/deals/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'lost',
+            dealId: id,
+            company: deal.title,
+            lostReason: null,
+          }),
+        }).catch(() => {})
+      }
+    }
   }
 
   // ── Add new deal ───────────────────────────────────────────────────────────

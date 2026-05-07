@@ -1,23 +1,32 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Toaster } from 'react-hot-toast'
 import { LayoutProvider } from '@/components/layout/LayoutContext'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Topbar } from '@/components/layout/Topbar'
 import { MainContent } from '@/components/layout/MainContent'
 import { useAppUser } from '@/contexts/UserContext'
+import { OnboardingModal } from '@/components/sales/OnboardingModal'
+
+const ADMIN_ONLY_PATHS = ['/finance', '/company-brain', '/settings', '/analytics']
 
 function DashboardGuard({ children }: { children: React.ReactNode }) {
-  const { user, loading, switchUser } = useAppUser()
+  const { user, loading, isSales } = useAppUser()
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login')
+      return
     }
-  }, [user, loading, router, switchUser])
+    if (!loading && isSales) {
+      const blocked = ADMIN_ONLY_PATHS.some((p) => pathname.startsWith(p))
+      if (blocked) router.replace('/demo')
+    }
+  }, [user, loading, router, isSales, pathname])
 
   if (loading) {
     return (
@@ -42,6 +51,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {children}
             </main>
           </MainContent>
+          <OnboardingModal />
         </div>
 
         <Toaster

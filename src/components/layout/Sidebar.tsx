@@ -22,58 +22,94 @@ import {
 } from 'lucide-react'
 import { useLayout } from './LayoutContext'
 import { useBrandTheme } from '@/contexts/BrandThemeContext'
+import { useAppUser } from '@/contexts/UserContext'
 
-// ─── Nav definition ──────────────────────────────────────────────────────────
+// ─── Nav definitions ──────────────────────────────────────────────────────────
 
-const NAV_SECTIONS = [
+const ADMIN_NAV_SECTIONS = [
   {
     id: 'main',
     section: '',
     items: [
-      { href: '/demo',                 label: 'Dashboard',         icon: LayoutDashboard },
+      { href: '/demo',              label: 'Dashboard',        icon: LayoutDashboard },
     ],
   },
   {
     id: 'sales',
     section: 'Sprzedaż',
     items: [
-      { href: '/pipeline',            label: 'Pipeline (CRM)',    icon: KanbanSquare },
-      { href: '/leads',               label: 'Leady',             icon: Users },
-      { href: '/outreach',            label: 'Outreach',          icon: Send },
-      { href: '/ai-scoring',          label: 'AI Scoring',        icon: BrainCircuit },
+      { href: '/pipeline',          label: 'Pipeline (CRM)',   icon: KanbanSquare },
+      { href: '/leads',             label: 'Leady',            icon: Users },
+      { href: '/outreach',          label: 'Outreach',         icon: Send },
+      { href: '/ai-scoring',        label: 'AI Scoring',       icon: BrainCircuit },
     ],
   },
   {
     id: 'content',
     section: 'Content',
     items: [
-      { href: '/content-generator',   label: 'Generator Treści',  icon: Sparkles },
-      { href: '/content-calendar',    label: 'Kalendarz',         icon: CalendarDays },
+      { href: '/content-generator', label: 'Generator Treści', icon: Sparkles },
+      { href: '/content-calendar',  label: 'Kalendarz',        icon: CalendarDays },
     ],
   },
   {
     id: 'finance',
     section: 'Finanse & Raporty',
     items: [
-      { href: '/finance',             label: 'Finanse',           icon: BarChart3 },
-      { href: '/analytics',           label: 'Analityka',         icon: TrendingUp },
+      { href: '/finance',           label: 'Finanse',          icon: BarChart3 },
+      { href: '/analytics',         label: 'Analityka',        icon: TrendingUp },
     ],
   },
   {
     id: 'client',
     section: 'Klient',
     items: [
-      { href: '/offer-generator',     label: 'Generator Ofert',   icon: FileText },
+      { href: '/offer-generator',   label: 'Generator Ofert',  icon: FileText },
     ],
   },
   {
     id: 'brain',
     section: 'AI System',
     items: [
-      { href: '/company-brain',       label: 'Company Brain',     icon: Brain },
+      { href: '/company-brain',     label: 'Company Brain',    icon: Brain },
     ],
   },
-] as const
+]
+
+const SALES_NAV_SECTIONS = [
+  {
+    id: 'main',
+    section: '',
+    items: [
+      { href: '/demo',              label: 'Mój Dashboard',    icon: LayoutDashboard },
+    ],
+  },
+  {
+    id: 'sales',
+    section: 'Sprzedaż',
+    items: [
+      { href: '/pipeline',          label: 'Mój Pipeline',     icon: KanbanSquare },
+      { href: '/leads',             label: 'Moje Leady',       icon: Users },
+      { href: '/outreach',          label: 'Outreach',         icon: Send },
+      { href: '/offer-generator',   label: 'Moje Oferty',      icon: FileText },
+    ],
+  },
+  {
+    id: 'tools',
+    section: 'Narzędzia',
+    items: [
+      { href: '/content-generator', label: 'Content AI',       icon: Sparkles },
+      { href: '/knowledge-base',    label: 'Bank Obiekcji',    icon: Brain },
+    ],
+  },
+  {
+    id: 'stats',
+    section: 'Wyniki',
+    items: [
+      { href: '/my-stats',          label: 'Moje Wyniki',      icon: BarChart3 },
+    ],
+  },
+]
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -170,6 +206,8 @@ interface SidebarContentProps {
 function SidebarContent({ collapsed, onNavClick, showCloseButton, onClose }: SidebarContentProps) {
   const { brandTheme } = useBrandTheme()
   const isMediovee = brandTheme === 'mediovee'
+  const { isSales } = useAppUser()
+  const navSections = isSales ? SALES_NAV_SECTIONS : ADMIN_NAV_SECTIONS
 
   return (
     <div className="flex flex-col h-full">
@@ -210,7 +248,7 @@ function SidebarContent({ collapsed, onNavClick, showCloseButton, onClose }: Sid
 
       {/* ── Nav ── */}
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
-        {NAV_SECTIONS.map((section) => (
+        {navSections.map((section) => (
           <div key={section.id}>
             {/* Section label */}
             {!collapsed && section.section && (
@@ -238,16 +276,18 @@ function SidebarContent({ collapsed, onNavClick, showCloseButton, onClose }: Sid
         ))}
       </nav>
 
-      {/* ── Bottom: Settings ── */}
+      {/* ── Bottom: Settings (admin only) ── */}
       <div className="flex-shrink-0 border-t border-white/[0.06] p-2 space-y-0.5">
-        <NavItem
-          href="/settings"
-          label="Ustawienia"
-          icon={Settings}
-          collapsed={collapsed}
-          onClick={onNavClick}
-          soon
-        />
+        {!isSales && (
+          <NavItem
+            href="/settings"
+            label="Ustawienia"
+            icon={Settings}
+            collapsed={collapsed}
+            onClick={onNavClick}
+            soon
+          />
+        )}
         {/* Footer watermark */}
         {!collapsed && (
           <div className="px-3 pt-2 pb-1">

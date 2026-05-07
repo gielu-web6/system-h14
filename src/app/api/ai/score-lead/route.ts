@@ -3,6 +3,7 @@ import { getOpenAI } from '@/lib/openai'
 import { getCompanyProfile, buildCompanyContext } from '@/lib/getCompanyProfile'
 import { createClient } from '@/lib/supabase/server'
 import { buildContext } from '@/lib/company-brain/context-builder'
+import { sendTelegramAlert } from '@/lib/telegram'
 
 async function scrapeUrl(url: string): Promise<string> {
   if (!url?.trim()) return ''
@@ -172,6 +173,22 @@ Odpowiedz TYLKO poprawnym JSON-em (bez markdown):
         ai_reasoning:          result.reasoning       ?? null,
         ai_scored_at:          new Date().toISOString(),
       }).eq('id', leadId)
+    }
+
+    // Alert 5 — hot lead (score >= 70/100, label 'hot')
+    if (result.label === 'hot') {
+      const score10 = Math.round((result.total_score ?? 0) / 10)
+      sendTelegramAlert({
+        target: 'sales',
+        message: `⭐ <b>HOT LEAD — Score ${score10}/10</b>
+
+🏢 ${lead.company ?? ''}
+👤 ${lead.first_name ?? ''} ${lead.last_name ?? ''}
+
+🔍 AI: ${result.problem ?? result.reasoning ?? '—'}
+
+Priorytet na dziś.`,
+      }).catch(() => {})
     }
 
     return NextResponse.json({ result })

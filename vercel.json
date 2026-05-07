@@ -1,1 +1,36 @@
-{}
+{
+  "crons": [
+    {
+      "path": "/api/cron/morning-brief",
+      "schedule": "45 7 * * 1-5"
+    },
+    {
+      "path": "/api/cron/evening-reminder",
+      "schedule": "30 17 * * 1-5"
+    },
+    {
+      "path": "/api/cron/weekly-report",
+      "schedule": "0 8 * * 1"
+    },
+    {
+      "path": "/api/cron/monthly-forecast",
+      "schedule": "0 9 1 * *"
+    },
+    {
+      "path": "/api/cron/deal-stale-check",
+      "schedule": "0 8 * * 1-5"
+    },
+    {
+      "path": "/api/cron/offer-unopened-check",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/brain-check",
+      "schedule": "0 9 * * 1"
+    },
+    {
+      "path": "/api/cron/follow-up-check",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}
