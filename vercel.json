@@ -22,7 +22,7 @@
     },
     {
       "path": "/api/cron/offer-unopened-check",
-      "schedule": "0 * * * *"
+      "schedule": "0 10 * * 1-5"
     },
     {
       "path": "/api/cron/brain-check",
