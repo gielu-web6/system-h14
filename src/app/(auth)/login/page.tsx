@@ -27,7 +27,9 @@ export default function LoginPage() {
       setError('Wybierz profil.')
       return
     }
-    if (password !== DEMO_PASSWORD) {
+    const user = REAL_USERS.find(u => u.id === selectedUser)
+    const expectedPassword = user?.password ?? DEMO_PASSWORD
+    if (password !== expectedPassword) {
       setError('Nieprawidłowe hasło.')
       return
     }

@@ -11,7 +11,7 @@ import {
 import toast from 'react-hot-toast'
 import { createClient } from '@/lib/supabase/client'
 import { useServices } from '@/hooks/useServices'
-import { isDemoMode } from '@/lib/userStore'
+import { isDemoMode, isSalesUser, getCurrentUser } from '@/lib/userStore'
 import { DEMO_LEADS } from '@/lib/demo-data'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -1169,7 +1169,12 @@ export default function LeadsPage() {
       return
     }
     const supabase = createClient()
-    supabase.from('leads').select('*').order('last_contact', { ascending: false }).then(({ data }) => {
+    let query = supabase.from('leads').select('*').order('last_contact', { ascending: false })
+    if (isSalesUser()) {
+      const u = getCurrentUser()
+      if (u) query = query.eq('assigned_to', u.id)
+    }
+    query.then(({ data }) => {
       if (data) setLeads(data.map(r => dbToLead(r as Record<string, unknown>)))
     })
     const { keys, labels } = loadSegments()
@@ -1179,7 +1184,11 @@ export default function LeadsPage() {
 
   const addLead = useCallback(async (lead: Lead): Promise<Lead> => {
     const supabase = createClient()
-    const { data, error } = await supabase.from('leads').insert(leadToDb(lead)).select().single()
+    const salesUser = isSalesUser() ? getCurrentUser() : null
+    const insertPayload = salesUser
+      ? { ...leadToDb(lead), assigned_to: salesUser.id }
+      : leadToDb(lead)
+    const { data, error } = await supabase.from('leads').insert(insertPayload).select().single()
     if (error) {
       console.error('Błąd zapisu leada:', error)
       toast.error('Nie udało się zapisać leada: ' + error.message)

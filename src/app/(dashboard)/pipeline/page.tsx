@@ -9,7 +9,7 @@ import {
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useServices } from '@/hooks/useServices'
-import { isDemoMode } from '@/lib/userStore'
+import { isDemoMode, isSalesUser, getCurrentUser } from '@/lib/userStore'
 import { DEMO_DEALS } from '@/lib/demo-data'
 
 // ─── Stage config (keys match DB values) ─────────────────────────────────────
@@ -381,6 +381,7 @@ function NewDealModal({
     setError('')
 
     const supabase = createClient()
+    const salesUser = isSalesUser() ? getCurrentUser() : null
     const { data, error: err } = await supabase
       .from('deals')
       .insert({
@@ -397,6 +398,7 @@ function NewDealModal({
         last_contact_date: new Date().toISOString().slice(0, 10),
         next_step: 'Umówić rozmowę discovery',
         project_scope: 'Do uzupełnienia po pierwszej rozmowie',
+        ...(salesUser ? { assigned_to: salesUser.id } : {}),
       })
       .select()
       .single()
@@ -546,10 +548,12 @@ export default function PipelinePage() {
       return
     }
     const supabase = createClient()
-    const { data, error: err } = await supabase
-      .from('deals')
-      .select('*')
-      .order('created_at', { ascending: false })
+    let query = supabase.from('deals').select('*').order('created_at', { ascending: false })
+    if (isSalesUser()) {
+      const u = getCurrentUser()
+      if (u) query = query.eq('assigned_to', u.id)
+    }
+    const { data, error: err } = await query
 
     if (err) { setError(err.message); setLoading(false); return }
     setDeals((data as Deal[]) ?? [])

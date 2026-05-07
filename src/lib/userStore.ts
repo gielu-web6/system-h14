@@ -10,13 +10,14 @@ export interface AppUser {
   initials: string
   color: string
   role: UserRole
+  password?: string
   onboardingCompleted?: boolean
 }
 
 export const USERS: AppUser[] = [
   { id: 'adrian',     name: 'Adrian',     fullName: 'Adrian',     company: 'AM Automations', initials: 'A', color: '#6366f1', role: 'admin' },
   { id: 'maciek',     name: 'Maciek',     fullName: 'Maciek',     company: 'AM Automations', initials: 'M', color: '#8b5cf6', role: 'admin' },
-  { id: 'handlowiec', name: 'Handlowiec', fullName: 'Handlowiec', company: 'AM Automations', initials: 'H', color: '#f59e0b', role: 'sales', onboardingCompleted: false },
+  { id: 'handlowiec', name: 'Handlowiec', fullName: 'Handlowiec', company: 'AM Automations', initials: 'H', color: '#f59e0b', role: 'sales', password: 'Seba', onboardingCompleted: false },
   { id: 'demo',       name: 'Demo',       fullName: 'Demo',       company: 'AM Automations', initials: 'D', color: '#22c55e', role: 'admin' },
 ]
 
