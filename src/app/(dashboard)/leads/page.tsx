@@ -294,6 +294,7 @@ function NewLeadModal({
     email: '', phone: '', city: '', segment: 'usługi',
     website: '', linkedin: '', instagram: '',
   })
+  const [saving, setSaving] = useState(false)
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }))
 
@@ -328,10 +329,12 @@ function NewLeadModal({
       outreachHistory: [],
     }
 
+    setSaving(true)
     let savedLead: Lead
     try {
       savedLead = await onAdd(lead)
     } catch {
+      setSaving(false)
       return
     }
 
@@ -368,8 +371,46 @@ function NewLeadModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <style>{`
+        @keyframes scanLine {
+          0%   { transform: translateY(0); opacity: 0; }
+          10%  { opacity: 1; }
+          90%  { opacity: 1; }
+          100% { transform: translateY(180px); opacity: 0; }
+        }
+        @keyframes scanPulse {
+          0%, 100% { opacity: 0.4; transform: scale(1); }
+          50%       { opacity: 1;   transform: scale(1.08); }
+        }
+      `}</style>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div className="relative z-10 w-full max-w-[520px] bg-[#0F0F1A] border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+        {saving && (
+          <div className="absolute inset-0 z-20 bg-[#0F0F1A]/97 rounded-[18px] flex flex-col items-center justify-center gap-5">
+            <div className="relative w-[72px] h-[72px]">
+              <div className="w-full h-full rounded-2xl bg-[#6366f1]/10 border border-[#6366f1]/25 flex items-center justify-center">
+                <Brain size={28} className="text-[#6366f1]" style={{ animation: 'scanPulse 1.4s ease-in-out infinite' }} />
+              </div>
+              <div
+                className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-[#6366f1] to-transparent rounded-full"
+                style={{ top: 0, animation: 'scanLine 1.4s ease-in-out infinite' }}
+              />
+            </div>
+            <div className="text-center">
+              <p className="text-[15px] font-bold text-white">Zapisuję i skanuję leada…</p>
+              <p className="text-[12px] text-white/40 mt-1">AI analizuje profil i oblicza scoring</p>
+            </div>
+            <div className="flex gap-1.5">
+              {[0, 1, 2, 3].map(i => (
+                <div
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full bg-[#6366f1]"
+                  style={{ animation: `scanPulse 1.2s ease-in-out ${i * 0.2}s infinite` }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
         <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.07] sticky top-0 bg-[#0F0F1A] z-10">
           <div>
             <p className="text-[15px] font-bold text-white">Dodaj lead</p>
@@ -463,13 +504,13 @@ function NewLeadModal({
             </div>
 
             <div className="flex gap-2 pt-2">
-              <button type="button" onClick={onClose}
-                className="flex-1 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white/50 text-[13px] font-medium hover:bg-white/[0.08] hover:text-white transition-all">
+              <button type="button" onClick={onClose} disabled={saving}
+                className="flex-1 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white/50 text-[13px] font-medium hover:bg-white/[0.08] hover:text-white disabled:opacity-40 transition-all">
                 Anuluj
               </button>
-              <button type="submit"
-                className="flex-1 py-2.5 rounded-[10px] bg-[#6366f1] text-white text-[13px] font-bold hover:bg-[#5254cc] transition-all shadow-lg shadow-indigo-500/25">
-                Dodaj i skanuj AI
+              <button type="submit" disabled={saving}
+                className="flex-1 py-2.5 rounded-[10px] bg-[#6366f1] text-white text-[13px] font-bold hover:bg-[#5254cc] disabled:opacity-60 transition-all shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2">
+                {saving ? <><Loader2 size={13} className="animate-spin" />Zapisuję...</> : 'Dodaj i skanuj AI'}
               </button>
             </div>
           </form>
