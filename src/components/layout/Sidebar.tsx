@@ -19,6 +19,7 @@ import {
   Zap,
   BrainCircuit,
   Brain,
+  Bot,
 } from 'lucide-react'
 import { useLayout } from './LayoutContext'
 import { useBrandTheme } from '@/contexts/BrandThemeContext'
@@ -72,6 +73,7 @@ const ADMIN_NAV_SECTIONS = [
     section: 'AI System',
     items: [
       { href: '/company-brain',     label: 'Company Brain',    icon: Brain },
+      { href: '/reply-generator',   label: 'Reply Generator',  icon: Bot },
     ],
   },
 ]
@@ -100,6 +102,7 @@ const SALES_NAV_SECTIONS = [
     items: [
       { href: '/content-generator', label: 'Content AI',       icon: Sparkles },
       { href: '/knowledge-base',    label: 'Bank Obiekcji',    icon: Brain },
+      { href: '/reply-generator',   label: 'Reply Generator',  icon: Bot },
     ],
   },
   {

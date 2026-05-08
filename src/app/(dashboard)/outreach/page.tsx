@@ -4,10 +4,10 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   CheckCircle2, ChevronDown, ChevronUp, Copy, Check,
   Flame, Thermometer, Snowflake, UserPlus, MessageSquare,
-  RotateCcw, Clock, Zap, Users, Loader2, RefreshCw,
+  RotateCcw, Clock, Zap, Users, Loader2, RefreshCw, Search, X,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { isDemoMode } from '@/lib/userStore'
+import { isDemoMode, isSalesUser, getCurrentUser } from '@/lib/userStore'
 import { DEMO_OUTREACH } from '@/lib/demo-data'
 
 interface OutreachItem {
@@ -207,6 +207,7 @@ export default function OutreachPage() {
   const [queue, setQueue] = useState<OutreachItem[]>([])
   const [loading, setLoading] = useState(true)
   const [generatingAll, setGeneratingAll] = useState(false)
+  const [search, setSearch] = useState('')
 
   // Fetch leads from Supabase (or demo data) and build initial queue
   useEffect(() => {
@@ -218,10 +219,21 @@ export default function OutreachPage() {
 
     async function loadLeads() {
       const supabase = createClient()
-      const { data, error } = await supabase
-        .from('leads')
-        .select('id, first_name, last_name, company, position, ai_score_num, ai_score_label, ai_icebreaker')
-        .order('ai_score_num', { ascending: false })
+      const currentUser = getCurrentUser()
+      const salesOnly = isSalesUser() && !!currentUser
+
+      const { data, error } = await (
+        salesOnly
+          ? supabase
+              .from('leads')
+              .select('id, first_name, last_name, company, position, ai_score_num, ai_score_label, ai_icebreaker')
+              .eq('assigned_to', currentUser!.id)
+              .order('ai_score_num', { ascending: false })
+          : supabase
+              .from('leads')
+              .select('id, first_name, last_name, company, position, ai_score_num, ai_score_label, ai_icebreaker')
+              .order('ai_score_num', { ascending: false })
+      )
 
       if (error) {
         console.error('Outreach: błąd ładowania leadów', error)
@@ -294,9 +306,16 @@ export default function OutreachPage() {
     setQueue(q => q.map(i => i.id === id ? { ...i, done: true } : i))
   }
 
-  const byType = (type: OutreachItem['type']) => queue.filter(i => i.type === type)
-  const totalPending = queue.filter(i => !i.done).length
-  const withoutMessage = queue.filter(i => !i.done && !i.message).length
+  const q = search.trim().toLowerCase()
+  const visible = q
+    ? queue.filter(i =>
+        `${i.firstName} ${i.lastName} ${i.company} ${i.position}`.toLowerCase().includes(q)
+      )
+    : queue
+
+  const byType = (type: OutreachItem['type']) => visible.filter(i => i.type === type)
+  const totalPending = visible.filter(i => !i.done).length
+  const withoutMessage = visible.filter(i => !i.done && !i.message).length
 
   return (
     <div className="max-w-[860px] space-y-6">
@@ -306,30 +325,54 @@ export default function OutreachPage() {
           <h1 className="text-[20px] font-bold text-white">Outreach Queue</h1>
           <p className="text-[12px] text-white/40 mt-0.5">Kolejka zadań outreach na dziś</p>
         </div>
-        {!loading && queue.length > 0 && (
-          <div className="flex items-center gap-2">
-            {withoutMessage > 0 && (
-              <button
-                onClick={generateAll}
-                disabled={generatingAll}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#6366f1]/10 border border-[#6366f1]/30 text-[#a5b4fc] text-[12px] font-semibold hover:bg-[#6366f1]/20 transition-all disabled:opacity-60"
-              >
-                {generatingAll
-                  ? <><Loader2 size={12} className="animate-spin" /> Generuję…</>
-                  : <><Zap size={12} /> Generuj wiadomości ({withoutMessage})</>
-                }
-              </button>
-            )}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#6366f1]/10 border border-[#6366f1]/30">
-              <Zap size={13} className="text-[#6366f1]" />
-              <span className="text-[12px] font-semibold text-[#a5b4fc]">Do zrobienia dziś</span>
-              <span className="w-5 h-5 rounded-full bg-red-500/80 text-white text-[10px] flex items-center justify-center font-bold">
-                {totalPending}
-              </span>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Search */}
+      {!loading && queue.length > 0 && (
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Szukaj leada — imię, firma, stanowisko…"
+            className="w-full pl-9 pr-8 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-[13px] text-white placeholder:text-white/25 outline-none focus:border-[#6366f1]/50 focus:bg-white/[0.06] transition-all"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+            >
+              <X size={13} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Actions */}
+      {!loading && queue.length > 0 && (
+        <div className="flex items-center justify-end gap-2">
+          {withoutMessage > 0 && (
+            <button
+              onClick={generateAll}
+              disabled={generatingAll}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#6366f1]/10 border border-[#6366f1]/30 text-[#a5b4fc] text-[12px] font-semibold hover:bg-[#6366f1]/20 transition-all disabled:opacity-60"
+            >
+              {generatingAll
+                ? <><Loader2 size={12} className="animate-spin" /> Generuję…</>
+                : <><Zap size={12} /> Generuj wiadomości ({withoutMessage})</>
+              }
+            </button>
+          )}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#6366f1]/10 border border-[#6366f1]/30">
+            <Zap size={13} className="text-[#6366f1]" />
+            <span className="text-[12px] font-semibold text-[#a5b4fc]">Do zrobienia dziś</span>
+            <span className="w-5 h-5 rounded-full bg-red-500/80 text-white text-[10px] flex items-center justify-center font-bold">
+              {totalPending}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Loading */}
       {loading && (
