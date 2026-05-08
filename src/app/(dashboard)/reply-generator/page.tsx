@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import {
   Bot, Copy, Check, Loader2, ChevronDown, ChevronUp,
-  Upload, X, Target, Lightbulb, ArrowRight, User, Image as ImageIcon,
+  Upload, X, Target, Lightbulb, ArrowRight, User, Image as ImageIcon, Search,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { isDemoMode, isSalesUser, getCurrentUser } from '@/lib/userStore'
@@ -47,7 +47,10 @@ const inputCls = `w-full px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border bor
 
 export default function ReplyGeneratorPage() {
   const [leads, setLeads] = useState<Lead[]>([])
-  const [selectedLeadId, setSelectedLeadId] = useState<string>('')
+  const [leadSearch, setLeadSearch] = useState('')
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
+  const [showLeadDropdown, setShowLeadDropdown] = useState(false)
+  const leadRef = useRef<HTMLDivElement>(null)
   const [receivedMessage, setReceivedMessage] = useState('')
   const [conversationContext, setConversationContext] = useState('')
   const [showContext, setShowContext] = useState(false)
@@ -58,6 +61,17 @@ export default function ReplyGeneratorPage() {
   const [result, setResult] = useState<GeneratedResult | null>(null)
   const [copiedReply, setCopiedReply] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  // Close lead dropdown when clicking outside
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (leadRef.current && !leadRef.current.contains(e.target as Node)) {
+        setShowLeadDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
 
   useEffect(() => {
     if (isDemoMode()) {
@@ -85,7 +99,13 @@ export default function ReplyGeneratorPage() {
     loadLeads()
   }, [])
 
-  const selectedLead = leads.find(l => l.id === selectedLeadId) ?? null
+  const filteredLeads = leadSearch.trim().length > 0
+    ? leads.filter(l =>
+        `${l.firstName} ${l.lastName} ${l.company} ${l.position}`
+          .toLowerCase()
+          .includes(leadSearch.toLowerCase())
+      ).slice(0, 8)
+    : leads.slice(0, 8)
 
   const handleImageUpload = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -170,32 +190,62 @@ export default function ReplyGeneratorPage() {
 
       {/* Lead selector */}
       <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5 space-y-3">
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex items-center gap-2">
           <User size={14} className="text-[#6366f1]" />
           <span className="text-[13px] font-semibold text-white">Rozmówca z pipeline</span>
-          <span className="text-[11px] text-white/30 ml-1">(opcjonalnie — daje AI dodatkowy kontekst)</span>
+          <span className="text-[11px] text-white/30 ml-1">(opcjonalnie)</span>
         </div>
-        <select
-          value={selectedLeadId}
-          onChange={e => setSelectedLeadId(e.target.value)}
-          className="w-full px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-[13px] text-white focus:outline-none focus:border-[#6366f1]/60 transition-all appearance-none"
-        >
-          <option value="">— Brak / nie z pipeline —</option>
-          {leads.map(l => (
-            <option key={l.id} value={l.id}>
-              {l.firstName} {l.lastName} · {l.company} · {l.position}
-            </option>
-          ))}
-        </select>
-        {selectedLead && (
-          <div className="flex items-center gap-3 px-3 py-2 rounded-[8px] bg-[#6366f1]/[0.07] border border-[#6366f1]/20">
-            <div className="w-7 h-7 rounded-[8px] bg-[#6366f1]/20 flex items-center justify-center text-[11px] font-bold text-[#6366f1] flex-shrink-0">
+
+        {selectedLead ? (
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] bg-[#6366f1]/[0.07] border border-[#6366f1]/25">
+            <div className="w-8 h-8 rounded-[8px] bg-[#6366f1]/20 flex items-center justify-center text-[11px] font-bold text-[#6366f1] flex-shrink-0">
               {selectedLead.firstName[0]}{selectedLead.lastName[0]}
             </div>
-            <div>
-              <p className="text-[12px] font-semibold text-white">{selectedLead.firstName} {selectedLead.lastName}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-semibold text-white">{selectedLead.firstName} {selectedLead.lastName}</p>
               <p className="text-[11px] text-white/40">{selectedLead.company} · {selectedLead.position}</p>
             </div>
+            <button
+              onClick={() => { setSelectedLead(null); setLeadSearch('') }}
+              className="p-1 rounded-[6px] text-white/30 hover:text-white hover:bg-white/[0.08] transition-all flex-shrink-0"
+            >
+              <X size={13} />
+            </button>
+          </div>
+        ) : (
+          <div ref={leadRef} className="relative">
+            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+            <input
+              type="text"
+              value={leadSearch}
+              onChange={e => { setLeadSearch(e.target.value); setShowLeadDropdown(true) }}
+              onFocus={() => setShowLeadDropdown(true)}
+              placeholder="Wyszukaj lead — imię, firma, stanowisko…"
+              className="w-full pl-9 pr-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-[13px] text-white placeholder:text-white/25 focus:outline-none focus:border-[#6366f1]/60 focus:bg-[#6366f1]/[0.03] transition-all"
+            />
+            {showLeadDropdown && filteredLeads.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-[#0F0F1A] border border-white/[0.1] rounded-[10px] overflow-hidden z-20 shadow-xl">
+                {filteredLeads.map(l => (
+                  <button
+                    key={l.id}
+                    type="button"
+                    onMouseDown={() => { setSelectedLead(l); setLeadSearch(''); setShowLeadDropdown(false) }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/[0.05] transition-colors text-left"
+                  >
+                    <div className="w-7 h-7 rounded-[8px] bg-[#6366f1]/15 flex items-center justify-center text-[10px] font-bold text-[#6366f1] flex-shrink-0">
+                      {l.firstName[0]}{l.lastName[0]}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[12px] font-semibold text-white truncate">{l.firstName} {l.lastName}</p>
+                      <p className="text-[10px] text-white/40 truncate">{l.company} · {l.position}</p>
+                    </div>
+                  </button>
+                ))}
+                {leads.length === 0 && (
+                  <p className="px-3 py-3 text-[12px] text-white/30">Brak leadów w bazie</p>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
