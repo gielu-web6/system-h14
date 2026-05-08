@@ -201,6 +201,27 @@ function Section({ title, type, items, onDone, onRegenerate }: {
   )
 }
 
+// ─── LocalStorage helpers ──────────────────────────────────────────────────────
+
+function todayKey() {
+  return `outreach_done_${new Date().toISOString().slice(0, 10)}`
+}
+
+function getDoneIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(todayKey())
+    return new Set(raw ? JSON.parse(raw) : [])
+  } catch { return new Set() }
+}
+
+function saveDoneId(id: string) {
+  try {
+    const done = getDoneIds()
+    done.add(id)
+    localStorage.setItem(todayKey(), JSON.stringify([...done]))
+  } catch { /* ignore */ }
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function OutreachPage() {
@@ -216,6 +237,8 @@ export default function OutreachPage() {
       setLoading(false)
       return
     }
+
+    const doneToday = getDoneIds()
 
     async function loadLeads() {
       const supabase = createClient()
@@ -261,7 +284,7 @@ export default function OutreachPage() {
           scoreNum:  (row.ai_score_num as number) ?? 0,
           message:   icebreaker,
           generating: false,
-          done:       false,
+          done:       doneToday.has(row.id as string),
         }
       })
 
@@ -303,6 +326,7 @@ export default function OutreachPage() {
   }, [queue, generateOne])
 
   const handleDone = (id: string) => {
+    saveDoneId(id)
     setQueue(q => q.map(i => i.id === id ? { ...i, done: true } : i))
   }
 
