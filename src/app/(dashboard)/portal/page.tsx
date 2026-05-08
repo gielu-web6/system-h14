@@ -246,12 +246,8 @@ export default function PortalPage() {
       <div className="mb-5 flex items-center gap-4 px-5 py-4 rounded-[14px] bg-[#E8A838]/10 border border-[#E8A838]/25">
         <div className="w-2 h-2 rounded-full bg-[#E8A838] animate-pulse flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-bold text-white">Klinika Optima — oferta otwarta 3 razy</p>
-          <p className="text-[11px] text-white/50 mt-0.5">Ostatnio wczoraj o 14:23 · 3 min 7 sek na cenniku</p>
-        </div>
-        <div className="text-right flex-shrink-0">
-          <p className="text-[12px] font-bold text-[#E8A838]">Najlepszy moment żeby zadzwonić!</p>
-          <p className="text-[10px] text-white/30 mt-0.5">Klient spędził czas na przeglądaniu cen</p>
+          <p className="text-[13px] font-bold text-white">Oferta otwarta 3 razy, ostatnio wczoraj o 14:23</p>
+          <p className="text-[12px] text-white/55 mt-0.5">Wiesz kiedy klient otworzył ofertę. Najlepszy moment żeby zadzwonić.</p>
         </div>
       </div>
 

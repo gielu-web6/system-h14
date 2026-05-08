@@ -272,6 +272,19 @@ function fmtTime(secs: number) {
   return s > 0 ? `${m}m ${s}s` : `${m}m`
 }
 
+function formatLastViewed(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+  const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const timeStr = date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+  if (dateOnly.getTime() === today.getTime()) return `dzisiaj o ${timeStr}`
+  if (dateOnly.getTime() === yesterday.getTime()) return `wczoraj o ${timeStr}`
+  return formatDistanceToNow(date, { locale: pl, addSuffix: true })
+}
+
 function getStatusCfg(status: string) {
   return STATUS_CONFIG[status] ?? STATUS_CONFIG.draft
 }
@@ -534,17 +547,17 @@ function OfferList({
 
                 {/* Tracking callout — shown when offer was viewed */}
                 {offer.view_count > 0 && offer.last_viewed_at && (
-                  <div className="px-5 py-2.5 flex items-center gap-3 border-t border-[#E8A838]/15 bg-[#E8A838]/[0.04]">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#E8A838] animate-pulse flex-shrink-0" />
-                    <span className="text-[11px] text-[#E8A838]/75 font-medium">
-                      Oferta otwarta {offer.view_count}×, ostatnio {formatDistanceToNow(new Date(offer.last_viewed_at), { locale: pl, addSuffix: true })}
-                      {offer.time_on_pricing > 60 && (
-                        <> · <span className="text-amber-400 font-semibold">{fmtTime(offer.time_on_pricing)} na cenniku</span></>
-                      )}
-                    </span>
-                    <span className="ml-auto text-[10px] text-[#E8A838]/50 font-semibold hidden sm:block whitespace-nowrap">
-                      Najlepszy moment żeby zadzwonić
-                    </span>
+                  <div className="px-5 py-3 flex items-center gap-3 border-t border-[#E8A838]/20 bg-[#E8A838]/[0.05]">
+                    <div className="w-2 h-2 rounded-full bg-[#E8A838] animate-pulse flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] font-semibold text-[#E8A838]">
+                        Oferta otwarta {offer.view_count} {offer.view_count === 1 ? 'raz' : 'razy'}, ostatnio {formatLastViewed(offer.last_viewed_at)}
+                      </p>
+                      <p className="text-[11px] text-white/50 mt-0.5">
+                        Wiesz kiedy klient otworzył ofertę. Najlepszy moment żeby zadzwonić.
+                        {offer.time_on_pricing > 60 && <span className="text-amber-400 font-semibold ml-1">· {fmtTime(offer.time_on_pricing)} na cenniku</span>}
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
