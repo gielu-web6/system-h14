@@ -24,22 +24,27 @@ interface OfferData {
   validUntil: string
 }
 
-const EMPTY_OFFER: OfferData = {
-  client: '',
-  contact: '',
-  preparedBy: '',
-  problem: '',
-  solution: [
-    { item: '', desc: '' },
-  ],
-  timeline: [
-    { stage: 'Etap 1: Setup i konfiguracja', duration: '5 dni rob.', date: '' },
-    { stage: 'Etap 2: Wdrożenie', duration: '5 dni rob.', date: '' },
-    { stage: 'Etap 3: Szkolenie i odbiór', duration: '3 dni rob.', date: '' },
-  ],
-  price: 0,
-  deposit: 20,
-  validUntil: new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10),
+function defaultPortalOffer(): OfferData {
+  return {
+    client: 'Klinika Optima',
+    contact: 'Marta Nowak',
+    preparedBy: 'AM Automations',
+    problem: 'Klinika traci 8h tygodniowo na ręczne przepisywanie danych między systemami. Recepcja nie odbiera ok. 30% połączeń — pacjenci trafiają na pocztę głosową i rezygnują z wizyty.',
+    solution: [
+      { item: 'AI Recepcjonistka 24/7', desc: 'Obsługa połączeń głosowych z integracją kalendarza i SMS-ami przypominającymi o wizytach' },
+      { item: 'Automatyzacja przepływu danych', desc: 'Dane z rejestracji trafiają automatycznie do systemu fakturowania — zero ręcznego przepisywania' },
+      { item: 'Panel administracyjny', desc: 'Dashboard dla managera — harmonogram, raporty, statystyki w jednym miejscu' },
+    ],
+    timeline: [
+      { stage: 'Etap 1: Analiza i projektowanie', duration: '2 tygodnie', date: 'Tydzień 1–2' },
+      { stage: 'Etap 2: Wdrożenie AI Recepcjonistki', duration: '2 tygodnie', date: 'Tydzień 3–4' },
+      { stage: 'Etap 3: Automatyzacja i panel', duration: '2 tygodnie', date: 'Tydzień 5–6' },
+      { stage: 'Etap 4: Szkolenie i odbiór', duration: '1 tydzień', date: 'Tydzień 7' },
+    ],
+    price: 18500,
+    deposit: 20,
+    validUntil: new Date(Date.now() + 21 * 86400000).toISOString().slice(0, 10),
+  }
 }
 
 // ─── Copy btn ─────────────────────────────────────────────────────────────────
@@ -206,7 +211,7 @@ function OfferPreview({ offer }: { offer: OfferData }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function PortalPage() {
-  const [offer, setOffer] = useState<OfferData>(EMPTY_OFFER)
+  const [offer, setOffer] = useState<OfferData>(defaultPortalOffer)
   const { services: dbServices } = useServices()
 
   const setField = (k: keyof OfferData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -235,6 +240,19 @@ export default function PortalPage() {
           Portal Klienta
         </h1>
         <p className="text-[12px] text-white/40 mt-0.5">Twórz micro-strony ofert z trackerem otwarć</p>
+      </div>
+
+      {/* Live tracker demo banner */}
+      <div className="mb-5 flex items-center gap-4 px-5 py-4 rounded-[14px] bg-[#E8A838]/10 border border-[#E8A838]/25">
+        <div className="w-2 h-2 rounded-full bg-[#E8A838] animate-pulse flex-shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className="text-[13px] font-bold text-white">Klinika Optima — oferta otwarta 3 razy</p>
+          <p className="text-[11px] text-white/50 mt-0.5">Ostatnio wczoraj o 14:23 · 3 min 7 sek na cenniku</p>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <p className="text-[12px] font-bold text-[#E8A838]">Najlepszy moment żeby zadzwonić!</p>
+          <p className="text-[10px] text-white/30 mt-0.5">Klient spędził czas na przeglądaniu cen</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[360px_1fr] gap-5">

@@ -52,6 +52,155 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   expired:    { label: 'Wygasła',       color: 'bg-white/[0.05] text-white/30 line-through' },
 }
 
+// ─── Demo / CRM data ──────────────────────────────────────────────────────────
+
+const YESTERDAY_14_23 = (() => {
+  const d = new Date()
+  d.setDate(d.getDate() - 1)
+  d.setHours(14, 23, 0, 0)
+  return d.toISOString()
+})()
+
+interface DemoCrmClient {
+  id: string
+  label: string
+  contact: string
+  project_type: string
+  service_ids: string[]
+  pricing: { name: string; price: string }[]
+  brief: string
+  start_date: string
+}
+
+const DEMO_CRM_CLIENTS: DemoCrmClient[] = [
+  {
+    id: 'klinika-optima',
+    label: 'Klinika Optima',
+    contact: 'Marta Nowak',
+    project_type: 'System wewnętrzny',
+    service_ids: ['ai_receptionist', 'automation', 'admin_panel'],
+    pricing: [
+      { name: 'Standard', price: '15000' },
+      { name: 'Kompletny', price: '18500' },
+    ],
+    brief: 'Klinika obsługuje 120+ pacjentów tygodniowo. 8h tygodniowo tracą na ręczne przepisywanie danych między systemami. Recepcja nie odbiera ok. 30% połączeń – trafiają na pocztę głosową. Budżet ok. 18–19k. Decyzja w 2 tygodnie.',
+    start_date: (() => { const d = new Date(); d.setDate(d.getDate() + 14); return d.toISOString().split('T')[0] })(),
+  },
+]
+
+interface DemoGeneratedData {
+  diagnoza_bolu: string
+  solution_description: string
+  scope_items: { id: string; text: string }[]
+  timeline_items: { id: string; week: string; name: string; description: string }[]
+  objekcje: { id: string; zarzut: string; odpowiedz: string }[]
+  pricing_variants: { id: string; name: string; price: number; features: string[]; description: string; is_recommended: boolean }[]
+}
+
+const DEMO_GENERATED_DATA: Record<string, DemoGeneratedData> = {
+  'klinika-optima': {
+    diagnoza_bolu: 'Klinika Optima traci tygodniowo ok. 8 godzin na ręczne przepisywanie danych między systemem rejestracji pacjentów a systemem fakturowania. Ponadto 30% połączeń telefonicznych nie jest odbieranych — pacjenci trafiają na pocztę głosową i często rezygnują z wizyty.',
+    solution_description: 'Wdrożymy AI Recepcjonistkę obsługującą połączenia 24/7 z pełną integracją kalendarza, zautomatyzujemy przepływ danych między systemem rejestracji i fakturowania, oraz zbudujemy panel admina umożliwiający zarządzanie harmonogramem i raportami w jednym miejscu.',
+    scope_items: [
+      { id: 'ds-1', text: 'AI Recepcjonistka — obsługa połączeń głosowych 24/7 z integracją kalendarza' },
+      { id: 'ds-2', text: 'Automatyzacja przepływu danych między rejestracją a fakturowaniem' },
+      { id: 'ds-3', text: 'Panel administracyjny dla managera kliniki (harmonogram + raporty)' },
+      { id: 'ds-4', text: 'Integracja z istniejącym systemem rezerwacji' },
+      { id: 'ds-5', text: 'Szkolenie zespołu i dokumentacja techniczna' },
+    ],
+    timeline_items: [
+      { id: 'dt-1', week: 'Tydzień 1–2', name: 'Analiza i projektowanie', description: 'Mapowanie procesów, projekt architektury systemu' },
+      { id: 'dt-2', week: 'Tydzień 3–4', name: 'Wdrożenie AI Recepcjonistki', description: 'Konfiguracja, testy połączeń, integracja z kalendarzem' },
+      { id: 'dt-3', week: 'Tydzień 5–6', name: 'Automatyzacja i panel admina', description: 'Przepływy Make/n8n, budowa panelu managera' },
+      { id: 'dt-4', week: 'Tydzień 7', name: 'Szkolenie i odbiór', description: 'Szkolenie zespołu, optymalizacja, dokumentacja' },
+    ],
+    objekcje: [
+      { id: 'do-1', zarzut: 'Czy AI recepcjonistka będzie brzmiała naturalnie?', odpowiedz: 'Tak — używamy modeli głosowych najnowszej generacji. Klienci często nie wiedzą, że rozmawiają z AI. Udostępniamy próbkę rozmowy przed startem projektu.' },
+      { id: 'do-2', zarzut: 'Co jeśli system przestanie działać?', odpowiedz: 'Monitorujemy systemy 24/7 z SLA 99,5% uptime. Każda awaria jest naprawiana w ciągu 2h w godzinach pracy i 4h poza nimi.' },
+      { id: 'do-3', zarzut: 'Ile czasu zajmuje wdrożenie?', odpowiedz: '7 tygodni od podpisania umowy do pełnego uruchomienia. Twój zespół angażujemy max 2h tygodniowo przez pierwsze dwa tygodnie.' },
+    ],
+    pricing_variants: [
+      {
+        id: 'dv-1',
+        name: 'Standard',
+        price: 15000,
+        is_recommended: false,
+        description: '',
+        features: [
+          'AI Recepcjonistka (połączenia głosowe)',
+          'Integracja z kalendarzem',
+          'Podstawowa automatyzacja danych',
+          '3 miesiące wsparcia technicznego',
+        ],
+      },
+      {
+        id: 'dv-2',
+        name: 'Kompletny',
+        price: 18500,
+        is_recommended: true,
+        description: '',
+        features: [
+          'AI Recepcjonistka (połączenia + SMS)',
+          'Pełna automatyzacja przepływu danych',
+          'Panel administracyjny dla managera',
+          'Integracja z systemem fakturowania',
+          'Szkolenie zespołu (4h)',
+          '6 miesięcy wsparcia technicznego',
+        ],
+      },
+    ],
+  },
+}
+
+const DEMO_LIST_OFFERS: OfferListItem[] = [
+  {
+    id: 'demo-klinika-optima',
+    public_slug: 'demo-klinika-optima',
+    company_name: 'Klinika Optima',
+    contact_name: 'Marta Nowak',
+    project_type: 'System wewnętrzny',
+    status: 'viewed',
+    effective_status: 'viewed',
+    created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
+    expires_at: new Date(Date.now() + 19 * 86400000).toISOString(),
+    view_count: 3,
+    last_viewed_at: YESTERDAY_14_23,
+    cta_clicked: false,
+    time_on_pricing: 187,
+    pricing_variants: [{ name: 'Kompletny', price: 18500 }],
+  },
+  {
+    id: 'demo-abc-budowlana',
+    public_slug: 'demo-abc-budowlana',
+    company_name: 'ABC Budowlana sp. z o.o.',
+    contact_name: 'Tomasz Wiśniewski',
+    project_type: 'Aplikacja mobilna',
+    status: 'sent',
+    effective_status: 'sent',
+    created_at: new Date(Date.now() - 5 * 86400000).toISOString(),
+    expires_at: new Date(Date.now() + 16 * 86400000).toISOString(),
+    view_count: 0,
+    cta_clicked: false,
+    time_on_pricing: 0,
+    pricing_variants: [{ name: 'Kompletny', price: 28000 }],
+  },
+  {
+    id: 'demo-moderno',
+    public_slug: 'demo-moderno',
+    company_name: 'Moderno Fashion',
+    contact_name: 'Anna Kowalska',
+    project_type: 'E-commerce',
+    status: 'accepted',
+    effective_status: 'accepted',
+    created_at: new Date(Date.now() - 12 * 86400000).toISOString(),
+    view_count: 7,
+    last_viewed_at: new Date(Date.now() - 3 * 86400000).toISOString(),
+    cta_clicked: true,
+    time_on_pricing: 342,
+    pricing_variants: [{ name: 'Kompletny', price: 14500 }],
+  },
+]
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface PricingVariantDraft {
@@ -294,92 +443,110 @@ function OfferList({
             return (
               <div
                 key={offer.id}
-                className="bg-[#0f1a30] border border-white/[0.07] rounded-[14px] px-5 py-4 flex items-center gap-4 hover:border-white/[0.12] transition-all group"
+                className="bg-[#0f1a30] border border-white/[0.07] rounded-[14px] overflow-hidden hover:border-white/[0.12] transition-all group"
               >
-                {/* Client */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2.5 mb-1">
-                    <p className="text-[14px] font-bold text-white truncate">{offer.company_name}</p>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${st.color}`}>{st.label}</span>
+                <div className="px-5 py-4 flex items-center gap-4">
+                  {/* Client */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2.5 mb-1">
+                      <p className="text-[14px] font-bold text-white truncate">{offer.company_name}</p>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${st.color}`}>{st.label}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-[11px] text-white/35">
+                      {offer.project_type && <span>{offer.project_type}</span>}
+                      {total > 0 && <span className="text-[#E8A838]/70 font-semibold">{fmt(total)} PLN</span>}
+                      <span>{new Date(offer.created_at).toLocaleDateString('pl-PL')}</span>
+                      {offer.expires_at && (
+                        <span className={new Date(offer.expires_at) < new Date() ? 'text-red-400/60' : ''}>
+                          Ważna do {new Date(offer.expires_at).toLocaleDateString('pl-PL')}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 text-[11px] text-white/35">
-                    {offer.project_type && <span>{offer.project_type}</span>}
-                    {total > 0 && <span className="text-[#E8A838]/70 font-semibold">{fmt(total)} PLN</span>}
-                    <span>{new Date(offer.created_at).toLocaleDateString('pl-PL')}</span>
-                    {offer.expires_at && (
-                      <span className={new Date(offer.expires_at) < new Date() ? 'text-red-400/60' : ''}>
-                        Ważna do {new Date(offer.expires_at).toLocaleDateString('pl-PL')}
+
+                  {/* Tracking stats */}
+                  <div className="hidden lg:flex items-center gap-5">
+                    {/* Views */}
+                    <div className="flex items-center gap-1.5 text-[12px]">
+                      <Eye size={13} className="text-white/25" />
+                      <span className={offer.view_count > 0 ? 'text-white/70 font-semibold' : 'text-white/25'}>
+                        {offer.view_count}×
                       </span>
-                    )}
+                    </div>
+
+                    {/* Last viewed */}
+                    <div className="flex items-center gap-1.5 text-[12px] w-24">
+                      <Clock size={13} className="text-white/25" />
+                      <span className="text-white/40 truncate">
+                        {offer.last_viewed_at
+                          ? formatDistanceToNow(new Date(offer.last_viewed_at), { locale: pl, addSuffix: true })
+                          : '—'}
+                      </span>
+                    </div>
+
+                    {/* Pricing time */}
+                    <div className={`flex items-center gap-1.5 text-[12px] w-16 ${offer.time_on_pricing >= 120 ? 'text-red-400 font-bold' : 'text-white/40'}`}>
+                      <CreditCard size={13} className="opacity-60 flex-shrink-0" />
+                      <span>{offer.time_on_pricing > 0 ? fmtTime(offer.time_on_pricing) : '—'}</span>
+                    </div>
+
+                    {/* CTA */}
+                    <div className="w-5 flex justify-center">
+                      {offer.cta_clicked
+                        ? <Check size={14} className="text-green-400" />
+                        : <X size={14} className="text-white/20" />}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => copyLink(offer.public_slug)}
+                      className="p-2 rounded-[8px] bg-white/[0.05] text-white/40 hover:text-white transition-all"
+                      title="Kopiuj link"
+                    >
+                      {copied === offer.public_slug ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
+                    </button>
+                    <a
+                      href={`/offer/${offer.public_slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-[8px] bg-white/[0.05] text-white/40 hover:text-white transition-all"
+                      title="Podgląd oferty"
+                    >
+                      <ExternalLink size={13} />
+                    </a>
+                    <button
+                      onClick={() => onEdit(offer)}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-[8px] bg-white/[0.05] text-white/50 hover:text-white text-[11px] font-semibold transition-all"
+                    >
+                      <Pencil size={11} /> Edytuj
+                    </button>
+                    <button
+                      onClick={() => onDuplicate(offer)}
+                      className="p-2 rounded-[8px] bg-white/[0.05] text-white/30 hover:text-white/60 transition-all"
+                      title="Duplikuj"
+                    >
+                      <RefreshCw size={12} />
+                    </button>
                   </div>
                 </div>
 
-                {/* Tracking stats */}
-                <div className="hidden lg:flex items-center gap-5">
-                  {/* Views */}
-                  <div className="flex items-center gap-1.5 text-[12px]">
-                    <Eye size={13} className="text-white/25" />
-                    <span className={offer.view_count > 0 ? 'text-white/70 font-semibold' : 'text-white/25'}>
-                      {offer.view_count}×
+                {/* Tracking callout — shown when offer was viewed */}
+                {offer.view_count > 0 && offer.last_viewed_at && (
+                  <div className="px-5 py-2.5 flex items-center gap-3 border-t border-[#E8A838]/15 bg-[#E8A838]/[0.04]">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#E8A838] animate-pulse flex-shrink-0" />
+                    <span className="text-[11px] text-[#E8A838]/75 font-medium">
+                      Oferta otwarta {offer.view_count}×, ostatnio {formatDistanceToNow(new Date(offer.last_viewed_at), { locale: pl, addSuffix: true })}
+                      {offer.time_on_pricing > 60 && (
+                        <> · <span className="text-amber-400 font-semibold">{fmtTime(offer.time_on_pricing)} na cenniku</span></>
+                      )}
+                    </span>
+                    <span className="ml-auto text-[10px] text-[#E8A838]/50 font-semibold hidden sm:block whitespace-nowrap">
+                      Najlepszy moment żeby zadzwonić
                     </span>
                   </div>
-
-                  {/* Last viewed */}
-                  <div className="flex items-center gap-1.5 text-[12px] w-24">
-                    <Clock size={13} className="text-white/25" />
-                    <span className="text-white/40 truncate">
-                      {offer.last_viewed_at
-                        ? formatDistanceToNow(new Date(offer.last_viewed_at), { locale: pl, addSuffix: true })
-                        : '—'}
-                    </span>
-                  </div>
-
-                  {/* Pricing time */}
-                  <div className={`flex items-center gap-1.5 text-[12px] w-16 ${offer.time_on_pricing >= 120 ? 'text-red-400 font-bold' : 'text-white/40'}`}>
-                    <CreditCard size={13} className="opacity-60 flex-shrink-0" />
-                    <span>{offer.time_on_pricing > 0 ? fmtTime(offer.time_on_pricing) : '—'}</span>
-                  </div>
-
-                  {/* CTA */}
-                  <div className="w-5 flex justify-center">
-                    {offer.cta_clicked
-                      ? <Check size={14} className="text-green-400" />
-                      : <X size={14} className="text-white/20" />}
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => copyLink(offer.public_slug)}
-                    className="p-2 rounded-[8px] bg-white/[0.05] text-white/40 hover:text-white transition-all"
-                    title="Kopiuj link"
-                  >
-                    {copied === offer.public_slug ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
-                  </button>
-                  <a
-                    href={`/offer/${offer.public_slug}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-[8px] bg-white/[0.05] text-white/40 hover:text-white transition-all"
-                    title="Podgląd oferty"
-                  >
-                    <ExternalLink size={13} />
-                  </a>
-                  <button
-                    onClick={() => onEdit(offer)}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-[8px] bg-white/[0.05] text-white/50 hover:text-white text-[11px] font-semibold transition-all"
-                  >
-                    <Pencil size={11} /> Edytuj
-                  </button>
-                  <button
-                    onClick={() => onDuplicate(offer)}
-                    className="p-2 rounded-[8px] bg-white/[0.05] text-white/30 hover:text-white/60 transition-all"
-                    title="Duplikuj"
-                  >
-                    <RefreshCw size={12} />
-                  </button>
-                </div>
+                )}
               </div>
             )
           })}
@@ -868,6 +1035,9 @@ export default function OfferGeneratorPage() {
   // Editing existing offer
   const [editingSlug, setEditingSlug] = useState<string | null>(null)
 
+  // Selected demo CRM client
+  const [demoCrmClientId, setDemoCrmClientId] = useState<string | null>(null)
+
   // Logo upload ref
   const logoRef = useRef<HTMLInputElement>(null)
 
@@ -879,8 +1049,9 @@ export default function OfferGeneratorPage() {
     try {
       const res = await fetch('/api/offers/list')
       const data = await res.json()
-      if (data.offers) setOffers(data.offers)
+      setOffers([...DEMO_LIST_OFFERS, ...(data.offers ?? [])])
     } catch {
+      setOffers([...DEMO_LIST_OFFERS])
       toast.error('Błąd pobierania ofert')
     } finally {
       setLoadingOffers(false)
@@ -964,6 +1135,35 @@ export default function OfferGeneratorPage() {
   }
 
   async function handleEditExisting(offer: OfferListItem) {
+    // Handle demo offers locally (no API call)
+    if (offer.id.startsWith('demo-')) {
+      const demoKey = offer.id.replace('demo-', '')
+      const demoData = DEMO_GENERATED_DATA[demoKey]
+      const demoCrm = DEMO_CRM_CLIENTS.find(c => c.id === demoKey)
+      if (demoData && demoCrm) {
+        const validUntil = new Date()
+        validUntil.setDate(validUntil.getDate() + 21)
+        setDraft({
+          ...defaultDraft(),
+          client_name: demoCrm.label,
+          contact_name: demoCrm.contact,
+          project_type: demoCrm.project_type,
+          selected_service_ids: demoCrm.service_ids,
+          pricing_variants_input: demoCrm.pricing,
+          client_problem: demoCrm.brief,
+          project_start_date: demoCrm.start_date,
+          ...demoData,
+        })
+        setDemoCrmClientId(demoKey)
+        setEditingSlug(null)
+        setSavedUrl(null)
+        setView('edit')
+      } else {
+        toast('Oferta demo — podgląd niedostępny')
+      }
+      return
+    }
+
     // Load full offer data
     try {
       const res = await fetch(`/api/offers/${offer.id}`)
@@ -1008,6 +1208,17 @@ export default function OfferGeneratorPage() {
     if (!draft.client_problem.trim()) { toast.error('Wpisz opis problemu klienta'); return }
     if (draft.selected_service_ids.length === 0) { toast.error('Zaznacz co najmniej jedną usługę'); return }
     if (draft.pricing_variants_input.some(v => !v.name.trim() || !v.price)) { toast.error('Uzupełnij nazwy i ceny wariantów'); return }
+
+    // Demo bypass — instant result for selected CRM demo client
+    if (demoCrmClientId && DEMO_GENERATED_DATA[demoCrmClientId]) {
+      setGenerating(true)
+      setGenError('')
+      await new Promise(r => setTimeout(r, 1800))
+      patchDraft({ ...DEMO_GENERATED_DATA[demoCrmClientId] })
+      setGenerating(false)
+      setView('edit')
+      return
+    }
 
     setGenerating(true)
     setGenError('')
@@ -1060,7 +1271,7 @@ export default function OfferGeneratorPage() {
     } finally {
       setGenerating(false)
     }
-  }, [draft])
+  }, [draft, demoCrmClientId])
 
   // ── Save offer ───────────────────────────────────────────────────────────
   const handleSave = useCallback(async () => {
@@ -1158,6 +1369,45 @@ export default function OfferGeneratorPage() {
             <h2 className="text-[14px] font-semibold text-white flex items-center gap-2">
               <Building2 size={14} className="text-[#E8A838]" /> Dane klienta
             </h2>
+
+            {/* CRM selector */}
+            <div>
+              <label className={lbl}>Wybierz klienta z CRM</label>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {DEMO_CRM_CLIENTS.map(client => (
+                  <button
+                    key={client.id}
+                    type="button"
+                    onClick={() => {
+                      setDemoCrmClientId(client.id)
+                      patchDraft({
+                        client_name: client.label,
+                        contact_name: client.contact,
+                        project_type: client.project_type,
+                        selected_service_ids: client.service_ids,
+                        pricing_variants_input: client.pricing,
+                        client_problem: client.brief,
+                        project_start_date: client.start_date,
+                      })
+                    }}
+                    className={`flex items-center gap-2 px-3.5 py-2 rounded-[10px] border text-[13px] font-medium transition-all ${
+                      demoCrmClientId === client.id
+                        ? 'bg-[#E8A838]/15 border-[#E8A838]/50 text-white'
+                        : 'bg-white/[0.04] border-white/[0.08] text-white/50 hover:text-white/80 hover:bg-white/[0.06]'
+                    }`}
+                  >
+                    <Building2 size={13} className={demoCrmClientId === client.id ? 'text-[#E8A838]' : 'text-white/30'} />
+                    {client.label}
+                    {demoCrmClientId === client.id && <Check size={11} className="text-[#E8A838]" />}
+                  </button>
+                ))}
+              </div>
+              {demoCrmClientId && (
+                <p className="mt-1.5 text-[10px] text-green-400/70 flex items-center gap-1">
+                  <Check size={9} /> Dane zaciągnięte z CRM automatycznie
+                </p>
+              )}
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
