@@ -106,7 +106,7 @@ function AddEventModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-[440px] bg-[#0F0F1A] border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden">
+      <div className="relative z-10 w-full max-w-[440px] bg-sidebar border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.07]">
           <div>
             <p className="text-[14px] font-bold text-white">Dodaj do kalendarza</p>
@@ -147,7 +147,7 @@ function AddEventModal({
               onChange={e => setTitle(e.target.value)}
               autoFocus
               placeholder={type === 'post' ? 'np. Post o zarządzaniu leadami' : type === 'meeting' ? 'np. Call z klientem X' : 'np. Launch nowego produktu'}
-              className="w-full px-3 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-[13px] focus:outline-none focus:border-[#6366f1]/50 transition-all"
+              className="w-full px-3 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-[13px] focus:outline-none focus:border-accent/50 transition-all"
             />
           </div>
 
@@ -159,7 +159,7 @@ function AddEventModal({
               onChange={e => setDesc(e.target.value)}
               rows={2}
               placeholder="Dodatkowe notatki..."
-              className="w-full px-3 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-[13px] focus:outline-none focus:border-[#6366f1]/50 transition-all resize-none"
+              className="w-full px-3 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-[13px] focus:outline-none focus:border-accent/50 transition-all resize-none"
             />
           </div>
 
@@ -170,7 +170,7 @@ function AddEventModal({
               type="time"
               value={time}
               onChange={e => setTime(e.target.value)}
-              className="px-3 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-[#6366f1]/50 transition-all"
+              className="px-3 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all"
             />
           </div>
 
@@ -179,16 +179,16 @@ function AddEventModal({
             onClick={() => setShared(v => !v)}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-[10px] border transition-all ${
               shared
-                ? 'bg-[#6366f1]/10 border-[#6366f1]/40'
+                ? 'bg-accent/10 border-accent/40'
                 : 'bg-white/[0.03] border-white/[0.07] hover:border-white/15'
             }`}
           >
             {shared
-              ? <Users size={15} className="text-[#6366f1] flex-shrink-0" />
+              ? <Users size={15} className="text-accent flex-shrink-0" />
               : <User  size={15} className="text-white/35 flex-shrink-0" />
             }
             <div className="text-left">
-              <p className={`text-[12px] font-semibold ${shared ? 'text-[#a5b4fc]' : 'text-white/50'}`}>
+              <p className={`text-[12px] font-semibold ${shared ? 'text-accent' : 'text-white/50'}`}>
                 {shared ? 'Widoczne dla wszystkich użytkowników' : 'Tylko dla mnie'}
               </p>
               <p className="text-[10px] text-white/25 mt-0.5">
@@ -206,7 +206,7 @@ function AddEventModal({
             <button
               onClick={handleSave}
               disabled={saving || !title.trim()}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-[#6366f1] text-white text-[13px] font-bold hover:bg-[#5254cc] disabled:opacity-60 transition-all"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-accent text-white text-[13px] font-bold hover:opacity-90 disabled:opacity-60 transition-all"
               style={{ background: EVENT_TYPE_CONFIG[type].color }}
             >
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
@@ -250,7 +250,7 @@ function EventDetailModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-[400px] bg-[#0F0F1A] border border-white/[0.1] rounded-[16px] shadow-2xl overflow-hidden">
+      <div className="relative z-10 w-full max-w-[400px] bg-sidebar border border-white/[0.1] rounded-[16px] shadow-2xl overflow-hidden">
         <div className="flex items-start justify-between p-5 border-b border-white/[0.07]">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -301,7 +301,7 @@ function PostModal({ post, onClose }: { post: ContentPost; onClose: () => void }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-[500px] bg-[#0F0F1A] border border-white/[0.1] rounded-[16px] overflow-hidden shadow-2xl">
+      <div className="relative z-10 w-full max-w-[500px] bg-sidebar border border-white/[0.1] rounded-[16px] overflow-hidden shadow-2xl">
         <div className="flex items-start justify-between p-5 border-b border-white/[0.07]">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -325,14 +325,14 @@ function PostModal({ post, onClose }: { post: ContentPost; onClose: () => void }
           {post.hashtags && post.hashtags.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {post.hashtags.map(h => (
-                <span key={h} className="px-2 py-0.5 rounded-full bg-[#6366f1]/10 text-[#a5b4fc] text-[10px] font-medium">{h}</span>
+                <span key={h} className="px-2 py-0.5 rounded-full bg-accent/10 text-accent text-[10px] font-medium">{h}</span>
               ))}
             </div>
           )}
           <div className="flex gap-2 pt-1">
             <button className="flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.07] text-white/55 text-[12px] font-medium hover:bg-white/[0.08] hover:text-white transition-all"><Edit size={13} /> Edytuj</button>
             {post.status === 'zaplanowany' && (
-              <button className="flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-[#6366f1]/15 border border-[#6366f1]/30 text-[#a5b4fc] text-[12px] font-medium hover:bg-[#6366f1]/25 transition-all"><Send size={13} /> Opublikuj teraz</button>
+              <button className="flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-accent/15 border border-accent/30 text-accent text-[12px] font-medium hover:bg-accent/25 transition-all"><Send size={13} /> Opublikuj teraz</button>
             )}
             <button className="flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.07] text-white/55 text-[12px] font-medium hover:bg-white/[0.08] hover:text-white transition-all"><MoveRight size={13} /> Przesuń</button>
           </div>
@@ -406,12 +406,12 @@ function CalendarView({
               onClick={() => onDayClick(dateStr)}
               className={`group aspect-[4/3] min-h-[52px] sm:min-h-[80px] rounded-[8px] sm:rounded-[10px] p-1 sm:p-1.5 border transition-colors cursor-pointer ${
                 isToday
-                  ? 'bg-[#6366f1]/10 border-[#6366f1]/40'
-                  : 'bg-white/[0.02] border-white/[0.05] hover:border-[#6366f1]/40 hover:bg-[#6366f1]/[0.04]'
+                  ? 'bg-accent/10 border-accent/40'
+                  : 'bg-white/[0.02] border-white/[0.05] hover:border-accent/40 hover:bg-[#6366f1]/[0.04]'
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <p className={`text-[11px] font-bold ${isToday ? 'text-[#a5b4fc]' : 'text-white/40'}`}>{day}</p>
+                <p className={`text-[11px] font-bold ${isToday ? 'text-accent' : 'text-white/40'}`}>{day}</p>
                 <div className={`w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity ${isToday ? 'bg-[#6366f1]/40' : 'bg-white/[0.08]'}`}>
                   <Plus size={9} className="text-white/70" />
                 </div>
@@ -583,7 +583,7 @@ export default function ContentCalendarPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-[20px] font-bold text-white flex items-center gap-2">
-            <Calendar size={19} className="text-[#6366f1]" />
+            <Calendar size={19} className="text-accent" />
             Kalendarz Contentu
           </h1>
           <p className="text-[12px] text-white/40 mt-0.5">
@@ -593,19 +593,19 @@ export default function ContentCalendarPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setViewMode('calendar')}
-            className={`p-2 rounded-[8px] border transition-all ${viewMode === 'calendar' ? 'bg-[#6366f1]/15 border-[#6366f1]/30 text-[#a5b4fc]' : 'bg-white/[0.04] border-white/[0.08] text-white/40 hover:text-white'}`}
+            className={`p-2 rounded-[8px] border transition-all ${viewMode === 'calendar' ? 'bg-accent/15 border-accent/30 text-accent' : 'bg-white/[0.04] border-white/[0.08] text-white/40 hover:text-white'}`}
           >
             <Calendar size={15} />
           </button>
           <button
             onClick={() => setViewMode('list')}
-            className={`p-2 rounded-[8px] border transition-all ${viewMode === 'list' ? 'bg-[#6366f1]/15 border-[#6366f1]/30 text-[#a5b4fc]' : 'bg-white/[0.04] border-white/[0.08] text-white/40 hover:text-white'}`}
+            className={`p-2 rounded-[8px] border transition-all ${viewMode === 'list' ? 'bg-accent/15 border-accent/30 text-accent' : 'bg-white/[0.04] border-white/[0.08] text-white/40 hover:text-white'}`}
           >
             <List size={15} />
           </button>
           <button
             onClick={() => setAddForDate(toDateStr(year, month, new Date().getDate()))}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#6366f1]/10 border border-[#6366f1]/30 text-[#a5b4fc] text-[12px] font-medium hover:bg-[#6366f1]/20 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-accent/10 border border-accent/30 text-accent text-[12px] font-medium hover:bg-accent/20 transition-all"
           >
             <Plus size={13} /> Nowy wpis
           </button>
@@ -638,14 +638,14 @@ export default function ContentCalendarPage() {
       </div>
 
       {/* Month nav */}
-      <div className="flex items-center gap-3 bg-[#16213E] border border-white/[0.07] rounded-[12px] px-4 py-3">
+      <div className="flex items-center gap-3 bg-card border border-white/[0.07] rounded-[12px] px-4 py-3">
         <button onClick={prevMonth} className="p-1.5 rounded-[6px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all"><ChevronLeft size={15} /></button>
         <p className="text-[14px] font-semibold text-white flex-1 text-center capitalize">{monthName}</p>
         <button onClick={nextMonth} className="p-1.5 rounded-[6px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all"><ChevronRight size={15} /></button>
       </div>
 
       {/* Calendar / List */}
-      <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-4">
+      <div className="bg-card border border-white/[0.07] rounded-[14px] p-4">
         {viewMode === 'calendar' ? (
           <CalendarView
             year={year} month={month}

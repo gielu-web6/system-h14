@@ -22,7 +22,6 @@ import {
   Bot,
 } from 'lucide-react'
 import { useLayout } from './LayoutContext'
-import { useBrandTheme } from '@/contexts/BrandThemeContext'
 import { useAppUser } from '@/contexts/UserContext'
 
 // ─── Nav definitions ──────────────────────────────────────────────────────────
@@ -41,7 +40,7 @@ const ADMIN_NAV_SECTIONS = [
     items: [
       { href: '/pipeline',          label: 'Pipeline (CRM)',   icon: KanbanSquare },
       { href: '/leads',             label: 'Leady',            icon: Users },
-      { href: '/outreach',          label: 'Outreach',         icon: Send },
+      { href: '/outreach',          label: 'Outreach Gen.',    icon: Send },
       { href: '/ai-scoring',        label: 'AI Scoring',       icon: BrainCircuit },
     ],
   },
@@ -92,7 +91,7 @@ const SALES_NAV_SECTIONS = [
     items: [
       { href: '/pipeline',          label: 'Mój Pipeline',     icon: KanbanSquare },
       { href: '/leads',             label: 'Moje Leady',       icon: Users },
-      { href: '/outreach',          label: 'Outreach',         icon: Send },
+      { href: '/outreach',          label: 'Outreach Gen.',    icon: Send },
       { href: '/offer-generator',   label: 'Moje Oferty',      icon: FileText },
     ],
   },
@@ -140,17 +139,15 @@ function NavItem({ href, label, icon: Icon, collapsed, onClick, soon }: NavItemP
     return (
       <div
         title={collapsed ? label : undefined}
-        className={`
-          relative flex items-center gap-3 px-3 py-2 rounded-[8px] text-[13px] font-medium
-          text-white/25 cursor-not-allowed select-none
-          ${collapsed ? 'justify-center px-2' : ''}
-        `}
+        className={`relative flex items-center gap-2.5 px-3 py-[7px] rounded-[7px] text-[12.5px]
+          text-subtle cursor-not-allowed select-none
+          ${collapsed ? 'justify-center px-2' : ''}`}
       >
-        <Icon size={16} className="flex-shrink-0 text-white/20" />
+        <Icon size={15} className="flex-shrink-0 opacity-30" />
         {!collapsed && (
           <>
             <span className="truncate">{label}</span>
-            <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded bg-white/[0.06] text-white/30 font-semibold tracking-wide">
+            <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded bg-raised border border-border text-subtle font-semibold tracking-wide">
               SOON
             </span>
           </>
@@ -164,32 +161,27 @@ function NavItem({ href, label, icon: Icon, collapsed, onClick, soon }: NavItemP
       href={href}
       onClick={onClick}
       title={collapsed ? label : undefined}
-      className={`
-        relative flex items-center gap-3 px-3 py-2 rounded-[8px] text-[13px] font-medium
-        transition-all duration-150 group select-none
+      className={`relative flex items-center gap-2.5 px-3 py-[7px] rounded-[7px] text-[12.5px] font-medium
+        transition-colors duration-100 group select-none
         ${active
-          ? 'nav-active bg-primary/12 text-primary'
-          : 'text-white/50 hover:text-white/90 hover:bg-white/[0.04]'
+          ? 'nav-active bg-[var(--accent-dim)] text-accent'
+          : 'text-muted hover:text-fg hover:bg-[rgba(255,255,255,0.04)] dark:hover:bg-[rgba(255,255,255,0.04)]'
         }
-        ${collapsed ? 'justify-center px-2' : ''}
-      `}
+        ${collapsed ? 'justify-center px-2' : ''}`}
     >
       <Icon
-        size={16}
-        className={`flex-shrink-0 transition-colors ${active ? 'text-primary' : 'text-white/40 group-hover:text-white/70'}`}
+        size={15}
+        className={`flex-shrink-0 transition-colors ${active ? 'text-accent' : 'text-subtle group-hover:text-muted'}`}
       />
-      {!collapsed && (
-        <span className="truncate">{label}</span>
-      )}
+      {!collapsed && <span className="truncate">{label}</span>}
+
       {/* Tooltip for collapsed state */}
       {collapsed && (
-        <div className="
-          pointer-events-none absolute left-full ml-3 z-50
-          px-2.5 py-1.5 rounded-[8px] text-xs font-medium
-          bg-[#1E2A45] border border-white/10 text-white whitespace-nowrap
+        <div className="pointer-events-none absolute left-full ml-3 z-50
+          px-2.5 py-1.5 rounded-[7px] text-xs font-medium
+          bg-raised border border-border text-fg whitespace-nowrap
           opacity-0 group-hover:opacity-100 translate-x-[-4px] group-hover:translate-x-0
-          transition-all duration-150 shadow-xl
-        ">
+          transition-all duration-150 shadow-xl">
           {label}
         </div>
       )}
@@ -207,8 +199,6 @@ interface SidebarContentProps {
 }
 
 function SidebarContent({ collapsed, onNavClick, showCloseButton, onClose }: SidebarContentProps) {
-  const { brandTheme } = useBrandTheme()
-  const isMediovee = brandTheme === 'mediovee'
   const { isSales } = useAppUser()
   const navSections = isSales ? SALES_NAV_SECTIONS : ADMIN_NAV_SECTIONS
 
@@ -216,54 +206,38 @@ function SidebarContent({ collapsed, onNavClick, showCloseButton, onClose }: Sid
     <div className="flex flex-col h-full">
 
       {/* ── Logo ── */}
-      <div className={`
-        flex items-center border-b border-white/[0.06] flex-shrink-0
-        ${collapsed ? 'justify-center px-3 py-4' : 'gap-3 px-4 py-4'}
-      `}>
-        <div
-          className="w-8 h-8 rounded-[10px] flex-shrink-0 flex items-center justify-center shadow-lg"
-          style={isMediovee
-            ? { background: 'linear-gradient(135deg, #FC0FC0 0%, #e879f9 100%)', boxShadow: '0 4px 14px rgba(252,15,192,0.35)' }
-            : { background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', boxShadow: '0 4px 14px rgba(99,102,241,0.25)' }
-          }
-        >
-          <Zap size={15} className="text-white" strokeWidth={2.5} />
+      <div className={`flex items-center border-b border-border flex-shrink-0
+        ${collapsed ? 'justify-center px-3 py-[14px]' : 'gap-2.5 px-4 py-[14px]'}`}>
+        <div className="w-7 h-7 rounded-[8px] flex-shrink-0 flex items-center justify-center bg-accent/10 border border-accent/20">
+          <Zap size={13} className="text-accent" strokeWidth={2.5} />
         </div>
         {!collapsed && (
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-bold text-white tracking-tight leading-none">
-              {isMediovee ? 'Mediovee' : 'System H14'}
-            </p>
-            <p className="text-[10px] text-white/35 mt-0.5 tracking-wide uppercase">
-              {isMediovee ? 'Platform' : 'AM Automations'}
-            </p>
+            <p className="text-[12.5px] font-semibold text-fg tracking-tight leading-none">System H14</p>
+            <p className="section-label mt-0.5">AM Automations</p>
           </div>
         )}
         {showCloseButton && (
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/8 transition-all"
+            className="p-1 rounded-[6px] text-muted hover:text-fg hover:bg-raised transition-colors"
           >
-            <X size={15} />
+            <X size={14} />
           </button>
         )}
       </div>
 
       {/* ── Nav ── */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
+      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-3">
         {navSections.map((section) => (
           <div key={section.id}>
-            {/* Section label */}
             {!collapsed && section.section && (
-              <p className="px-3 mb-1.5 text-[10px] font-semibold tracking-widest uppercase text-white/25 select-none">
-                {section.section}
-              </p>
+              <p className="px-3 mb-1 section-label select-none">{section.section}</p>
             )}
             {collapsed && section.section && (
-              <div className="mx-auto w-4 h-px bg-white/10 mb-2" />
+              <div className="mx-auto w-5 h-px bg-border mb-2" />
             )}
-            {/* Items */}
-            <div className="space-y-0.5">
+            <div className="space-y-px">
               {section.items.map((item) => (
                 <NavItem
                   key={item.href}
@@ -279,8 +253,8 @@ function SidebarContent({ collapsed, onNavClick, showCloseButton, onClose }: Sid
         ))}
       </nav>
 
-      {/* ── Bottom: Settings (admin only) ── */}
-      <div className="flex-shrink-0 border-t border-white/[0.06] p-2 space-y-0.5">
+      {/* ── Bottom ── */}
+      <div className="flex-shrink-0 border-t border-border p-2 space-y-px">
         {!isSales && (
           <NavItem
             href="/settings"
@@ -291,19 +265,15 @@ function SidebarContent({ collapsed, onNavClick, showCloseButton, onClose }: Sid
             soon
           />
         )}
-        {/* Footer watermark */}
         {!collapsed && (
-          <div className="px-3 pt-2 pb-1">
-            <p className="text-[9px] text-white/20 leading-relaxed">
-              System H14 ·{' '}
-              <span className="text-white/35">AM Automations</span>
-              {' · '}
+          <div className="px-3 pt-2 pb-0.5">
+            <p className="section-label leading-relaxed">
+              H14 ·{' '}
               <a
                 href="https://amautomations.pl"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="transition-colors hover:text-white/60"
-                style={{ color: isMediovee ? 'rgba(252,15,192,0.55)' : 'rgba(99,102,241,0.6)' }}
+                className="text-accent/60 hover:text-accent transition-colors"
               >
                 amautomations.pl
               </a>
@@ -321,16 +291,10 @@ export function Sidebar() {
   const { collapsed, toggleCollapsed, mobileOpen, closeMobile } = useLayout()
   const pathname = usePathname()
 
-  // Close mobile sidebar on route change
   useEffect(() => { closeMobile() }, [pathname, closeMobile])
 
-  // Lock body scroll when mobile sidebar is open
   useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
+    document.body.style.overflow = mobileOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [mobileOpen])
 
@@ -338,50 +302,41 @@ export function Sidebar() {
     <>
       {/* ── Desktop Sidebar ── */}
       <aside
-        className={`
-          hidden md:flex flex-col fixed left-0 top-0 h-screen z-40
-          bg-[#0F0F1A] border-r border-white/[0.06] sidebar-transition
-          ${collapsed ? 'w-[64px]' : 'w-[240px]'}
-        `}
+        className={`hidden md:flex flex-col fixed left-0 top-0 h-screen z-40
+          bg-sidebar border-r border-border sidebar-transition
+          ${collapsed ? 'w-[56px]' : 'w-[220px]'}`}
       >
         <SidebarContent collapsed={collapsed} />
 
-        {/* Collapse toggle button */}
         <button
           onClick={toggleCollapsed}
-          className={`
-            absolute -right-3 top-[72px] z-10
-            w-6 h-6 rounded-full
-            bg-[#0F0F1A] border border-white/10
-            flex items-center justify-center
-            text-white/40 hover:text-white hover:border-primary/50
-            transition-all duration-200 shadow-md
-          `}
+          className="absolute -right-3 top-[68px] z-10 w-6 h-6 rounded-full
+            bg-card border border-border flex items-center justify-center
+            text-muted hover:text-fg hover:border-accent/30
+            transition-all duration-200 shadow-sm"
           title={collapsed ? 'Rozwiń sidebar' : 'Zwiń sidebar'}
         >
           <ChevronLeft
-            size={12}
+            size={11}
             className={`transition-transform duration-200 ${collapsed ? 'rotate-180' : ''}`}
           />
         </button>
       </aside>
 
-      {/* ── Mobile: Overlay backdrop ── */}
+      {/* ── Mobile: Overlay ── */}
       {mobileOpen && (
         <div
-          className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
           onClick={closeMobile}
         />
       )}
 
       {/* ── Mobile: Drawer ── */}
       <aside
-        className={`
-          md:hidden fixed left-0 top-0 h-screen z-50 w-[280px]
-          bg-[#0F0F1A] border-r border-white/[0.06]
+        className={`md:hidden fixed left-0 top-0 h-screen z-50 w-[260px]
+          bg-sidebar border-r border-border
           transition-transform duration-300 ease-in-out
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
-        `}
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <SidebarContent
           collapsed={false}

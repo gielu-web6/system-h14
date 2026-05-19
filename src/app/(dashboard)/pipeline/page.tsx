@@ -92,7 +92,7 @@ function DealCard({ deal, onClick }: { deal: Deal; onClick: () => void }) {
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-[8px] bg-[#6366f1]/20 flex items-center justify-center text-[11px] font-bold text-[#6366f1] flex-shrink-0">
+          <div className="w-7 h-7 rounded-[8px] bg-accent/20 flex items-center justify-center text-[11px] font-bold text-accent flex-shrink-0">
             {initials}
           </div>
           <div className="min-w-0">
@@ -103,7 +103,7 @@ function DealCard({ deal, onClick }: { deal: Deal; onClick: () => void }) {
         <ScoreBadge score={deal.ai_score_label} />
       </div>
       <div className="flex items-center justify-between mt-2">
-        <span className="text-[11px] font-semibold text-[#6366f1]">{formatPLN(deal.value)}</span>
+        <span className="text-[11px] font-semibold text-accent">{formatPLN(deal.value)}</span>
         <span className="text-[10px] text-white/30">{relativeDate(deal.last_contact_date)}</span>
       </div>
     </button>
@@ -187,10 +187,10 @@ function DealModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-end">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full sm:max-w-[480px] h-full bg-[#0F0F1A] sm:border-l border-white/[0.08] overflow-y-auto shadow-2xl">
-        <div className="sticky top-0 bg-[#0F0F1A]/95 backdrop-blur border-b border-white/[0.07] p-5 flex items-start justify-between">
+      <div className="relative z-10 w-full sm:max-w-[480px] h-full bg-sidebar sm:border-l border-white/[0.08] overflow-y-auto shadow-2xl">
+        <div className="sticky top-0 bg-sidebar/95 backdrop-blur border-b border-white/[0.07] p-5 flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[12px] bg-[#6366f1]/20 flex items-center justify-center text-[14px] font-bold text-[#6366f1]">
+            <div className="w-10 h-10 rounded-[12px] bg-accent/20 flex items-center justify-center text-[14px] font-bold text-accent">
               {initials}
             </div>
             <div>
@@ -212,13 +212,13 @@ function DealModal({
                 value={deal.stage}
                 onChange={handleStageChange}
                 disabled={saving}
-                className="flex-1 px-3 py-2 rounded-[8px] bg-[#1A1A2E] border border-white/[0.1] text-white text-[13px] focus:outline-none focus:border-[#6366f1]/50 transition-all disabled:opacity-60"
+                className="flex-1 px-3 py-2 rounded-[8px] bg-bg border border-white/[0.1] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all disabled:opacity-60"
               >
                 {STAGE_ORDER.map(s => (
                   <option key={s} value={s}>{STAGE_CONFIG[s].label}</option>
                 ))}
               </select>
-              {saving && <Loader2 size={15} className="text-[#6366f1] animate-spin flex-shrink-0" />}
+              {saving && <Loader2 size={15} className="text-accent animate-spin flex-shrink-0" />}
             </div>
           </div>
 
@@ -229,7 +229,7 @@ function DealModal({
           </div>
 
           <div className="flex items-center gap-2 p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.06]">
-            <DollarSign size={15} className="text-[#6366f1]" />
+            <DollarSign size={15} className="text-accent" />
             <div>
               <p className="text-[10px] text-white/40">Wartość projektu</p>
               <p className="text-[16px] font-bold text-white">{formatPLN(deal.value)}</p>
@@ -265,8 +265,8 @@ function DealModal({
 
           {/* Next step */}
           {deal.next_step && (
-            <div className="p-3 rounded-[10px] bg-[#6366f1]/[0.08] border border-[#6366f1]/20">
-              <p className="text-[10px] font-semibold text-[#6366f1]/70 uppercase tracking-wide mb-1">Następny krok</p>
+            <div className="p-3 rounded-[10px] bg-[#6366f1]/[0.08] border border-accent/20">
+              <p className="text-[10px] font-semibold text-accent/70 uppercase tracking-wide mb-1">Następny krok</p>
               <p className="text-[13px] text-white/80">{deal.next_step}</p>
             </div>
           )}
@@ -314,7 +314,7 @@ function DealModal({
               <MessageSquare size={13} /> Generuj DM
             </button>
             <button onClick={() => router.push('/offer-generator')}
-              className="flex items-center justify-center gap-1.5 py-2 rounded-[8px] bg-[#6366f1]/15 border border-[#6366f1]/30 text-[#a5b4fc] text-[12px] font-medium hover:bg-[#6366f1]/25 transition-all">
+              className="flex items-center justify-center gap-1.5 py-2 rounded-[8px] bg-accent/15 border border-accent/30 text-accent text-[12px] font-medium hover:bg-accent/25 transition-all">
               <FileText size={13} /> Generuj ofertę <ExternalLink size={10} />
             </button>
           </div>
@@ -324,12 +324,12 @@ function DealModal({
             <div className="rounded-[12px] bg-white/[0.03] border border-white/[0.07] p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <p className="text-[12px] font-semibold text-white">2 warianty DM</p>
-                {dmLoading && <Loader2 size={13} className="animate-spin text-[#6366f1]" />}
+                {dmLoading && <Loader2 size={13} className="animate-spin text-accent" />}
               </div>
               {dmVariants.map((v, idx) => v && (
                 <div key={idx} className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-[#a5b4fc] uppercase">Wariant {idx === 0 ? 'A' : 'B'}</span>
+                    <span className="text-[10px] font-bold text-accent uppercase">Wariant {idx === 0 ? 'A' : 'B'}</span>
                     <button onClick={() => copyDM(idx)}
                       className="flex items-center gap-1 px-2 py-0.5 rounded-[6px] bg-white/[0.05] text-white/50 text-[10px] hover:text-white transition-all">
                       {dmCopied === idx ? <><CheckCircle2 size={10} className="text-green-400" /> Skopiowano</> : <><Send size={10} /> Kopiuj</>}
@@ -341,7 +341,7 @@ function DealModal({
                 </div>
               ))}
               {!dmLoading && dmVariants.every(v => v === null) && (
-                <button onClick={generateDM} className="w-full py-2 rounded-[8px] bg-[#6366f1] text-white text-[12px] font-bold hover:bg-[#5254cc] transition-all">
+                <button onClick={generateDM} className="w-full py-2 rounded-[8px] bg-accent text-white text-[12px] font-bold hover:opacity-90 transition-all">
                   Generuj ponownie
                 </button>
               )}
@@ -430,7 +430,7 @@ function NewDealModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-[480px] bg-[#0F0F1A] border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden">
+      <div className="relative z-10 w-full max-w-[480px] bg-sidebar border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.07]">
           <div>
             <p className="text-[15px] font-bold text-white">Nowy deal</p>
@@ -460,12 +460,12 @@ function NewDealModal({
               <div>
                 <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Imię i Nazwisko</label>
                 <input value={form.contactName} onChange={set('contactName')} placeholder="Jan Kowalski"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-[#6366f1]/50 transition-all" />
+                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Firma *</label>
                 <input value={form.company} onChange={set('company')} required placeholder="Nazwa firmy"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-[#6366f1]/50 transition-all" />
+                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
               </div>
             </div>
 
@@ -473,12 +473,12 @@ function NewDealModal({
               <div>
                 <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Stanowisko</label>
                 <input value={form.position} onChange={set('position')} placeholder="CEO / Marketing Manager"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-[#6366f1]/50 transition-all" />
+                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Wartość (PLN)</label>
                 <input value={form.value} onChange={set('value')} type="number" placeholder="15000"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-[#6366f1]/50 transition-all" />
+                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
               </div>
             </div>
 
@@ -486,12 +486,12 @@ function NewDealModal({
               <div>
                 <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Email</label>
                 <input value={form.email} onChange={set('email')} type="email" placeholder="jan@firma.pl"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-[#6366f1]/50 transition-all" />
+                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Telefon</label>
                 <input value={form.phone} onChange={set('phone')} placeholder="+48 500 000 000"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-[#6366f1]/50 transition-all" />
+                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
               </div>
             </div>
 
@@ -499,7 +499,7 @@ function NewDealModal({
               <div>
                 <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Etap pipeline</label>
                 <select value={form.stage} onChange={set('stage')}
-                  className="w-full px-3 py-2 rounded-[8px] bg-[#1A1A2E] border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-[#6366f1]/50 transition-all">
+                  className="w-full px-3 py-2 rounded-[8px] bg-bg border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all">
                   {STAGE_ORDER.filter(s => !['przegrana', 'nie_teraz'].includes(s)).map(s => (
                     <option key={s} value={s}>{STAGE_CONFIG[s].label}</option>
                   ))}
@@ -508,7 +508,7 @@ function NewDealModal({
               <div>
                 <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Segment</label>
                 <select value={form.segment} onChange={set('segment')}
-                  className="w-full px-3 py-2 rounded-[8px] bg-[#1A1A2E] border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-[#6366f1]/50 transition-all">
+                  className="w-full px-3 py-2 rounded-[8px] bg-bg border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all">
                   {SEGMENTS.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
                 </select>
               </div>
@@ -520,7 +520,7 @@ function NewDealModal({
                 Anuluj
               </button>
               <button type="submit" disabled={saving}
-                className="flex-1 py-2.5 rounded-[10px] bg-[#6366f1] text-white text-[13px] font-bold hover:bg-[#5254cc] disabled:opacity-60 transition-all shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2">
+                className="flex-1 py-2.5 rounded-[10px] bg-accent text-white text-[13px] font-bold hover:opacity-90 disabled:opacity-60 transition-all shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2">
                 {saving ? <><Loader2 size={13} className="animate-spin" /> Zapisuję...</> : 'Dodaj deal'}
               </button>
             </div>
@@ -636,7 +636,7 @@ export default function PipelinePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 size={24} className="text-[#6366f1] animate-spin" />
+        <Loader2 size={24} className="text-accent animate-spin" />
       </div>
     )
   }
@@ -664,7 +664,7 @@ export default function PipelinePage() {
         </div>
         <button
           onClick={() => setShowNewDeal(true)}
-          className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#6366f1]/10 border border-[#6366f1]/30 text-[#a5b4fc] text-[12px] font-medium hover:bg-[#6366f1]/20 transition-all"
+          className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-accent/10 border border-accent/30 text-accent text-[12px] font-medium hover:bg-accent/20 transition-all"
         >
           + Nowy deal
         </button>

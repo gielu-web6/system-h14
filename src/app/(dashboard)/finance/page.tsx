@@ -229,14 +229,14 @@ function InvoiceUploadModal({
     setTimeout(onClose, 1200)
   }
 
-  const inputCls = 'w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[12px] placeholder:text-white/20 focus:outline-none focus:border-[#6366f1]/50 transition-all'
+  const inputCls = 'w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[12px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all'
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-[500px] bg-[#0F0F1A] border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+      <div className="relative z-10 w-full max-w-[500px] bg-sidebar border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
 
-        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.07] sticky top-0 bg-[#0F0F1A]">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.07] sticky top-0 bg-sidebar">
           <div>
             <p className="text-[15px] font-bold text-white">Wgraj fakturę</p>
             <p className="text-[11px] text-white/40 mt-0.5">AI automatycznie odczyta dane i doda do systemu</p>
@@ -255,9 +255,9 @@ function InvoiceUploadModal({
           <div className="p-6 space-y-5">
             {/* Upload zone */}
             {!file ? (
-              <label className="flex flex-col items-center justify-center gap-3 p-8 rounded-[14px] border-2 border-dashed border-white/[0.12] bg-white/[0.02] cursor-pointer hover:border-[#6366f1]/50 hover:bg-[#6366f1]/[0.03] transition-all">
-                <div className="w-12 h-12 rounded-full bg-[#6366f1]/15 flex items-center justify-center">
-                  <Upload size={20} className="text-[#6366f1]" />
+              <label className="flex flex-col items-center justify-center gap-3 p-8 rounded-[14px] border-2 border-dashed border-white/[0.12] bg-white/[0.02] cursor-pointer hover:border-accent/50 hover:bg-[#6366f1]/[0.03] transition-all">
+                <div className="w-12 h-12 rounded-full bg-accent/15 flex items-center justify-center">
+                  <Upload size={20} className="text-accent" />
                 </div>
                 <div className="text-center">
                   <p className="text-[14px] font-semibold text-white">Kliknij lub przeciągnij fakturę</p>
@@ -272,7 +272,7 @@ function InvoiceUploadModal({
               </label>
             ) : (
               <div className="flex items-center gap-3 p-3 rounded-[10px] bg-white/[0.04] border border-white/[0.08]">
-                <FileText size={16} className="text-[#6366f1] flex-shrink-0" />
+                <FileText size={16} className="text-accent flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-[12px] font-semibold text-white truncate">{file.name}</p>
                   <p className="text-[10px] text-white/40">{(file.size / 1024).toFixed(0)} KB</p>
@@ -286,7 +286,7 @@ function InvoiceUploadModal({
             {/* Analyzing */}
             {analyzing && (
               <div className="flex items-center justify-center gap-3 py-6">
-                <Loader2 size={18} className="text-[#6366f1] animate-spin" />
+                <Loader2 size={18} className="text-accent animate-spin" />
                 <div>
                   <p className="text-[13px] font-semibold text-white">AI analizuje fakturę...</p>
                   <p className="text-[11px] text-white/40">Odczytuje dane: kwoty, VAT, kontrahenci</p>
@@ -301,9 +301,9 @@ function InvoiceUploadModal({
             {/* Extracted data */}
             {data && !analyzing && (
               <div className="space-y-4">
-                <div className="flex items-center gap-2 p-3 rounded-[10px] bg-[#6366f1]/[0.07] border border-[#6366f1]/20">
-                  <Sparkles size={13} className="text-[#a5b4fc] flex-shrink-0" />
-                  <p className="text-[12px] text-[#a5b4fc]">AI odczytało fakturę. Sprawdź dane i zapisz.</p>
+                <div className="flex items-center gap-2 p-3 rounded-[10px] bg-[#6366f1]/[0.07] border border-accent/20">
+                  <Sparkles size={13} className="text-accent flex-shrink-0" />
+                  <p className="text-[12px] text-accent">AI odczytało fakturę. Sprawdź dane i zapisz.</p>
                 </div>
 
                 {/* Type toggle */}
@@ -392,7 +392,7 @@ function InvoiceUploadModal({
                     Anuluj
                   </button>
                   <button onClick={handleSave}
-                    className="flex-1 py-2.5 rounded-[10px] bg-[#6366f1] text-white text-[13px] font-bold hover:bg-[#5254cc] transition-all shadow-lg shadow-indigo-500/25">
+                    className="flex-1 py-2.5 rounded-[10px] bg-accent text-white text-[13px] font-bold hover:opacity-90 transition-all shadow-lg shadow-indigo-500/25">
                     Zapisz fakturę
                   </button>
                 </div>
@@ -421,13 +421,13 @@ function AddIncomeModal({ onClose, onAdd }: { onClose: () => void; onAdd: (e: In
     setSaved(true); setTimeout(() => onClose(), 1200)
   }
 
-  const inputCls = 'w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-[#6366f1]/50 transition-all'
+  const inputCls = 'w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all'
   const labelCls = 'block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5'
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-[440px] bg-[#0F0F1A] border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden">
+      <div className="relative z-10 w-full max-w-[440px] bg-sidebar border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.07]">
           <p className="text-[15px] font-bold text-white">Dodaj przychód</p>
           <button onClick={onClose} className="p-1.5 rounded-[8px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all"><X size={16} /></button>
@@ -447,7 +447,7 @@ function AddIncomeModal({ onClose, onAdd }: { onClose: () => void; onAdd: (e: In
               <div><label className={labelCls}>Kwota netto (PLN) *</label>
                 <input value={form.amount} onChange={set('amount')} required type="number" step="0.01" placeholder="5000.00" className={inputCls} /></div>
               <div><label className={labelCls}>Stawka VAT (%)</label>
-                <select value={form.vatRate} onChange={set('vatRate')} className="w-full px-3 py-2 rounded-[8px] bg-[#1A1A2E] border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-[#6366f1]/50 transition-all">
+                <select value={form.vatRate} onChange={set('vatRate')} className="w-full px-3 py-2 rounded-[8px] bg-bg border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all">
                   {VAT_RATES.map(v => <option key={v} value={v}>{v}%</option>)}
                 </select></div>
             </div>
@@ -464,17 +464,17 @@ function AddIncomeModal({ onClose, onAdd }: { onClose: () => void; onAdd: (e: In
             )}
             <div className="grid grid-cols-2 gap-3">
               <div><label className={labelCls}>Typ</label>
-                <select value={form.type} onChange={set('type')} className="w-full px-3 py-2 rounded-[8px] bg-[#1A1A2E] border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-[#6366f1]/50 transition-all">
+                <select value={form.type} onChange={set('type')} className="w-full px-3 py-2 rounded-[8px] bg-bg border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all">
                   <option value="zaliczka">Zaliczka</option><option value="rata">Rata</option><option value="końcowa">Końcowa</option><option value="abonament">Abonament</option>
                 </select></div>
               <div><label className={labelCls}>Status</label>
-                <select value={form.status} onChange={set('status')} className="w-full px-3 py-2 rounded-[8px] bg-[#1A1A2E] border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-[#6366f1]/50 transition-all">
+                <select value={form.status} onChange={set('status')} className="w-full px-3 py-2 rounded-[8px] bg-bg border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all">
                   <option value="opłacona">Opłacona</option><option value="oczekująca">Oczekująca</option><option value="zaległa">Zaległa</option>
                 </select></div>
             </div>
             <div className="flex gap-2 pt-2">
               <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white/50 text-[13px] font-medium hover:bg-white/[0.08] hover:text-white transition-all">Anuluj</button>
-              <button type="submit" className="flex-1 py-2.5 rounded-[10px] bg-[#6366f1] text-white text-[13px] font-bold hover:bg-[#5254cc] transition-all">Dodaj</button>
+              <button type="submit" className="flex-1 py-2.5 rounded-[10px] bg-accent text-white text-[13px] font-bold hover:opacity-90 transition-all">Dodaj</button>
             </div>
           </form>
         )}
@@ -499,13 +499,13 @@ function AddExpenseModal({ onClose, onAdd }: { onClose: () => void; onAdd: (e: E
     setSaved(true); setTimeout(() => onClose(), 1200)
   }
 
-  const inputCls = 'w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-[#6366f1]/50 transition-all'
+  const inputCls = 'w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all'
   const labelCls = 'block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5'
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-[420px] bg-[#0F0F1A] border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden">
+      <div className="relative z-10 w-full max-w-[420px] bg-sidebar border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.07]">
           <p className="text-[15px] font-bold text-white">Dodaj koszt</p>
           <button onClick={onClose} className="p-1.5 rounded-[8px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all"><X size={16} /></button>
@@ -523,7 +523,7 @@ function AddExpenseModal({ onClose, onAdd }: { onClose: () => void; onAdd: (e: E
               <div><label className={labelCls}>Kwota netto (PLN) *</label>
                 <input value={form.amount} onChange={set('amount')} required type="number" step="0.01" placeholder="299.00" className={inputCls} /></div>
               <div><label className={labelCls}>Stawka VAT (%)</label>
-                <select value={form.vatRate} onChange={set('vatRate')} className="w-full px-3 py-2 rounded-[8px] bg-[#1A1A2E] border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-[#6366f1]/50 transition-all">
+                <select value={form.vatRate} onChange={set('vatRate')} className="w-full px-3 py-2 rounded-[8px] bg-bg border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all">
                   {VAT_RATES.map(v => <option key={v} value={v}>{v}%</option>)}
                 </select></div>
             </div>
@@ -535,7 +535,7 @@ function AddExpenseModal({ onClose, onAdd }: { onClose: () => void; onAdd: (e: E
               </div>
             )}
             <div><label className={labelCls}>Kategoria</label>
-              <select value={form.category} onChange={set('category')} className="w-full px-3 py-2 rounded-[8px] bg-[#1A1A2E] border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-[#6366f1]/50 transition-all">
+              <select value={form.category} onChange={set('category')} className="w-full px-3 py-2 rounded-[8px] bg-bg border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all">
                 {EXPENSE_CATEGORIES.map(c => <option key={c}>{c}</option>)}
               </select></div>
             <label className="flex items-center gap-3 cursor-pointer">
@@ -544,7 +544,7 @@ function AddExpenseModal({ onClose, onAdd }: { onClose: () => void; onAdd: (e: E
             </label>
             <div className="flex gap-2 pt-2">
               <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white/50 text-[13px] font-medium hover:bg-white/[0.08] hover:text-white transition-all">Anuluj</button>
-              <button type="submit" className="flex-1 py-2.5 rounded-[10px] bg-[#6366f1] text-white text-[13px] font-bold hover:bg-[#5254cc] transition-all">Dodaj</button>
+              <button type="submit" className="flex-1 py-2.5 rounded-[10px] bg-accent text-white text-[13px] font-bold hover:opacity-90 transition-all">Dodaj</button>
             </div>
           </form>
         )}
@@ -578,7 +578,7 @@ function OverviewTab({ incomes, expenses }: { incomes: IncomeEntry[]; expenses: 
           { label: 'Zysk netto',                         value: formatPLN(netProfit),    icon: DollarSign,   color: netProfit >= 0 ? '#6366f1' : '#ef4444' },
           { label: 'Oczekujące należności',              value: formatPLN(pending),      icon: Clock,        color: '#f59e0b' },
         ].map(kpi => (
-          <div key={kpi.label} className="bg-[#16213E] border border-white/[0.07] rounded-[12px] p-4">
+          <div key={kpi.label} className="bg-card border border-white/[0.07] rounded-[12px] p-4">
             <div className="w-8 h-8 rounded-[8px] flex items-center justify-center mb-3" style={{ background: kpi.color + '20' }}>
               <kpi.icon size={15} style={{ color: kpi.color }} />
             </div>
@@ -605,7 +605,7 @@ function OverviewTab({ incomes, expenses }: { incomes: IncomeEntry[]; expenses: 
 
       {/* Expense breakdown */}
       {catList.length > 0 ? (
-        <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
+        <div className="bg-card border border-white/[0.07] rounded-[14px] p-5">
           <p className="text-[13px] font-semibold text-white mb-4">Koszty wg kategorii (all time)</p>
           <div className="space-y-3">
             {catList.map(([cat, amount]) => {
@@ -617,7 +617,7 @@ function OverviewTab({ incomes, expenses }: { incomes: IncomeEntry[]; expenses: 
                     <span className="text-white font-semibold">{formatPLN(amount)} <span className="text-white/35">({pct}%)</span></span>
                   </div>
                   <div className="h-1.5 bg-white/[0.06] rounded-full">
-                    <div className="h-full rounded-full bg-[#6366f1]" style={{ width: `${pct}%` }} />
+                    <div className="h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
               )
@@ -625,7 +625,7 @@ function OverviewTab({ incomes, expenses }: { incomes: IncomeEntry[]; expenses: 
           </div>
         </div>
       ) : (
-        <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-8 flex flex-col items-center justify-center gap-3">
+        <div className="bg-card border border-white/[0.07] rounded-[14px] p-8 flex flex-col items-center justify-center gap-3">
           <DollarSign size={28} className="text-white/15" />
           <p className="text-[14px] font-semibold text-white/40">Brak danych finansowych</p>
           <p className="text-[12px] text-white/25 text-center leading-relaxed max-w-xs">
@@ -660,19 +660,19 @@ function IncomeTab({
           { label: 'Zysk oczekujący',  value: pending, color: '#f59e0b' },
           { label: 'Zaległe należności', value: overdue, color: '#ef4444' },
         ].map(s => (
-          <div key={s.label} className="bg-[#16213E] border border-white/[0.07] rounded-[12px] p-4 flex sm:block items-center justify-between">
+          <div key={s.label} className="bg-card border border-white/[0.07] rounded-[12px] p-4 flex sm:block items-center justify-between">
             <p className="text-[11px] text-white/40">{s.label}</p>
             <p className="text-[18px] font-bold sm:mt-0.5" style={{ color: s.color }}>{formatPLN(s.value)}</p>
           </div>
         ))}
       </div>
 
-      <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] overflow-hidden">
+      <div className="bg-card border border-white/[0.07] rounded-[14px] overflow-hidden">
         <div className="px-4 py-3 border-b border-white/[0.07] flex flex-wrap items-center justify-between gap-2">
           <p className="text-[13px] font-semibold text-white">Przychody ({incomes.length})</p>
           <div className="flex items-center gap-2">
             <button onClick={onInvoice}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#6366f1]/10 border border-[#6366f1]/30 text-[#a5b4fc] text-[12px] font-medium hover:bg-[#6366f1]/20 transition-all">
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-accent/10 border border-accent/30 text-accent text-[12px] font-medium hover:bg-accent/20 transition-all">
               <Upload size={12} /> Wgraj fakturę
             </button>
             <button onClick={() => setShowAdd(true)}
@@ -696,7 +696,7 @@ function IncomeTab({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-[13px] font-semibold text-white truncate">{inc.client}</p>
-                      {inc.fromInvoice && <Receipt size={10} className="text-[#6366f1] flex-shrink-0" />}
+                      {inc.fromInvoice && <Receipt size={10} className="text-accent flex-shrink-0" />}
                     </div>
                     <p className="text-[11px] text-white/40 truncate">{inc.project} {inc.invoiceNumber ? `· ${inc.invoiceNumber}` : ''}</p>
                   </div>
@@ -748,19 +748,19 @@ function ExpensesTab({
           { label: 'Suma netto (koszty)',   value: totalNet,   color: '#f97316' },
           { label: 'Koszty stałe/miesiąc', value: recurring,  color: '#6366f1' },
         ].map(s => (
-          <div key={s.label} className="bg-[#16213E] border border-white/[0.07] rounded-[12px] p-4 flex sm:block items-center justify-between">
+          <div key={s.label} className="bg-card border border-white/[0.07] rounded-[12px] p-4 flex sm:block items-center justify-between">
             <p className="text-[11px] text-white/40">{s.label}</p>
             <p className="text-[18px] font-bold sm:mt-0.5" style={{ color: s.color }}>{formatPLN(s.value)}</p>
           </div>
         ))}
       </div>
 
-      <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] overflow-hidden">
+      <div className="bg-card border border-white/[0.07] rounded-[14px] overflow-hidden">
         <div className="px-4 py-3 border-b border-white/[0.07] flex flex-wrap items-center justify-between gap-2">
           <p className="text-[13px] font-semibold text-white">Koszty ({expenses.length})</p>
           <div className="flex items-center gap-2">
             <button onClick={onInvoice}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#6366f1]/10 border border-[#6366f1]/30 text-[#a5b4fc] text-[12px] font-medium hover:bg-[#6366f1]/20 transition-all">
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-accent/10 border border-accent/30 text-accent text-[12px] font-medium hover:bg-accent/20 transition-all">
               <Upload size={12} /> Wgraj fakturę
             </button>
             <button onClick={() => setShowAdd(true)}
@@ -781,7 +781,7 @@ function ExpensesTab({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-[12px] font-medium text-white/80 truncate">{exp.name}</p>
-                    {exp.fromInvoice && <Receipt size={10} className="text-[#6366f1] flex-shrink-0" />}
+                    {exp.fromInvoice && <Receipt size={10} className="text-accent flex-shrink-0" />}
                   </div>
                   <p className="text-[10px] text-white/35">{exp.category} {exp.invoiceNumber ? `· ${exp.invoiceNumber}` : ''}</p>
                 </div>
@@ -789,7 +789,7 @@ function ExpensesTab({
                   <p className="text-[12px] font-semibold text-red-400">{formatPLN(exp.grossAmount)}</p>
                   <p className="text-[10px] text-white/30">netto {formatPLN(exp.amount)}</p>
                 </div>
-                <span className={`text-[10px] font-semibold flex-shrink-0 ${exp.recurring ? 'text-[#6366f1]' : 'text-white/30'}`}>
+                <span className={`text-[10px] font-semibold flex-shrink-0 ${exp.recurring ? 'text-accent' : 'text-white/30'}`}>
                   {exp.recurring ? 'Cykliczny' : 'Jednorazowy'}
                 </span>
                 <span className="text-[11px] text-white/35 hidden lg:block flex-shrink-0">{formatDate(exp.date)}</span>
@@ -901,7 +901,7 @@ export default function FinancePage() {
         </div>
         <button
           onClick={() => setShowInvoice(true)}
-          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2 rounded-[10px] bg-[#6366f1] hover:bg-[#5254cc] text-white text-[13px] font-semibold transition-all shadow-lg shadow-indigo-500/20"
+          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2 rounded-[10px] bg-accent hover:opacity-90 text-white text-[13px] font-semibold transition-all shadow-lg shadow-indigo-500/20"
         >
           <Receipt size={14} /> Dodaj fakturę
         </button>
@@ -912,7 +912,7 @@ export default function FinancePage() {
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`px-4 py-2 rounded-[8px] text-[13px] font-medium transition-all ${tab === t.id ? 'bg-[#6366f1] text-white shadow-md shadow-indigo-500/20' : 'text-white/50 hover:text-white'}`}
+            className={`px-4 py-2 rounded-[8px] text-[13px] font-medium transition-all ${tab === t.id ? 'bg-accent text-white shadow-md shadow-indigo-500/20' : 'text-white/50 hover:text-white'}`}
           >
             {t.label}
           </button>

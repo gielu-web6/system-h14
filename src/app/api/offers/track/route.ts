@@ -237,37 +237,76 @@ export async function POST(req: NextRequest) {
       if (view) {
         await supabase
           .from('offer_page_views')
-          .update({
-            time_on_sections: timeOnSections,
-            scroll_depth: scrollDepth,
-          })
+          .update({ time_on_sections: timeOnSections, scroll_depth: scrollDepth })
           .eq('id', view.id)
       }
 
-      // Alert if client spent 60+ seconds on pricing section
-      const pricingTime = Number(timeOnSections['pricing'] ?? 0)
-      if (pricingTime >= 60 && dealId) {
-        await supabase.from('notifications').insert({
-          deal_id: dealId,
-          type: 'pricing_attention',
-          title: 'Klient intensywnie przegląda cennik',
-          body: `${offerPage.company_name} spędził ${pricingTime}s na sekcji wyceny — zadzwoń teraz!`,
-          priority: 'high',
-          is_read: false,
-        })
+      // Key sections with Polish labels and their notification types
+      const KEY_SECTIONS: Record<string, { label: string; type: string; priority: 'high' | 'normal' }> = {
+        pricing:  { label: 'wyceny',            type: 'pricing_attention', priority: 'high' },
+        solution: { label: 'rozwiązania',        type: 'section_time',      priority: 'normal' },
+        timeline: { label: 'harmonogramu',       type: 'section_time',      priority: 'normal' },
+        loss:     { label: 'kalkulatora strat',  type: 'section_time',      priority: 'normal' },
       }
 
-      // Alert 3 — pricing section 2+ minutes
-      if (pricingTime >= 120) {
-        sendTelegramAlert({
-          target: 'sales',
-          message: `💰 <b>KLIENT NA CENNIKU!</b>
+      const NOTIFY_THRESHOLD = 30  // seconds — insert notification
+      const TELEGRAM_THRESHOLD = 60 // seconds — also send Telegram
+
+      const hotSections = Object.entries(KEY_SECTIONS)
+        .map(([section, cfg]) => ({ section, ...cfg, seconds: Number(timeOnSections[section] ?? 0) }))
+        .filter(s => s.seconds >= NOTIFY_THRESHOLD)
+        .sort((a, b) => b.seconds - a.seconds)
+
+      if (hotSections.length > 0 && dealId) {
+        const timeStr = (secs: number) => {
+          const m = Math.floor(secs / 60)
+          const s = secs % 60
+          return m > 0 ? `${m} min ${s}s` : `${s}s`
+        }
+        const nowStr = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+
+        await Promise.all(hotSections.map(({ section: _s, label, type, priority, seconds }) =>
+          supabase.from('notifications').insert({
+            deal_id: dealId,
+            type,
+            title: type === 'pricing_attention'
+              ? 'Klient intensywnie przegląda cennik'
+              : `Klient czyta sekcję: ${label}`,
+            body: `${offerPage.company_name} — ${timeStr(seconds)} na sekcji ${label}. Godz. ${nowStr}`,
+            priority,
+            is_read: false,
+          })
+        ))
+
+        // Telegram for the most-engaged section at 60s+ threshold
+        const top = hotSections[0]
+        if (top.seconds >= TELEGRAM_THRESHOLD) {
+          const emoji = top.section === 'pricing' ? '💰' : '📊'
+          sendTelegramAlert({
+            target: 'sales',
+            message: `${emoji} <b>KLIENT NA STRONIE OFERTY</b>
 
 👤 ${offerPage.company_name}
-⏱ Czyta cennik od ${Math.round(pricingTime / 60)} minut
+📑 Sekcja: ${top.label}
+⏱ Czas: ${timeStr(top.seconds)}
 
-<b>To najlepszy moment na telefon.</b>`,
-        }).catch(() => {})
+<b>Działaj teraz!</b>`,
+          }).catch(() => {})
+        }
+
+        // Broadcast for real-time updates in offer-generator
+        try {
+          await supabase.channel('offer-tracking').send({
+            type: 'broadcast',
+            event: 'section_time',
+            payload: {
+              offerId: offerPageId,
+              clientName: offerPage.company_name,
+              sections: hotSections.map(s => ({ section: s.section, label: s.label, seconds: s.seconds })),
+              timestamp: new Date().toISOString(),
+            },
+          })
+        } catch { /* best-effort */ }
       }
     }
 

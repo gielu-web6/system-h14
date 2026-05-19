@@ -34,7 +34,7 @@ function StatCard({
   color?: string
 }) {
   return (
-    <div className="bg-[#16213E] border border-white/[0.07] rounded-xl p-4">
+    <div className="bg-card border border-white/[0.07] rounded-xl p-4">
       <div className="flex items-center gap-2 mb-3">
         <div
           className="w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0"
@@ -141,7 +141,7 @@ export default function MyStatsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 size={24} className="text-[#6366f1] animate-spin" />
+        <Loader2 size={24} className="text-accent animate-spin" />
       </div>
     )
   }
@@ -191,7 +191,7 @@ export default function MyStatsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Recent wins */}
-        <div className="bg-[#16213E] border border-white/[0.07] rounded-xl p-5">
+        <div className="bg-card border border-white/[0.07] rounded-xl p-5">
           <div className="flex items-center gap-2 mb-4">
             <Trophy size={15} className="text-[#22c55e]" />
             <p className="text-[13px] font-semibold text-white">Ostatnie wygrane</p>
@@ -218,7 +218,7 @@ export default function MyStatsPage() {
         </div>
 
         {/* Top objection + tips */}
-        <div className="bg-[#16213E] border border-white/[0.07] rounded-xl p-5">
+        <div className="bg-card border border-white/[0.07] rounded-xl p-5">
           <div className="flex items-center gap-2 mb-4">
             <MessageSquare size={15} className="text-[#f59e0b]" />
             <p className="text-[13px] font-semibold text-white">Insights</p>
@@ -228,18 +228,18 @@ export default function MyStatsPage() {
               <p className="text-[10px] text-white/40 uppercase tracking-wide mb-1">Najczęstsza obiekcja (m-c)</p>
               <p className="text-[13px] text-white/80">{s.topLostReason ?? '— brak danych'}</p>
             </div>
-            <div className="p-3 rounded-[8px] bg-[#6366f1]/[0.08] border border-[#6366f1]/20">
-              <p className="text-[10px] text-[#a5b4fc] uppercase tracking-wide mb-1">Cel tygodniowy</p>
+            <div className="p-3 rounded-[8px] bg-[#6366f1]/[0.08] border border-accent/20">
+              <p className="text-[10px] text-accent uppercase tracking-wide mb-1">Cel tygodniowy</p>
               <div className="flex items-center gap-2">
-                <Send size={12} className="text-[#a5b4fc]" />
+                <Send size={12} className="text-accent" />
                 <p className="text-[12px] text-white/70">30–50 wiadomości Takt 1 dziennie</p>
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <Percent size={12} className="text-[#a5b4fc]" />
+                <Percent size={12} className="text-accent" />
                 <p className="text-[12px] text-white/70">Cel: 15% odpowiedzi na Takt 1</p>
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <DollarSign size={12} className="text-[#a5b4fc]" />
+                <DollarSign size={12} className="text-accent" />
                 <p className="text-[12px] text-white/70">Prowizja za zamknięty deal: indywidualna</p>
               </div>
             </div>

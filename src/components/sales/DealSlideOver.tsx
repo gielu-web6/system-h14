@@ -216,7 +216,7 @@ export function DealSlideOver({
       <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
 
       {/* Panel */}
-      <aside className="fixed inset-y-0 right-0 w-full max-w-[540px] bg-[#16213E] border-l border-white/10 z-50 flex flex-col overflow-hidden shadow-2xl">
+      <aside className="fixed inset-y-0 right-0 w-full max-w-[540px] bg-card border-l border-white/10 z-50 flex flex-col overflow-hidden shadow-2xl">
 
         {/* Header */}
         <div className="flex items-start gap-3 px-5 py-4 border-b border-white/10 flex-shrink-0">
@@ -310,7 +310,7 @@ export function DealSlideOver({
 
               {deal.lead?.ai_score != null && (
                 <Section label="AI Scoring">
-                  <div className="bg-[#1A1A2E] rounded-xl p-3 space-y-2">
+                  <div className="bg-bg rounded-xl p-3 space-y-2">
                     <div className="flex items-center gap-3">
                       <span className={`text-2xl font-black tabular-nums ${AI_SCORE_LABELS[deal.lead.ai_score]?.color ?? 'text-white'}`}>
                         {deal.lead.ai_score}/10
@@ -341,7 +341,7 @@ export function DealSlideOver({
                   <InfoBlock label="Wartość" value={deal.value != null ? formatCurrency(deal.value) : '—'} valueClass="text-secondary" />
                   <InfoBlock label="Zamknięcie" value={deal.expected_close_date ? formatDate(deal.expected_close_date) : '—'} />
                   {deal.project_type && (
-                    <div className="col-span-2 bg-[#1A1A2E] rounded-lg p-2.5">
+                    <div className="col-span-2 bg-bg rounded-lg p-2.5">
                       <p className="text-[10px] text-white/30 mb-0.5">Typ projektu</p>
                       <p className="text-sm text-white">{deal.project_type}</p>
                     </div>
@@ -352,14 +352,14 @@ export function DealSlideOver({
               {/* Objection handler — visible when in negocjacje */}
               {deal.stage === 'negocjacje' && (
                 <Section label="Pomoc AI — obiekcje">
-                  <div className="bg-[#1A1A2E] rounded-xl p-3 space-y-3">
+                  <div className="bg-bg rounded-xl p-3 space-y-3">
                     <p className="text-xs text-white/40">Wpisz obiekcję klienta, AI zaproponuje 3 odpowiedzi</p>
                     <textarea
                       value={objection}
                       onChange={(e) => setObjection(e.target.value)}
                       placeholder="np. Za drogo, mam już kogoś, nie teraz…"
                       rows={2}
-                      className="w-full bg-[#16213E] border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
+                      className="w-full bg-card border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
                     />
                     <button
                       onClick={handleObjection}
@@ -376,7 +376,7 @@ export function DealSlideOver({
                           Typ: {objResult.objection_type}
                         </p>
                         {objResult.responses.map((r, i) => (
-                          <div key={i} className="bg-[#16213E] border border-white/5 rounded-xl p-3">
+                          <div key={i} className="bg-card border border-white/5 rounded-xl p-3">
                             <div className="flex items-center justify-between mb-1.5">
                               <span className="text-[10px] font-medium text-primary">{r.approach}</span>
                               <button onClick={() => copy(r.text)} className="p-1 hover:bg-white/10 rounded transition-colors">
@@ -398,7 +398,7 @@ export function DealSlideOver({
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Dodaj notatki…"
                   rows={4}
-                  className="w-full bg-[#1A1A2E] border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                  className="w-full bg-bg border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
                 />
                 <Button size="sm" className="mt-2" onClick={saveNotes} disabled={savingNotes}>
                   {savingNotes ? 'Zapisywanie…' : 'Zapisz'}
@@ -421,7 +421,7 @@ export function DealSlideOver({
             ) : (
               <div className="space-y-3">
                 {messages.map((msg) => (
-                  <div key={msg.id} className="bg-[#1A1A2E] border border-white/5 rounded-xl p-3">
+                  <div key={msg.id} className="bg-bg border border-white/5 rounded-xl p-3">
                     <div className="flex items-center justify-between mb-2 gap-2">
                       <span className="text-[10px] font-medium text-white/40 bg-white/5 px-2 py-0.5 rounded-full truncate">
                         {msg.message_type.replace(/_/g, ' ')}
@@ -452,7 +452,7 @@ export function DealSlideOver({
             <>
               {/* Pre-call brief — AI generated */}
               <Section label="Pre-call brief">
-                <div className="bg-[#1A1A2E] border border-primary/20 rounded-xl p-3">
+                <div className="bg-bg border border-primary/20 rounded-xl p-3">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Sparkles size={12} className="text-primary" />
@@ -498,14 +498,14 @@ export function DealSlideOver({
                   onChange={(e) => setDiagnosisNotes(e.target.value)}
                   placeholder="Co powiedział klient? Jakie problemy zgłosił?"
                   rows={3}
-                  className="w-full bg-[#1A1A2E] border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                  className="w-full bg-bg border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
                 />
                 <textarea
                   value={clientProblem}
                   onChange={(e) => setClientProblem(e.target.value)}
                   placeholder="Sformułuj problem klienta jednym zdaniem…"
                   rows={2}
-                  className="w-full mt-2 bg-[#1A1A2E] border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                  className="w-full mt-2 bg-bg border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
                 />
                 <div className="flex gap-2 mt-2">
                   <Button size="sm" onClick={saveNotes} disabled={savingNotes}>
@@ -578,7 +578,7 @@ export function DealSlideOver({
                       </a>
                     </div>
                     {/* PDF Preview */}
-                    <div className="rounded-xl overflow-hidden border border-white/10 bg-[#1A1A2E]">
+                    <div className="rounded-xl overflow-hidden border border-white/10 bg-bg">
                       <p className="text-[10px] text-white/30 px-3 py-2 border-b border-white/5">Podgląd</p>
                       <iframe
                         src={`${deal.offer_pdf_url}#view=FitH`}
@@ -597,7 +597,7 @@ export function DealSlideOver({
 
               {/* Wycena — from matchResult or deal fields */}
               <Section label="Wycena">
-                <div className="bg-[#1A1A2E] border border-white/10 rounded-xl p-4">
+                <div className="bg-bg border border-white/10 rounded-xl p-4">
                   {(matchResult?.price_range_min ?? deal.suggested_price_min) != null ? (
                     <>
                       <p className="text-xs text-white/30 mb-1">Zakres wyceny</p>
@@ -706,7 +706,7 @@ function Avatar({ letter }: { letter?: string }) {
 
 function InfoBlock({ label, value, valueClass = 'text-white' }: { label: string; value: string; valueClass?: string }) {
   return (
-    <div className="bg-[#1A1A2E] rounded-lg p-2.5">
+    <div className="bg-bg rounded-lg p-2.5">
       <p className="text-[10px] text-white/30 mb-0.5">{label}</p>
       <p className={`text-sm font-bold ${valueClass}`}>{value}</p>
     </div>
@@ -730,7 +730,7 @@ function BriefSection({
   label: string; text: string; onCopy: (t: string) => void; accent?: boolean
 }) {
   return (
-    <div className={`rounded-lg p-2.5 ${accent ? 'bg-primary/10 border border-primary/20' : 'bg-[#16213E]'}`}>
+    <div className={`rounded-lg p-2.5 ${accent ? 'bg-primary/10 border border-primary/20' : 'bg-card'}`}>
       <div className="flex items-center justify-between mb-1">
         <span className="text-[10px] text-white/30 uppercase tracking-wider">{label}</span>
         <button onClick={() => onCopy(text)} className="p-0.5 hover:bg-white/10 rounded transition-colors">
@@ -780,7 +780,7 @@ function CallScriptAccordion({ lead, onCopy }: { lead?: Deal['lead']; onCopy: (t
   return (
     <div className="space-y-1.5">
       {CALL_PHASES.map(({ phase, content }, i) => (
-        <div key={i} className="bg-[#1A1A2E] border border-white/5 rounded-xl overflow-hidden">
+        <div key={i} className="bg-bg border border-white/5 rounded-xl overflow-hidden">
           <button
             onClick={() => setOpen(open === i ? null : i)}
             className="w-full flex items-center justify-between px-3 py-2.5 text-xs font-medium text-white/60 hover:text-white transition-colors"
@@ -806,18 +806,18 @@ function CallScriptAccordion({ lead, onCopy }: { lead?: Deal['lead']; onCopy: (t
 
 function MatchOfferCard({ result, onCopy }: { result: MatchOfferResult; onCopy: (t: string) => void }) {
   return (
-    <div className="bg-[#1A1A2E] border border-secondary/20 rounded-xl p-4 space-y-3">
+    <div className="bg-bg border border-secondary/20 rounded-xl p-4 space-y-3">
       <div className="flex items-center gap-2 mb-1">
         <Sparkles size={12} className="text-secondary" />
         <span className="text-[10px] text-secondary font-medium uppercase tracking-wider">AI Rekomendacja</span>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <div className="bg-[#16213E] rounded-lg p-2.5">
+        <div className="bg-card rounded-lg p-2.5">
           <p className="text-[10px] text-white/30 mb-0.5">Typ projektu</p>
           <p className="text-sm font-bold text-white capitalize">{result.recommended_project_type}</p>
         </div>
-        <div className="bg-[#16213E] rounded-lg p-2.5">
+        <div className="bg-card rounded-lg p-2.5">
           <p className="text-[10px] text-white/30 mb-0.5">Czas realizacji</p>
           <p className="text-sm font-bold text-secondary">{result.estimated_time}</p>
         </div>

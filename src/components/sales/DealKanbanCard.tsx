@@ -38,7 +38,7 @@ export function DealKanbanCard({
   return (
     <div
       onClick={onClick}
-      className="group bg-[#1A1A2E] border border-white/5 rounded-xl p-3 mb-2 last:mb-0 hover:border-primary/30 hover:bg-primary/[0.03] transition-all cursor-pointer select-none"
+      className="group bg-bg border border-white/5 rounded-xl p-3 mb-2 last:mb-0 hover:border-primary/30 hover:bg-primary/[0.03] transition-all cursor-pointer select-none"
     >
       {/* Priority dot + days */}
       <div className="flex items-center justify-between mb-2">

@@ -19,7 +19,7 @@ export function WinDealModal({ onConfirm, onClose }: WinDealModalProps) {
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="bg-[#16213E] border border-white/10 rounded-2xl p-6 w-full max-w-md"
+        className="bg-card border border-white/10 rounded-2xl p-6 w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 mb-5">
@@ -44,7 +44,7 @@ export function WinDealModal({ onConfirm, onClose }: WinDealModalProps) {
               onChange={(e) => setValue(e.target.value)}
               placeholder="np. 8000"
               autoFocus
-              className="w-full bg-[#1A1A2E] border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#27AE60]/40 placeholder:text-white/25"
+              className="w-full bg-bg border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#27AE60]/40 placeholder:text-white/25"
             />
           </div>
           <div>
@@ -54,7 +54,7 @@ export function WinDealModal({ onConfirm, onClose }: WinDealModalProps) {
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Co zadecydowało o wygranej?"
               rows={3}
-              className="w-full bg-[#1A1A2E] border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#27AE60]/40 resize-none placeholder:text-white/25"
+              className="w-full bg-bg border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#27AE60]/40 resize-none placeholder:text-white/25"
             />
           </div>
         </div>

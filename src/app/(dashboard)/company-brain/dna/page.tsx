@@ -151,7 +151,7 @@ function Input({ value, onChange, placeholder, type = 'text' }: {
       value={value}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white placeholder:text-white/25 focus:outline-none focus:border-[#6366f1]/50 transition-colors"
+      className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white placeholder:text-white/25 focus:outline-none focus:border-accent/50 transition-colors"
     />
   )
 }
@@ -165,7 +165,7 @@ function Textarea({ value, onChange, placeholder, rows = 3 }: {
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows}
-      className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white placeholder:text-white/25 focus:outline-none focus:border-[#6366f1]/50 transition-colors resize-none"
+      className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white placeholder:text-white/25 focus:outline-none focus:border-accent/50 transition-colors resize-none"
     />
   )
 }
@@ -189,7 +189,7 @@ function TagList({ items, onChange, placeholder }: {
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add() } }}
           placeholder={placeholder ?? 'Wpisz i naciśnij Enter…'}
-          className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[12px] text-white placeholder:text-white/25 focus:outline-none focus:border-[#6366f1]/50 transition-colors"
+          className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[12px] text-white placeholder:text-white/25 focus:outline-none focus:border-accent/50 transition-colors"
         />
         <button onClick={add} className="p-2 rounded-[8px] bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-white transition-colors">
           <Plus size={14} />
@@ -198,7 +198,7 @@ function TagList({ items, onChange, placeholder }: {
       {items.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {items.map((item, i) => (
-            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#6366f1]/15 border border-[#6366f1]/25 text-[11px] text-[#a5b4fc]">
+            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-accent/15 border border-accent/25 text-[11px] text-accent">
               {item}
               <button onClick={() => onChange(items.filter((_, j) => j !== i))} className="hover:text-white transition-colors">
                 <X size={10} />
@@ -281,10 +281,10 @@ function AIInterviewTab({ onDNASaved }: { onDNASaved: () => void }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 p-3 rounded-[10px] bg-[#6366f1]/[0.07] border border-[#6366f1]/20">
-        <MessageSquare size={14} className="text-[#a5b4fc] flex-shrink-0" />
+      <div className="flex items-center gap-2 p-3 rounded-[10px] bg-[#6366f1]/[0.07] border border-accent/20">
+        <MessageSquare size={14} className="text-accent flex-shrink-0" />
         <p className="text-[12px] text-white/60">
-          <span className="text-[#a5b4fc] font-semibold">{questions.length} pytań</span> o brakującą wiedzę.
+          <span className="text-accent font-semibold">{questions.length} pytań</span> o brakującą wiedzę.
           Odpowiedz na te które znasz — AI automatycznie uzupełni DNA.
         </p>
       </div>
@@ -316,12 +316,12 @@ function AIInterviewTab({ onDNASaved }: { onDNASaved: () => void }) {
                       onChange={e => setAnswers(a => ({ ...a, [q.field]: e.target.value }))}
                       placeholder={`Twoja odpowiedź… (${q.hint})`}
                       rows={4}
-                      className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[12px] text-white placeholder:text-white/25 focus:outline-none focus:border-[#6366f1]/50 transition-colors resize-none"
+                      className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[12px] text-white placeholder:text-white/25 focus:outline-none focus:border-accent/50 transition-colors resize-none"
                     />
                     <button
                       onClick={() => void saveAnswer(q)}
                       disabled={saving[q.field] || !answers[q.field]?.trim()}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-[7px] bg-[#6366f1] hover:bg-[#5254cc] disabled:opacity-40 text-white text-[12px] font-semibold transition-all"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-[7px] bg-accent hover:opacity-90 disabled:opacity-40 text-white text-[12px] font-semibold transition-all"
                     >
                       {saving[q.field]
                         ? <><Loader2 size={12} className="animate-spin" /> Zapisuję…</>
@@ -447,7 +447,7 @@ export default function DNAEditorPage() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-[20px] font-bold text-white flex items-center gap-2">
-            <Brain size={20} className="text-[#6366f1]" /> Company DNA Editor
+            <Brain size={20} className="text-accent" /> Company DNA Editor
           </h1>
           <p className="text-[12px] text-white/40 mt-0.5">Profil firmy zasilany automatycznie z plików kontekstowych</p>
         </div>
@@ -464,7 +464,7 @@ export default function DNAEditorPage() {
           <button
             onClick={() => void save()}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 rounded-[10px] bg-[#6366f1] hover:bg-[#5254cc] disabled:opacity-50 text-white text-[13px] font-bold transition-all shadow-lg shadow-indigo-500/20"
+            className="flex items-center gap-2 px-4 py-2 rounded-[10px] bg-accent hover:opacity-90 disabled:opacity-50 text-white text-[13px] font-bold transition-all shadow-lg shadow-indigo-500/20"
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
             {saving ? 'Zapisuję…' : 'Zapisz DNA'}
@@ -480,7 +480,7 @@ export default function DNAEditorPage() {
             onClick={() => setTab(t.id)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12px] font-medium transition-all ${
               tab === t.id
-                ? 'bg-[#6366f1] text-white shadow'
+                ? 'bg-accent text-white shadow'
                 : 'text-white/40 hover:text-white/70 hover:bg-white/[0.04]'
             }`}
           >
@@ -491,7 +491,7 @@ export default function DNAEditorPage() {
       </div>
 
       {/* Tab content */}
-      <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-6">
+      <div className="bg-card border border-white/[0.07] rounded-[14px] p-6">
 
         {/* ── AI INTERVIEW ── */}
         {tab === 'interview' && (
@@ -662,11 +662,11 @@ export default function DNAEditorPage() {
                 <select
                   value={dna.content_archetype}
                   onChange={e => set('content_archetype')(e.target.value)}
-                  className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white focus:outline-none focus:border-[#6366f1]/50"
+                  className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white focus:outline-none focus:border-accent/50"
                 >
-                  <option value="" className="bg-[#1A1A2E]">Wybierz archetyp…</option>
+                  <option value="" className="bg-bg">Wybierz archetyp…</option>
                   {['Ekspert', 'Budowniczy', 'Prowokator', 'Opiekun', 'Innowator', 'Lider', 'Edukator'].map(a => (
-                    <option key={a} value={a} className="bg-[#1A1A2E]">{a}</option>
+                    <option key={a} value={a} className="bg-bg">{a}</option>
                   ))}
                 </select>
               </Field>
@@ -775,7 +775,7 @@ export default function DNAEditorPage() {
         <button
           onClick={() => void save()}
           disabled={saving}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-[#6366f1] hover:bg-[#5254cc] disabled:opacity-50 text-white text-[13px] font-bold transition-all"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-accent hover:opacity-90 disabled:opacity-50 text-white text-[13px] font-bold transition-all"
         >
           {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           {saving ? 'Zapisuję…' : 'Zapisz DNA'}

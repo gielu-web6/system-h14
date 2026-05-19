@@ -204,13 +204,13 @@ export default function GeneratePage() {
 
   if (!hasBrandVoice) {
     return (
-      <div className="max-w-[560px] p-6 rounded-[14px] bg-[#16213E] border border-amber-500/30 text-center space-y-3">
+      <div className="max-w-[560px] p-6 rounded-[14px] bg-card border border-amber-500/30 text-center space-y-3">
         <Wand2 size={28} className="text-amber-400 mx-auto" />
         <p className="text-[15px] font-semibold text-white">Najpierw ustaw Brand Voice</p>
         <p className="text-[12px] text-white/50">Generator potrzebuje profilu marki, aby pisać posty w Twoim stylu.</p>
         <button
           onClick={() => router.push('/content-studio/onboarding')}
-          className="flex items-center gap-2 px-4 py-2 rounded-[9px] bg-[#6366f1] text-white text-[13px] font-semibold mx-auto hover:bg-[#5254cc] transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-[9px] bg-accent text-white text-[13px] font-semibold mx-auto hover:opacity-90 transition-all"
         >
           Przejdź do onboardingu <ChevronRight size={13} />
         </button>
@@ -223,7 +223,7 @@ export default function GeneratePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[18px] font-bold text-white flex items-center gap-2">
-            <Wand2 size={18} className="text-[#6366f1]" /> Generator postów
+            <Wand2 size={18} className="text-accent" /> Generator postów
           </h1>
           <p className="text-[11px] text-white/40 mt-0.5">AI wygeneruje 3 warianty w stylu Twojej marki</p>
         </div>
@@ -234,7 +234,7 @@ export default function GeneratePage() {
         <div className="flex-1 min-w-0 space-y-4">
 
           {/* Step 1 — image */}
-          <div className="p-4 rounded-[14px] bg-[#16213E] border border-white/[0.07] space-y-3">
+          <div className="p-4 rounded-[14px] bg-card border border-white/[0.07] space-y-3">
             <p className="text-[12px] font-semibold text-white/60 uppercase tracking-wide">1 · Zdjęcie</p>
             <div className="flex gap-2">
               {(['none', 'photo', 'ai'] as const).map(m => (
@@ -243,7 +243,7 @@ export default function GeneratePage() {
                   onClick={() => setImageMode(m)}
                   className={`flex-1 py-2 rounded-[9px] border text-[11px] font-medium transition-all ${
                     imageMode === m
-                      ? 'bg-[#6366f1]/20 border-[#6366f1]/50 text-[#a5b4fc]'
+                      ? 'bg-accent/20 border-accent/50 text-accent'
                       : 'bg-white/[0.03] border-white/[0.07] text-white/50 hover:text-white'
                   }`}
                 >
@@ -258,7 +258,7 @@ export default function GeneratePage() {
                   <div className="flex items-center gap-2 p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.06]">
                     <Camera size={14} className="text-white/30" />
                     <p className="text-[11px] text-white/40">Brak zdjęć.
-                      <button onClick={() => router.push(`/content-studio/clients/${clientId}/photos`)} className="ml-1 text-[#a5b4fc] underline">Wgraj zdjęcia</button>
+                      <button onClick={() => router.push(`/content-studio/clients/${clientId}/photos`)} className="ml-1 text-accent underline">Wgraj zdjęcia</button>
                     </p>
                   </div>
                 ) : (
@@ -287,7 +287,7 @@ export default function GeneratePage() {
           </div>
 
           {/* Step 2 — platform + goal */}
-          <div className="p-4 rounded-[14px] bg-[#16213E] border border-white/[0.07] space-y-4">
+          <div className="p-4 rounded-[14px] bg-card border border-white/[0.07] space-y-4">
             <p className="text-[12px] font-semibold text-white/60 uppercase tracking-wide">2 · Platforma & cel</p>
 
             <div>
@@ -320,7 +320,7 @@ export default function GeneratePage() {
                     onClick={() => setGoal(g.id)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] border text-[11px] font-medium transition-all ${
                       goal === g.id
-                        ? 'bg-[#6366f1]/20 border-[#6366f1]/50 text-[#a5b4fc]'
+                        ? 'bg-accent/20 border-accent/50 text-accent'
                         : 'bg-white/[0.03] border-white/[0.07] text-white/50 hover:text-white'
                     }`}
                   >
@@ -332,7 +332,7 @@ export default function GeneratePage() {
           </div>
 
           {/* Step 3 — optional details */}
-          <div className="p-4 rounded-[14px] bg-[#16213E] border border-white/[0.07] space-y-3">
+          <div className="p-4 rounded-[14px] bg-card border border-white/[0.07] space-y-3">
             <p className="text-[12px] font-semibold text-white/60 uppercase tracking-wide">3 · Szczegóły (opcjonalne)</p>
             <div>
               <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Temat / pomysł</label>
@@ -340,7 +340,7 @@ export default function GeneratePage() {
                 value={topic}
                 onChange={e => setTopic(e.target.value)}
                 placeholder="np. nowe menu, case study klienta, tip tygodnia..."
-                className="w-full px-3 py-2 rounded-[9px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-[12px] focus:outline-none focus:border-[#6366f1]/50 transition-all"
+                className="w-full px-3 py-2 rounded-[9px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-[12px] focus:outline-none focus:border-accent/50 transition-all"
               />
             </div>
             <div>
@@ -350,7 +350,7 @@ export default function GeneratePage() {
                 onChange={e => setSpecialInstructions(e.target.value)}
                 rows={2}
                 placeholder="np. wspomnij o promocji na weekend..."
-                className="w-full px-3 py-2 rounded-[9px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-[12px] focus:outline-none focus:border-[#6366f1]/50 transition-all resize-none"
+                className="w-full px-3 py-2 rounded-[9px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 text-[12px] focus:outline-none focus:border-accent/50 transition-all resize-none"
               />
             </div>
           </div>
@@ -359,7 +359,7 @@ export default function GeneratePage() {
           <button
             onClick={generate}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-[12px] bg-[#6366f1] hover:bg-[#5254cc] disabled:opacity-60 text-white text-[14px] font-bold transition-all shadow-lg shadow-indigo-500/20"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-[12px] bg-accent hover:opacity-90 disabled:opacity-60 text-white text-[14px] font-bold transition-all shadow-lg shadow-indigo-500/20"
           >
             {loading ? (
               <><Loader2 size={16} className="animate-spin" /> AI generuje 3 warianty...</>
@@ -385,7 +385,7 @@ export default function GeneratePage() {
         <div className="space-y-4">
           {bestTime && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-[9px] bg-white/[0.03] border border-white/[0.06]">
-              <Calendar size={12} className="text-[#a5b4fc]" />
+              <Calendar size={12} className="text-accent" />
               <p className="text-[11px] text-white/50">Najlepszy czas publikacji: <span className="text-white/70">{bestTime}</span></p>
             </div>
           )}
@@ -398,22 +398,22 @@ export default function GeneratePage() {
                 key={i}
                 className={`p-4 rounded-[14px] border transition-all cursor-pointer space-y-3 ${
                   selectedVariant === i
-                    ? 'bg-[#6366f1]/10 border-[#6366f1]/50'
-                    : 'bg-[#16213E] border-white/[0.07] hover:border-white/[0.15]'
+                    ? 'bg-accent/10 border-accent/50'
+                    : 'bg-card border-white/[0.07] hover:border-white/[0.15]'
                 }`}
                 onClick={() => selectVariant(i)}
               >
                 <div className="flex items-center justify-between">
                   <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${
-                    selectedVariant === i ? 'bg-[#6366f1]/20 text-[#a5b4fc]' : 'bg-white/[0.06] text-white/40'
+                    selectedVariant === i ? 'bg-accent/20 text-accent' : 'bg-white/[0.06] text-white/40'
                   }`}>
                     {v.angle || `Wariant ${i + 1}`}
                   </span>
-                  {selectedVariant === i && <Check size={14} className="text-[#6366f1]" />}
+                  {selectedVariant === i && <Check size={14} className="text-accent" />}
                 </div>
 
                 <div>
-                  <p className="text-[11px] font-semibold text-[#a5b4fc] mb-1">Hook:</p>
+                  <p className="text-[11px] font-semibold text-accent mb-1">Hook:</p>
                   <p className="text-[12px] text-white font-medium leading-snug">{v.hook}</p>
                 </div>
 
@@ -432,10 +432,10 @@ export default function GeneratePage() {
 
           {/* Variant editor */}
           {selectedVariant !== null && (
-            <div className="p-5 rounded-[14px] bg-[#16213E] border border-[#6366f1]/30 space-y-4">
+            <div className="p-5 rounded-[14px] bg-card border border-accent/30 space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-[13px] font-semibold text-white flex items-center gap-2">
-                  <Target size={14} className="text-[#a5b4fc]" /> Edytuj wybrany wariant
+                  <Target size={14} className="text-accent" /> Edytuj wybrany wariant
                 </p>
                 <div className="flex gap-2">
                   <CopyBtn text={`${editedCaption}\n\n${variants[selectedVariant].hashtags.join(' ')}`} />
@@ -452,12 +452,12 @@ export default function GeneratePage() {
                 value={editedCaption}
                 onChange={e => setEditedCaption(e.target.value)}
                 rows={8}
-                className="w-full px-3.5 py-3 rounded-[10px] bg-[#0F0F1A] border border-white/[0.07] text-white/80 text-[13px] leading-relaxed focus:outline-none focus:border-[#6366f1]/40 transition-all resize-none"
+                className="w-full px-3.5 py-3 rounded-[10px] bg-sidebar border border-white/[0.07] text-white/80 text-[13px] leading-relaxed focus:outline-none focus:border-accent/40 transition-all resize-none"
               />
 
               <div className="flex flex-wrap gap-1.5">
                 {variants[selectedVariant].hashtags.map(h => (
-                  <span key={h} className="px-2 py-0.5 rounded-full bg-[#6366f1]/10 text-[#a5b4fc] text-[10px]">{h}</span>
+                  <span key={h} className="px-2 py-0.5 rounded-full bg-accent/10 text-accent text-[10px]">{h}</span>
                 ))}
               </div>
 
@@ -480,12 +480,12 @@ export default function GeneratePage() {
                 </button>
                 <button
                   onClick={schedulePost}
-                  className="flex items-center gap-2 px-4 py-2 rounded-[9px] bg-[#6366f1]/15 border border-[#6366f1]/30 text-[#a5b4fc] text-[12px] font-medium hover:bg-[#6366f1]/25 transition-all"
+                  className="flex items-center gap-2 px-4 py-2 rounded-[9px] bg-accent/15 border border-accent/30 text-accent text-[12px] font-medium hover:bg-accent/25 transition-all"
                 >
                   <Calendar size={12} /> Zaplanuj
                 </button>
                 <button
-                  className="flex items-center gap-2 px-4 py-2 rounded-[9px] bg-[#6366f1] hover:bg-[#5254cc] text-white text-[12px] font-semibold transition-all"
+                  className="flex items-center gap-2 px-4 py-2 rounded-[9px] bg-accent hover:opacity-90 text-white text-[12px] font-semibold transition-all"
                 >
                   <Send size={12} /> Publikuj teraz
                 </button>

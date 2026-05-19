@@ -177,7 +177,7 @@ function buildAnalytics(deals: DealRow[], leads: LeadRow[]): AnalyticsData {
 function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ color?: string; fill?: string; name: string; value: number }>; label?: string }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-[#0F0F1A] border border-white/10 rounded-[10px] px-3 py-2 text-[12px] shadow-xl">
+    <div className="bg-sidebar border border-white/10 rounded-[10px] px-3 py-2 text-[12px] shadow-xl">
       <p className="text-white/50 mb-1">{label}</p>
       {payload.map(p => (
         <p key={p.name} style={{ color: p.color ?? p.fill }}>
@@ -191,7 +191,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 function PieTooltipComp({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number; payload: { color: string } }> }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-[#0F0F1A] border border-white/10 rounded-[8px] px-3 py-2 text-[12px]">
+    <div className="bg-sidebar border border-white/10 rounded-[8px] px-3 py-2 text-[12px]">
       <p style={{ color: payload[0].payload.color }}>{payload[0].name}: <strong>{payload[0].value}</strong></p>
     </div>
   )
@@ -215,7 +215,7 @@ function KpiCard({ label, value, sub, icon: Icon, color }: {
   icon: React.ElementType; color: string
 }) {
   return (
-    <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
+    <div className="bg-card border border-white/[0.07] rounded-[14px] p-5">
       <div className="flex items-center justify-between mb-3">
         <span className="text-[11px] font-semibold text-white/40 uppercase tracking-wide">{label}</span>
         <Icon size={15} style={{ color }} />
@@ -254,7 +254,7 @@ export default function AnalyticsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 size={20} className="animate-spin text-[#6366f1]" />
+        <Loader2 size={20} className="animate-spin text-accent" />
       </div>
     )
   }
@@ -273,7 +273,7 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div>
         <h1 className="text-[20px] font-bold text-white flex items-center gap-2">
-          <BarChart3 size={19} className="text-[#6366f1]" />
+          <BarChart3 size={19} className="text-accent" />
           Analityka Sprzedażowa
         </h1>
         <p className="text-[12px] text-white/40 mt-0.5">Dane live z Twojego pipeline, leadów i wyników sprzedaży</p>
@@ -315,7 +315,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Pipeline per stage */}
-        <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
+        <div className="bg-card border border-white/[0.07] rounded-[14px] p-5">
           <p className="text-[14px] font-semibold text-white mb-0.5">Wartość pipeline per etap</p>
           <p className="text-[11px] text-white/40 mb-4">Łączna wartość dealów na każdym etapie (PLN)</p>
           {pipelineByStage.length > 0 ? (
@@ -334,7 +334,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Lead scoring */}
-        <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
+        <div className="bg-card border border-white/[0.07] rounded-[14px] p-5">
           <p className="text-[14px] font-semibold text-white mb-0.5">Lead Scoring</p>
           <p className="text-[11px] text-white/40 mb-4">Podział leadów według oceny AI</p>
           {leadScoring.length > 0 ? (
@@ -377,7 +377,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Segment performance */}
-      <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] overflow-hidden">
+      <div className="bg-card border border-white/[0.07] rounded-[14px] overflow-hidden">
         <div className="px-5 py-4 border-b border-white/[0.07]">
           <p className="text-[14px] font-semibold text-white">Segment Performance</p>
           <p className="text-[11px] text-white/40 mt-0.5">Wyniki sprzedaży per segment klienta</p>
@@ -400,7 +400,7 @@ export default function AnalyticsPage() {
                     </div>
                     <span className="text-[12px] text-white/60 text-right">{s.deals}</span>
                     <span className="text-[12px] text-white/60 text-right">{s.avgTicket.toLocaleString('pl-PL')} PLN</span>
-                    <span className="text-[12px] font-bold text-[#6366f1] text-right">{s.value.toLocaleString('pl-PL')} PLN</span>
+                    <span className="text-[12px] font-bold text-accent text-right">{s.value.toLocaleString('pl-PL')} PLN</span>
                   </div>
                 ))}
               </div>
@@ -417,7 +417,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Velocity */}
-        <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
+        <div className="bg-card border border-white/[0.07] rounded-[14px] p-5">
           <p className="text-[14px] font-semibold text-white mb-0.5">Pipeline Velocity</p>
           <p className="text-[11px] text-white/40 mb-4">Średni czas trwania deala na etapie (dni)</p>
           {velocity.length > 0 ? (
@@ -436,7 +436,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Win/Loss */}
-        <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
+        <div className="bg-card border border-white/[0.07] rounded-[14px] p-5">
           <p className="text-[14px] font-semibold text-white mb-0.5">Win/Loss Analysis</p>
           <p className="text-[11px] text-white/40 mb-4">Powody przegranych dealów</p>
           {lostReasons.length > 0 ? (
@@ -474,7 +474,7 @@ export default function AnalyticsPage() {
 
       {/* Lead scoring bar chart */}
       {leadScoring.length > 0 && (
-        <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
+        <div className="bg-card border border-white/[0.07] rounded-[14px] p-5">
           <p className="text-[14px] font-semibold text-white mb-0.5">Rozkład leadów wg oceny AI</p>
           <p className="text-[11px] text-white/40 mb-4">Liczba leadów na każdym poziomie scoringu</p>
           <div className="flex items-end gap-4 justify-around h-32">

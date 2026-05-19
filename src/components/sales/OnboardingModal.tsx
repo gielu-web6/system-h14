@@ -63,12 +63,12 @@ export function OnboardingModal() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-[#0F0F1A] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-sidebar border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.07]">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-[8px] bg-[#6366f1]/20 flex items-center justify-center">
-              <Zap size={13} className="text-[#6366f1]" />
+            <div className="w-7 h-7 rounded-[8px] bg-accent/20 flex items-center justify-center">
+              <Zap size={13} className="text-accent" />
             </div>
             <p className="text-[13px] font-semibold text-white">Witaj w System H14</p>
           </div>
@@ -103,7 +103,7 @@ export function OnboardingModal() {
 
           <button
             onClick={next}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#6366f1] text-white text-[13px] font-bold hover:bg-[#5254cc] transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#6366f1] text-white text-[13px] font-bold hover:opacity-90 transition-colors"
           >
             {isLast ? 'Zacznij sprzedawać' : 'Dalej'}
             <ChevronRight size={15} />
