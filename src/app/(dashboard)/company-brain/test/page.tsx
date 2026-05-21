@@ -58,7 +58,7 @@ export default function ContextTesterPage() {
     <div className="max-w-[900px] space-y-5">
       <div>
         <h1 className="text-[20px] font-bold text-white flex items-center gap-2">
-          <TestTube size={20} className="text-[#6366f1]" /> Tester kontekstu AI
+          <TestTube size={20} className="text-accent" /> Tester kontekstu AI
         </h1>
         <p className="text-[12px] text-white/40 mt-0.5">
           Sprawdź dokładnie co system H14 widzi gdy używasz danej featury
@@ -66,15 +66,15 @@ export default function ContextTesterPage() {
       </div>
 
       {/* Form */}
-      <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5 space-y-4">
+      <div className="bg-card border border-white/[0.07] rounded-[14px] p-5 space-y-4">
         <div className="space-y-1.5">
           <label className="text-[11px] font-semibold text-white/50 uppercase tracking-wide">Wybierz featurę</label>
           <select
             value={feature}
             onChange={e => setFeature(e.target.value)}
-            className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white focus:outline-none focus:border-[#6366f1]/50"
+            className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white focus:outline-none focus:border-accent/50"
           >
-            {FEATURES.map(f => <option key={f.value} value={f.value} className="bg-[#1A1A2E]">{f.label}</option>)}
+            {FEATURES.map(f => <option key={f.value} value={f.value} className="bg-bg">{f.label}</option>)}
           </select>
         </div>
 
@@ -88,14 +88,14 @@ export default function ContextTesterPage() {
             onChange={e => setQuery(e.target.value)}
             placeholder="Opisz kontekst dla którego chcesz zobaczyć co AI dostanie..."
             rows={3}
-            className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white placeholder:text-white/25 focus:outline-none focus:border-[#6366f1]/50 transition-colors resize-none"
+            className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white placeholder:text-white/25 focus:outline-none focus:border-accent/50 transition-colors resize-none"
           />
         </div>
 
         <button
           onClick={() => void test()}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-[#6366f1] hover:bg-[#5254cc] disabled:opacity-50 text-white text-[13px] font-bold transition-all"
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-accent hover:opacity-90 disabled:opacity-50 text-white text-[13px] font-bold transition-all"
         >
           {loading ? <Loader2 size={14} className="animate-spin" /> : <TestTube size={14} />}
           {loading ? 'Testuję…' : 'Pokaż co system widzi'}
@@ -110,7 +110,7 @@ export default function ContextTesterPage() {
             <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold ${result.dna_present ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'}`}>
               <Brain size={12} /> DNA: {result.dna_present ? '✓ Dostępne' : '✗ Brak'}
             </span>
-            <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold ${result.chunks_count > 0 ? 'bg-[#6366f1]/15 text-[#a5b4fc]' : 'bg-white/[0.07] text-white/40'}`}>
+            <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold ${result.chunks_count > 0 ? 'bg-accent/15 text-accent' : 'bg-white/[0.07] text-white/40'}`}>
               <Layers size={12} /> {result.chunks_count} fragmentów z plików
             </span>
             <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold bg-white/[0.07] text-white/50">
@@ -124,7 +124,7 @@ export default function ContextTesterPage() {
               <button key={t}
                 onClick={() => setActiveTab(t)}
                 className={`flex-1 px-3 py-1.5 rounded-[7px] text-[12px] font-medium transition-all ${
-                  activeTab === t ? 'bg-[#6366f1] text-white' : 'text-white/40 hover:text-white/70'
+                  activeTab === t ? 'bg-accent text-white' : 'text-white/40 hover:text-white/70'
                 }`}
               >
                 {t === 'context' ? '📄 Kontekst AI' : t === 'chunks' ? `🔍 Fragmenty (${result.chunks_count})` : `⚠️ Braki (${result.gaps.length})`}
@@ -134,7 +134,7 @@ export default function ContextTesterPage() {
 
           {/* Context tab */}
           {activeTab === 'context' && (
-            <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] overflow-hidden">
+            <div className="bg-card border border-white/[0.07] rounded-[14px] overflow-hidden">
               <div className="px-5 py-3 border-b border-white/[0.07]">
                 <p className="text-[13px] font-semibold text-white">Kontekst który trafi do AI</p>
                 <p className="text-[11px] text-white/40">Dokładnie to co system wstrzyknie na początku prompta</p>
@@ -157,12 +157,12 @@ export default function ContextTesterPage() {
                 </div>
               ) : (
                 result.chunks.map((chunk, i) => (
-                  <div key={chunk.id} className="bg-[#16213E] border border-white/[0.07] rounded-[12px] overflow-hidden">
+                  <div key={chunk.id} className="bg-card border border-white/[0.07] rounded-[12px] overflow-hidden">
                     <button
                       onClick={() => setExpandedChunk(expandedChunk === chunk.id ? null : chunk.id)}
                       className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/[0.02] transition-colors"
                     >
-                      <span className="text-[11px] font-bold text-[#6366f1] w-5 flex-shrink-0">#{i + 1}</span>
+                      <span className="text-[11px] font-bold text-accent w-5 flex-shrink-0">#{i + 1}</span>
                       <div className="flex-1 min-w-0">
                         {chunk.content_summary && (
                           <p className="text-[12px] font-medium text-white truncate">{chunk.content_summary}</p>

@@ -12,7 +12,7 @@ interface PLChartProps {
 
 export function PLChart({ data, target }: PLChartProps) {
   return (
-    <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
+    <div className="bg-card border border-white/[0.07] rounded-[14px] p-5">
       <div className="flex items-center justify-between mb-1">
         <p className="text-[13px] font-semibold text-white">P&L — ostatnie miesiące</p>
         {target && (

@@ -6,7 +6,7 @@ import {
   Brain, FileText, Edit3, TestTube, CheckCircle2, Clock,
   XCircle, AlertTriangle, TrendingUp, Layers, Loader2,
   ArrowRight, Sparkles, Users, MessageSquare, BarChart3, Zap,
-  RefreshCw,
+  RefreshCw, Send,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -144,7 +144,7 @@ export default function CompanyBrainPage() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-[20px] font-bold text-white flex items-center gap-2">
-            <Brain size={20} className="text-[#6366f1]" />
+            <Brain size={20} className="text-accent" />
             Company Brain
           </h1>
           <p className="text-[12px] text-white/40 mt-0.5">
@@ -170,7 +170,7 @@ export default function CompanyBrainPage() {
             <Layers size={13} /> Pliki
           </Link>
           <Link href="/company-brain/dna"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#6366f1] hover:bg-[#5254cc] text-white text-[12px] font-bold transition-all shadow-lg shadow-indigo-500/20">
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-accent hover:opacity-90 text-white text-[12px] font-bold transition-all shadow-lg shadow-indigo-500/20">
             <Edit3 size={13} /> Edytuj DNA
           </Link>
         </div>
@@ -213,7 +213,7 @@ export default function CompanyBrainPage() {
           <div className="space-y-5">
 
             {/* Completeness */}
-            <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
+            <div className="bg-card border border-white/[0.07] rounded-[14px] p-5">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-[14px] font-bold text-white">
@@ -224,7 +224,7 @@ export default function CompanyBrainPage() {
                   </p>
                 </div>
                 <Link href="/company-brain/dna"
-                  className="flex items-center gap-1 text-[11px] text-[#a5b4fc] hover:text-white transition-colors">
+                  className="flex items-center gap-1 text-[11px] text-accent hover:text-white transition-colors">
                   Edytuj <ArrowRight size={11} />
                 </Link>
               </div>
@@ -254,8 +254,78 @@ export default function CompanyBrainPage() {
               )}
             </div>
 
+            {/* Where Company Brain works */}
+            <div className="bg-card border border-white/[0.07] rounded-[14px] p-5">
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles size={14} className="text-accent" />
+                <p className="text-[14px] font-semibold text-white">Gdzie działa Company Brain</p>
+              </div>
+              <p className="text-[11px] text-white/40 mb-4">
+                Wszystkie moduły poniżej korzystają z Twojego DNA i bazy wiedzy przy każdym AI call.
+              </p>
+              <div className="space-y-2">
+                {[
+                  {
+                    icon: MessageSquare, label: 'Outreach Generator',
+                    href: '/outreach',
+                    desc: 'Wiadomości cold DM dopasowane do Twojego ICP, tonu i strategii sprzedaży',
+                    ready: completeness > 0,
+                  },
+                  {
+                    icon: Send, label: 'Reply Generator',
+                    href: '/reply-generator',
+                    desc: 'Odpowiedzi na obiekcje i follow-upy zgodne z Twoim stylem zamykania',
+                    ready: completeness > 0,
+                  },
+                  {
+                    icon: BarChart3, label: 'AI Scoring leadów',
+                    href: '/ai-scoring',
+                    desc: 'Ocena leadów na tle Twojego ICP — kto jest hot, kto cold i dlaczego',
+                    ready: completeness > 30,
+                  },
+                  {
+                    icon: FileText, label: 'Generator treści',
+                    href: '/content-generator',
+                    desc: 'Posty i karuzele pisane Twoim głosem, z Twoich tematów i case studies',
+                    ready: completeness > 30,
+                  },
+                  {
+                    icon: Users, label: 'Generator ofert',
+                    href: '/portal',
+                    desc: 'Oferty z Twoimi usługami, cenami i przewagami — bez ręcznego przepisywania',
+                    ready: completeness > 50,
+                  },
+                ].map(({ icon: Icon, label, href, desc, ready }) => (
+                  <Link
+                    key={label}
+                    href={href}
+                    className={`flex items-start gap-3 p-3 rounded-[10px] border transition-all group hover:bg-white/[0.04] ${
+                      ready
+                        ? 'border-accent/20 bg-accent/[0.03]'
+                        : 'border-white/[0.05] bg-white/[0.02] opacity-60'
+                    }`}
+                  >
+                    <div className={`w-7 h-7 rounded-[7px] flex items-center justify-center flex-shrink-0 mt-0.5 ${ready ? 'bg-accent/15' : 'bg-white/[0.05]'}`}>
+                      <Icon size={13} className={ready ? 'text-accent' : 'text-white/30'} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-[12px] font-semibold text-white">{label}</p>
+                        {ready
+                          ? <span className="text-[9px] font-bold text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded-full">AKTYWNY</span>
+                          : <span className="text-[9px] font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-full">NIEKOMPLETNY</span>
+                        }
+                      </div>
+                      <p className="text-[11px] text-white/40 mt-0.5 leading-snug">{desc}</p>
+                    </div>
+                    <ArrowRight size={12} className="text-white/20 group-hover:text-white/50 transition-colors mt-1 flex-shrink-0" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+
             {/* Files list */}
-            <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] overflow-hidden">
+            <div className="bg-card border border-white/[0.07] rounded-[14px] overflow-hidden">
               <div className="px-5 py-4 border-b border-white/[0.07] flex items-center justify-between">
                 <div>
                   <p className="text-[14px] font-semibold text-white">Baza wiedzy — pliki kontekstowe</p>
@@ -264,7 +334,7 @@ export default function CompanyBrainPage() {
                   </p>
                 </div>
                 <Link href="/company-brain/files"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#6366f1] hover:bg-[#5254cc] text-white text-[12px] font-semibold transition-all">
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-accent hover:opacity-90 text-white text-[12px] font-semibold transition-all">
                   <Zap size={12} /> Dodaj plik
                 </Link>
               </div>
@@ -277,7 +347,7 @@ export default function CompanyBrainPage() {
                     Wgraj strategie firmy, opisy usług, case studies i inne dokumenty
                   </p>
                   <Link href="/company-brain/files"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[8px] bg-[#6366f1]/15 border border-[#6366f1]/30 text-[#a5b4fc] text-[12px] font-semibold hover:bg-[#6366f1]/25 transition-all">
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[8px] bg-accent/15 border border-accent/30 text-accent text-[12px] font-semibold hover:bg-accent/25 transition-all">
                     <FileText size={13} /> Dodaj pierwszy plik
                   </Link>
                 </div>
@@ -315,7 +385,7 @@ export default function CompanyBrainPage() {
           <div className="space-y-5">
 
             {/* Feature status */}
-            <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
+            <div className="bg-card border border-white/[0.07] rounded-[14px] p-5">
               <p className="text-[14px] font-semibold text-white mb-1">Status kontekstu per featura</p>
               <p className="text-[11px] text-white/40 mb-4">Wiedza z plików kontekstowych zasilająca każdy AI call</p>
               <div className="space-y-2">
@@ -338,7 +408,7 @@ export default function CompanyBrainPage() {
                           <span className="text-[10px] text-green-400 font-semibold">DNA ✓</span>
                         )}
                         {count > 0 ? (
-                          <span className="text-[10px] text-[#a5b4fc] font-semibold">{count} frag.</span>
+                          <span className="text-[10px] text-accent font-semibold">{count} frag.</span>
                         ) : fileCategories.length > 0 ? (
                           <span className="text-[10px] text-amber-400/70">tylko DNA</span>
                         ) : (
@@ -353,9 +423,9 @@ export default function CompanyBrainPage() {
 
             {/* AI Interview CTA */}
             {missingCount !== null && missingCount > 0 && (
-              <div className="bg-[#16213E] border border-[#6366f1]/20 rounded-[14px] p-4">
+              <div className="bg-card border border-accent/20 rounded-[14px] p-4">
                 <div className="flex items-start gap-3">
-                  <MessageSquare size={16} className="text-[#a5b4fc] flex-shrink-0 mt-0.5" />
+                  <MessageSquare size={16} className="text-accent flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-[13px] font-semibold text-white">
                       {missingCount} brakujących informacji
@@ -364,7 +434,7 @@ export default function CompanyBrainPage() {
                       AI chce zadać Ci pytania aby uzupełnić DNA z bazy wiedzy
                     </p>
                     <Link href="/company-brain/dna"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#6366f1]/20 border border-[#6366f1]/30 text-[#a5b4fc] text-[12px] font-semibold hover:bg-[#6366f1]/30 transition-all">
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-accent/20 border border-accent/30 text-accent text-[12px] font-semibold hover:bg-[#6366f1]/30 transition-all">
                       <MessageSquare size={12} /> Odpowiedz na pytania AI
                     </Link>
                   </div>
@@ -373,7 +443,7 @@ export default function CompanyBrainPage() {
             )}
 
             {/* Stats */}
-            <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
+            <div className="bg-card border border-white/[0.07] rounded-[14px] p-5">
               <p className="text-[14px] font-semibold text-white mb-4">Statystyki bazy wiedzy</p>
               <div className="grid grid-cols-2 gap-3">
                 {[
@@ -392,7 +462,7 @@ export default function CompanyBrainPage() {
             </div>
 
             {/* Quick actions */}
-            <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
+            <div className="bg-card border border-white/[0.07] rounded-[14px] p-5">
               <p className="text-[14px] font-semibold text-white mb-3">Szybkie akcje</p>
               <div className="space-y-2">
                 {[
@@ -402,7 +472,7 @@ export default function CompanyBrainPage() {
                 ].map(({ href, label, icon: Icon, desc }) => (
                   <Link key={href} href={href}
                     className="flex items-center gap-3 p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.07] hover:border-white/[0.1] transition-all group">
-                    <Icon size={14} className="text-[#6366f1] flex-shrink-0" />
+                    <Icon size={14} className="text-accent flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-[12px] font-semibold text-white">{label}</p>
                       <p className="text-[10px] text-white/40">{desc}</p>

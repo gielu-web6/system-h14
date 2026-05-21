@@ -83,15 +83,15 @@ function Section({
   const [open, setOpen] = useState(defaultOpen)
 
   return (
-    <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] overflow-hidden">
+    <div className="bg-card border border-white/[0.07] rounded-[14px] overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
         className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-colors text-left"
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-[8px] bg-[#6366f1]/15 flex items-center justify-center flex-shrink-0">
-            <Icon size={15} className="text-[#6366f1]" />
+          <div className="w-8 h-8 rounded-[8px] bg-accent/15 flex items-center justify-center flex-shrink-0">
+            <Icon size={15} className="text-accent" />
           </div>
           <div>
             <p className="text-[14px] font-semibold text-white">{title}</p>
@@ -127,7 +127,7 @@ function Field({
     <div className="space-y-1.5">
       <label className="flex items-center gap-1 text-[12px] font-medium text-white/60">
         {label}
-        {required && <span className="text-[#6366f1]">*</span>}
+        {required && <span className="text-accent">*</span>}
       </label>
       {children}
       {hint && <p className="text-[11px] text-white/30 leading-relaxed">{hint}</p>}
@@ -138,7 +138,7 @@ function Field({
 const inputCls = `
   w-full px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08]
   text-white placeholder:text-white/25 text-[13px]
-  focus:outline-none focus:border-[#6366f1]/60 focus:bg-[#6366f1]/[0.03]
+  focus:outline-none focus:border-accent/60 focus:bg-[#6366f1]/[0.03]
   transition-all resize-none
 `
 
@@ -162,11 +162,11 @@ function ServiceModal({
     initial ? { ...initial } : { ...EMPTY_SVC }
   )
   const set = <K extends keyof typeof form>(k: K, v: typeof form[K]) => setForm(f => ({ ...f, [k]: v }))
-  const iCls = `w-full px-3 py-2.5 rounded-[10px] bg-white/[0.05] border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-[#6366f1]/60 transition-all resize-none`
+  const iCls = `w-full px-3 py-2.5 rounded-[10px] bg-white/[0.05] border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-accent/60 transition-all resize-none`
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-[#16213E] border border-white/[0.1] rounded-[16px] w-full max-w-lg p-6 space-y-4" onClick={e => e.stopPropagation()}>
+      <div className="bg-card border border-white/[0.1] rounded-[16px] w-full max-w-lg p-6 space-y-4" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <p className="text-[15px] font-bold text-white">{initial ? 'Edytuj usługę' : 'Nowa usługa'}</p>
           <button onClick={onClose} className="p-1.5 rounded-[6px] text-white/30 hover:text-white hover:bg-white/[0.06] transition-all"><X size={15} /></button>
@@ -216,7 +216,7 @@ function ServiceModal({
           <button
             onClick={() => { if (form.name.trim()) { onSave(form); onClose() } }}
             disabled={!form.name.trim()}
-            className="flex-1 py-2.5 rounded-[10px] bg-[#6366f1] hover:bg-[#5254cc] text-white text-[13px] font-semibold transition-all disabled:opacity-50"
+            className="flex-1 py-2.5 rounded-[10px] bg-accent hover:opacity-90 text-white text-[13px] font-semibold transition-all disabled:opacity-50"
           >
             {initial ? 'Zapisz zmiany' : 'Dodaj usługę'}
           </button>
@@ -320,7 +320,7 @@ export default function KnowledgeBasePage() {
   if (loadingInit) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 size={20} className="text-[#6366f1] animate-spin" />
+        <Loader2 size={20} className="text-accent animate-spin" />
       </div>
     )
   }
@@ -332,7 +332,7 @@ export default function KnowledgeBasePage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-[20px] font-bold text-white flex items-center gap-2">
-            <BookOpen size={20} className="text-[#6366f1]" />
+            <BookOpen size={20} className="text-accent" />
             Baza Wiedzy o Firmie
           </h1>
           <p className="text-[12px] text-white/40 mt-0.5">
@@ -343,7 +343,7 @@ export default function KnowledgeBasePage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2 rounded-[10px] bg-[#6366f1] hover:bg-[#5254cc] disabled:opacity-60 text-white text-[13px] font-semibold transition-all shadow-lg shadow-indigo-500/20"
+          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2 rounded-[10px] bg-accent hover:opacity-90 disabled:opacity-60 text-white text-[13px] font-semibold transition-all shadow-lg shadow-indigo-500/20"
         >
           {saving ? (
             <><Loader2 size={14} className="animate-spin" /> Zapisuję...</>
@@ -356,12 +356,12 @@ export default function KnowledgeBasePage() {
       </div>
 
       {/* Info banner */}
-      <div className="flex items-start gap-3 p-4 rounded-[12px] bg-[#6366f1]/[0.07] border border-[#6366f1]/20">
-        <Lightbulb size={15} className="text-[#a5b4fc] flex-shrink-0 mt-0.5" />
+      <div className="flex items-start gap-3 p-4 rounded-[12px] bg-[#6366f1]/[0.07] border border-accent/20">
+        <Lightbulb size={15} className="text-accent flex-shrink-0 mt-0.5" />
         <p className="text-[12px] text-white/55 leading-relaxed">
           Im więcej informacji wypełnisz, tym lepiej AI dopasuje scoring leadów, generuje wiadomości outreach
           i tworzy treści marketingowe. Zacznij od <strong className="text-white/70">nazwy firmy i opisu</strong> —
-          resztę możesz uzupełniać stopniowo. <strong className="text-[#a5b4fc]">Po każdym zapisie</strong> wszystkie narzędzia AI (scoring, DM, generator treści) automatycznie korzystają z aktualnych danych.
+          resztę możesz uzupełniać stopniowo. <strong className="text-accent">Po każdym zapisie</strong> wszystkie narzędzia AI (scoring, DM, generator treści) automatycznie korzystają z aktualnych danych.
         </p>
       </div>
 
@@ -487,7 +487,7 @@ export default function KnowledgeBasePage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="text-[14px] font-semibold text-white truncate">{svc.name}</p>
-                  <span className="px-2 py-0.5 rounded-full bg-[#6366f1]/15 text-[#a5b4fc] text-[10px] font-semibold whitespace-nowrap">
+                  <span className="px-2 py-0.5 rounded-full bg-accent/15 text-accent text-[10px] font-semibold whitespace-nowrap">
                     {svc.price_min > 0 && svc.price_max > 0
                       ? `${svc.price_min.toLocaleString('pl-PL')} – ${svc.price_max.toLocaleString('pl-PL')} PLN`
                       : svc.price_min > 0 ? `od ${svc.price_min.toLocaleString('pl-PL')} PLN`
@@ -514,7 +514,7 @@ export default function KnowledgeBasePage() {
           <button
             type="button"
             onClick={() => setSvcModal({ open: true, editing: null })}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-[10px] border border-dashed border-[#6366f1]/30 text-[#a5b4fc] hover:bg-[#6366f1]/10 hover:border-[#6366f1]/50 text-[12px] font-medium transition-all w-full justify-center"
+            className="flex items-center gap-2 px-3 py-2.5 rounded-[10px] border border-dashed border-accent/30 text-accent hover:bg-accent/10 hover:border-accent/50 text-[12px] font-medium transition-all w-full justify-center"
           >
             <Plus size={14} /> Dodaj usługę
           </button>
@@ -655,7 +655,7 @@ export default function KnowledgeBasePage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-[#6366f1] hover:bg-[#5254cc] disabled:opacity-60 text-white text-[14px] font-semibold transition-all shadow-lg shadow-indigo-500/20"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-accent hover:opacity-90 disabled:opacity-60 text-white text-[14px] font-semibold transition-all shadow-lg shadow-indigo-500/20"
         >
           {saving ? (
             <><Loader2 size={15} className="animate-spin" /> Zapisuję...</>

@@ -24,13 +24,16 @@ export async function POST(req: NextRequest) {
     const companyCtx = buildCompanyContext(profile)
 
     const MESSAGE_TYPE_LABELS: Record<string, string> = {
-      connection_request: 'zaproszenie do znajomych na LinkedIn (max 200 znaków)',
-      dm1_icebreaker: 'pierwsza wiadomość po zaakceptowaniu zaproszenia (personalizacja, problem, propozycja rozmowy)',
-      fu1_case_study: 'follow-up z case study (3 dni po pierwszej wiadomości)',
-      fu2_calendar: 'follow-up z linkiem do kalendarza (8 dni, ostatni)',
-      post_offer_48h: 'follow-up po wysłaniu oferty (48h)',
-      reengagement_90d: 'ponowny kontakt po 90 dniach',
-      custom: 'spersonalizowana wiadomość',
+      connection_request: 'zaproszenie do znajomych na LinkedIn (max 200 znaków, bez sprzedawania — tylko powód kontaktu)',
+      dm1_icebreaker: 'pierwsza wiadomość DM po zaakceptowaniu zaproszenia — personalizacja na bazie firmy, jeden ból, miękka propozycja rozmowy. Max 5-6 zdań.',
+      fu1_case_study: 'follow-up #1 — 3 dni po DM #1. Kąt: dowód społeczny / case study z podobnej branży. Nie pytaj czy są zainteresowani — daj konkretny wynik klienta i zostaw pytanie otwarte.',
+      fu2_calendar: 'follow-up #2 — 5 dni po FU1. Kąt: konkretny mały krok — link do kalendarza lub prośba o 15 minut. Krótko i konkretnie.',
+      fu3_social_proof: 'follow-up #3 — 3 dni po FU2. Kąt: inny case study lub cytat od klienta z tej samej branży. Zmień otwarcie i ton — nie powtarzaj FU1. Zakończ konkretnym pytaniem branżowym.',
+      fu4_direct_ask: 'follow-up #4 — 5 dni po FU3. Kąt: bezpośrednie pytanie o decyzję. Ton pewny, spokojny, bez desperation. Powiedz wprost że masz 1-2 miejsca pilotażowe i zapytaj kiedy mogliby porozmawiać.',
+      fu5_breakup: 'follow-up #5 (ostatni) — 7 dni po FU4. Kąt: wiadomość breakup — informujesz że zamykasz temat. Krótko (2-3 zdania), bez urazy, z drzwiami otwartymi na przyszłość. Nie błagaj.',
+      post_offer_48h: 'follow-up po wysłaniu oferty (48h) — zapytaj o wrażenia, wskaż konkretną sekcję do omówienia',
+      reengagement_90d: 'ponowny kontakt po 90 dniach — nawiązanie do poprzedniej rozmowy + nowy powód kontaktu (zmiana sytuacji rynkowej lub nowy wynik)',
+      custom: 'spersonalizowana wiadomość outreach',
     }
 
     const typeLabel = MESSAGE_TYPE_LABELS[messageType] ?? 'wiadomość outreach'

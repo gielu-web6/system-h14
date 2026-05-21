@@ -8,15 +8,15 @@ import {
   Search,
   Bell,
   ChevronRight,
+  Sun,
+  Moon,
 } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { useLayout } from './LayoutContext'
 import { SearchModal } from './SearchModal'
 import { NotificationsDropdown, useNotifications } from './NotificationsDropdown'
 import { BrandThemeSwitcher } from './BrandThemeSwitcher'
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
-import { useBrandTheme } from '@/contexts/BrandThemeContext'
 import { useAppUser } from '@/contexts/UserContext'
-import { USERS } from '@/lib/userStore'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -36,33 +36,31 @@ const BREADCRUMB_MAP: Record<string, { label: string; parent?: string }> = {
   '/':                      { label: 'Dashboard' },
   '/demo':                  { label: 'Dashboard' },
   '/knowledge-base':        { label: 'Baza Wiedzy' },
-  '/pipeline':              { label: 'Pipeline (CRM)',    parent: 'Sprzedaż' },
-  '/leads':                 { label: 'Leady',             parent: 'Sprzedaż' },
-  '/outreach':              { label: 'Outreach',          parent: 'Sprzedaż' },
-  '/ai-scoring':            { label: 'AI Scoring',        parent: 'Sprzedaż' },
-  '/content-generator':     { label: 'Generator Treści',  parent: 'Content' },
-  '/content-calendar':      { label: 'Kalendarz Contentu',parent: 'Content' },
-  '/finance':               { label: 'Finanse',           parent: 'Finanse & Raporty' },
-  '/analytics':             { label: 'Analityka',         parent: 'Finanse & Raporty' },
-  '/portal':                { label: 'Portal Klienta',    parent: 'Klient' },
-  '/offer-generator':       { label: 'Generator Ofert',   parent: 'Klient' },
+  '/pipeline':              { label: 'Pipeline',           parent: 'Sprzedaż' },
+  '/leads':                 { label: 'Leady',              parent: 'Sprzedaż' },
+  '/outreach':              { label: 'Outreach',           parent: 'Sprzedaż' },
+  '/ai-scoring':            { label: 'AI Scoring',         parent: 'Sprzedaż' },
+  '/content-generator':     { label: 'Generator Treści',   parent: 'Content' },
+  '/content-calendar':      { label: 'Kalendarz',          parent: 'Content' },
+  '/finance':               { label: 'Finanse',            parent: 'Raporty' },
+  '/analytics':             { label: 'Analityka',          parent: 'Raporty' },
+  '/portal':                { label: 'Portal Klienta',     parent: 'Klient' },
+  '/offer-generator':       { label: 'Generator Ofert',    parent: 'Klient' },
   '/settings':              { label: 'Ustawienia' },
   '/notifications':         { label: 'Powiadomienia' },
-  '/company-brain':         { label: 'Company Brain',   parent: 'AI System' },
-  '/company-brain/dna':     { label: 'Company DNA',     parent: 'Company Brain' },
-  '/company-brain/files':   { label: 'Pliki kontekstowe', parent: 'Company Brain' },
-  '/company-brain/test':    { label: 'Tester kontekstu', parent: 'Company Brain' },
+  '/company-brain':         { label: 'Company Brain',      parent: 'AI System' },
+  '/company-brain/dna':     { label: 'Company DNA',        parent: 'Company Brain' },
+  '/company-brain/files':   { label: 'Pliki kontekstowe',  parent: 'Company Brain' },
+  '/company-brain/test':    { label: 'Tester kontekstu',   parent: 'Company Brain' },
+  '/reply-generator':       { label: 'Reply Generator',    parent: 'AI System' },
 }
 
 function useBreadcrumbs() {
   const pathname = usePathname()
-
-  // Strip dynamic segments like /sales/[dealId]
   const crumbs: { label: string; href: string }[] = []
   const entry = BREADCRUMB_MAP[pathname]
 
   if (!entry) {
-    // Dynamic route — try parent
     const parts = pathname.split('/').filter(Boolean)
     if (parts.length >= 2) {
       const parentPath = '/' + parts.slice(0, -1).join('/')
@@ -79,12 +77,31 @@ function useBreadcrumbs() {
   return crumbs
 }
 
+// ─── Theme toggle ─────────────────────────────────────────────────────────────
+
+function DarkLightToggle() {
+  const { resolvedTheme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  if (!mounted) return <div className="w-8 h-8" />
+
+  const isDark = resolvedTheme === 'dark'
+  return (
+    <button
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      className="p-2 rounded-[7px] text-muted hover:text-fg hover:bg-raised transition-colors"
+      title={isDark ? 'Tryb jasny' : 'Tryb ciemny'}
+    >
+      {isDark ? <Sun size={15} /> : <Moon size={15} />}
+    </button>
+  )
+}
+
 // ─── Avatar dropdown ──────────────────────────────────────────────────────────
 
 function AvatarDropdown({ onClose, companyName }: { onClose: () => void; companyName: string | null }) {
   const { user, logout } = useAppUser()
   const router = useRouter()
-  const { brandTheme } = useBrandTheme()
 
   const handleLogout = () => {
     logout()
@@ -93,28 +110,28 @@ function AvatarDropdown({ onClose, companyName }: { onClose: () => void; company
   }
 
   return (
-    <div className="absolute right-0 top-full mt-2 w-[220px] sm:w-[240px] bg-[#0F0F1A] border border-white/10 rounded-[12px] shadow-2xl shadow-black/50 overflow-hidden z-50 py-1">
-      <div className="px-3 py-2.5 border-b border-white/[0.07] mb-1">
-        <p className="text-[13px] font-medium text-white">{(user as any)?.fullName ?? user?.name}</p>
-        <p className="text-[11px] text-white/35">{brandTheme === 'mediovee' ? 'Mediovee' : (companyName ?? 'Moja Agencja')}</p>
+    <div className="absolute right-0 top-full mt-1.5 w-[220px] bg-card border border-border rounded-[10px] shadow-xl overflow-hidden z-50 py-1">
+      <div className="px-3 py-2.5 border-b border-border mb-1">
+        <p className="text-[12.5px] font-medium text-fg">{(user as any)?.fullName ?? user?.name}</p>
+        <p className="text-[11px] text-muted mt-0.5">{companyName ?? 'Moja Agencja'}</p>
       </div>
       <div className="px-3 py-1.5">
-        <span className="text-[10px] text-white/20 uppercase tracking-widest font-semibold">Wersja demonstracyjna</span>
+        <span className="section-label">Wersja demonstracyjna</span>
       </div>
-      <div className="border-t border-white/[0.07] mt-1 pt-1">
+      <div className="border-t border-border mt-1 pt-1">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center px-3 py-2 text-[13px] text-white/55 hover:text-white hover:bg-white/[0.05] transition-colors"
+          className="w-full flex items-center px-3 py-2 text-[12.5px] text-muted hover:text-fg hover:bg-raised transition-colors"
         >
           Wyloguj
         </button>
       </div>
-      <div className="border-t border-white/[0.07] mt-1 pt-2 pb-1 px-3">
+      <div className="border-t border-border mt-1 pt-2 pb-1.5 px-3">
         <a
           href="https://amautomations.pl"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[11px] text-[#6366f1]/70 hover:text-[#6366f1] transition-colors"
+          className="text-[11px] text-accent/60 hover:text-accent transition-colors"
         >
           Chcę wdrożyć w swojej agencji →
         </a>
@@ -126,7 +143,7 @@ function AvatarDropdown({ onClose, companyName }: { onClose: () => void; company
 // ─── Topbar ───────────────────────────────────────────────────────────────────
 
 export function Topbar() {
-  const { collapsed, openMobile } = useLayout()
+  const { openMobile } = useLayout()
   const crumbs = useBreadcrumbs()
   const pathname = usePathname()
 
@@ -137,12 +154,11 @@ export function Topbar() {
   const { unreadCount, notifications, markRead, markAllRead } = useNotifications()
   const { user: appUser } = useAppUser()
   const companyName = useCompanyName()
-  const { brandTheme } = useBrandTheme()
 
   const notifRef  = useRef<HTMLDivElement>(null)
   const avatarRef = useRef<HTMLDivElement>(null)
 
-  // Cmd+K global shortcut
+  // Cmd+K shortcut
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -154,7 +170,7 @@ export function Topbar() {
     return () => window.removeEventListener('keydown', handler)
   }, [])
 
-  // Close dropdowns on outside click
+  // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false)
@@ -164,7 +180,7 @@ export function Topbar() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  // Close dropdowns on route change
+  // Close on route change
   useEffect(() => {
     setNotifOpen(false)
     setAvatarOpen(false)
@@ -174,36 +190,30 @@ export function Topbar() {
     <>
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
 
-      <header
-        className={`
-          h-14 sticky top-0 z-30 flex items-center justify-between px-3 sm:px-5
-          bg-[#1A1A2E]/90 backdrop-blur-md border-b border-white/[0.06]
-          transition-all duration-200
-        `}
-      >
+      <header className="h-14 sticky top-0 z-30 flex items-center justify-between px-4 sm:px-5
+        bg-bg/90 backdrop-blur-md border-b border-border transition-colors duration-200">
+
         {/* ── Left: hamburger + breadcrumbs ── */}
         <div className="flex items-center gap-3 min-w-0">
-          {/* Mobile hamburger */}
           <button
             onClick={openMobile}
-            className="md:hidden p-2 rounded-[8px] text-white/50 hover:text-white hover:bg-white/[0.06] transition-all"
+            className="md:hidden p-2 rounded-[7px] text-muted hover:text-fg hover:bg-raised transition-colors"
           >
-            <Menu size={18} />
+            <Menu size={17} />
           </button>
 
-          {/* Breadcrumbs */}
-          <nav className="flex items-center gap-1 text-sm min-w-0" aria-label="Breadcrumb">
+          <nav className="flex items-center gap-1 min-w-0" aria-label="Breadcrumb">
             {crumbs.map((crumb, i) => {
               const isLast = i === crumbs.length - 1
               return (
                 <span key={crumb.href + i} className="flex items-center gap-1 min-w-0">
-                  {i > 0 && <ChevronRight size={12} className="text-white/20 flex-shrink-0" />}
+                  {i > 0 && <ChevronRight size={11} className="text-subtle flex-shrink-0" />}
                   {isLast ? (
-                    <span className="font-semibold text-white truncate">{crumb.label}</span>
+                    <span className="text-[13px] font-semibold text-fg truncate">{crumb.label}</span>
                   ) : (
                     <Link
                       href={crumb.href === '#' ? '#' : crumb.href}
-                      className="text-white/40 hover:text-white/70 transition-colors truncate"
+                      className="text-[12px] text-muted hover:text-fg transition-colors truncate"
                     >
                       {crumb.label}
                     </Link>
@@ -214,57 +224,45 @@ export function Topbar() {
           </nav>
         </div>
 
-        {/* ── Right: search + bell + avatar ── */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        {/* ── Right ── */}
+        <div className="flex items-center gap-1 flex-shrink-0">
 
-          {/* Search trigger */}
+          {/* Search */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="
-              hidden md:flex items-center gap-2.5
-              pl-3 pr-2.5 py-1.5 rounded-[8px]
-              bg-white/[0.05] border border-white/[0.08]
-              text-white/35 hover:text-white/55 hover:border-white/15
-              transition-all duration-150 text-[13px]
-            "
+            className="hidden md:flex items-center gap-2 pl-3 pr-2.5 py-1.5 rounded-[7px]
+              bg-raised border border-border text-muted hover:text-fg hover:border-border
+              transition-colors text-[12px]"
           >
-            <Search size={13} />
-            <span>Szukaj...</span>
-            <span className="flex items-center gap-0.5 ml-2">
-              <kbd className="px-1.5 py-0.5 rounded-[4px] bg-white/[0.07] border border-white/[0.1] text-[10px] font-mono text-white/30">
-                ⌘K
-              </kbd>
-            </span>
+            <Search size={12} />
+            <span>Szukaj…</span>
+            <kbd className="ml-2 px-1 py-0.5 rounded-[4px] bg-bg border border-border text-[10px] font-mono text-subtle">⌘K</kbd>
           </button>
 
-          {/* UI theme toggle (Dark Operator ↔ Arctic Executive) */}
-          <ThemeToggle />
+          {/* Dark/light toggle */}
+          <DarkLightToggle />
 
-          {/* Brand theme switcher */}
+          {/* Brand switcher */}
           <BrandThemeSwitcher />
 
-          {/* Mobile search icon */}
+          {/* Mobile search */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="md:hidden p-2 rounded-[8px] text-white/45 hover:text-white hover:bg-white/[0.06] transition-all"
+            className="md:hidden p-2 rounded-[7px] text-muted hover:text-fg hover:bg-raised transition-colors"
           >
-            <Search size={17} />
+            <Search size={16} />
           </button>
 
           {/* Notifications */}
           <div ref={notifRef} className="relative">
             <button
               onClick={() => { setNotifOpen((v) => !v); setAvatarOpen(false) }}
-              className={`
-                relative p-2 rounded-[8px] transition-all
-                ${notifOpen
-                  ? 'bg-primary/15 text-primary'
-                  : 'text-white/45 hover:text-white hover:bg-white/[0.06]'}
-              `}
+              className={`relative p-2 rounded-[7px] transition-colors
+                ${notifOpen ? 'bg-accent/10 text-accent' : 'text-muted hover:text-fg hover:bg-raised'}`}
             >
-              <Bell size={17} />
+              <Bell size={15} />
               {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-accent ring-2 ring-[#1A1A2E]" />
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-accent" />
               )}
             </button>
             {notifOpen && (
@@ -282,28 +280,26 @@ export function Topbar() {
           <div ref={avatarRef} className="relative">
             <button
               onClick={() => { setAvatarOpen((v) => !v); setNotifOpen(false) }}
-              className={`
-                flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-[8px]
-                transition-all hover:bg-white/[0.05]
-                ${avatarOpen ? 'bg-white/[0.06]' : ''}
-              `}
+              className={`flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-[7px]
+                transition-colors hover:bg-raised
+                ${avatarOpen ? 'bg-raised' : ''}`}
             >
               <div
-                className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold"
+                className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0"
                 style={{
-                  background: (appUser?.color ?? '#6C5CE7') + '30',
-                  border: `1px solid ${appUser?.color ?? '#6C5CE7'}50`,
-                  color: appUser?.color ?? '#6C5CE7',
+                  background: (appUser?.color ?? '#00c8be') + '20',
+                  border: `1px solid ${appUser?.color ?? '#00c8be'}40`,
+                  color: appUser?.color ?? '#00c8be',
                 }}
               >
                 {appUser?.initials ?? 'AM'}
               </div>
               <div className="hidden sm:flex flex-col items-start">
-                <span className="text-[12px] text-white/80 font-medium leading-tight truncate max-w-[130px]">
+                <span className="text-[12px] text-fg font-medium leading-tight truncate max-w-[120px]">
                   {(appUser as any)?.fullName ?? appUser?.name ?? 'Anna Kowalska'}
                 </span>
-                <span className="text-[10px] text-white/35 leading-tight">
-                  {brandTheme === 'mediovee' ? 'Mediovee' : ((appUser as any)?.company ?? companyName ?? 'Moja Agencja')}
+                <span className="text-[10px] text-muted leading-tight">
+                  {(appUser as any)?.company ?? companyName ?? 'Moja Agencja'}
                 </span>
               </div>
             </button>
