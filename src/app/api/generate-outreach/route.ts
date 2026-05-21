@@ -1,80 +1,143 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getOpenAI, hasOpenAIKey, OPENAI_MODEL } from '@/lib/ai/openai'
-import { EXPERTS, ICP_ANALYSIS_PROMPT, containsBannedPhrases } from '@/lib/ai/experts'
-import { getDemoOutreach } from '@/lib/ai/demo-fallback'
 import { buildContext } from '@/lib/company-brain/context-builder'
+import {
+  composeSystemPrompt,
+  validateVariant,
+  MESSAGE_TYPE_META,
+  type OutreachInput,
+  type OutreachVariant,
+} from '@/lib/outreach/promptComposer'
+import { ICP_ANALYSIS_PROMPT } from '@/lib/ai/experts'
 
-function withBrain(systemPrompt: string, brainCtx: string): string {
-  if (!brainCtx.trim()) return systemPrompt
-  return `## DANE FIRMOWE Z COMPANY BRAIN (priorytet nadrzędny — użyj tych danych o firmie klienta, tonie i ICP przy pisaniu wiadomości):\n${brainCtx}\n\n---\n\n${systemPrompt}`
+// ─── Demo fallback (no API key) ───────────────────────────────────────────────
+
+function getDemoVariants(input: OutreachInput) {
+  const name = input.decisionMakerName || 'tam'
+  const firm = input.companyName
+  const meta = MESSAGE_TYPE_META[input.messageType]
+
+  const demos: OutreachVariant[] = [
+    {
+      temat: input.channel === 'email' ? `Krótka obserwacja o ${firm}` : undefined,
+      tresc: `Cześć ${name},\n\nNapiszę wprost — jest to cold DM.\n\nWidzę że ${firm} aktywnie pozyskuje klientów. Buduję system operacyjny dla agencji który zastępuje HubSpot/Make/Excel — czas pracy z godzin do minut.\n\nRóżnica jest jedna: w środku siedzi Company Brain — nasze AI, które uczy się Waszej firmy z plików o Was, i pisze maile oraz oferty jak pracownik z dwuletnim stażem, nie jak generyczny ChatGPT.\n\nWczesna cena dla pierwszych klientów jest znacząco niższa i zostaje na stałe. Jeśli zaciekawił Cię ten temat, prześlę krótkie wideo. Jeśli nie, napisz „nie" a ja to uszanuję.\n\nMaciek`,
+      katAtaku: 'Pattern interrupt + Company Brain',
+      notatkaHandlowca: 'Tryb demo — wygeneruj po dodaniu OPENAI_API_KEY',
+    },
+    {
+      temat: input.channel === 'email' ? `Pytanie odnośnie skalowania ${firm}` : undefined,
+      tresc: `Cześć ${name},\n\nNapiszę wprost — jest to cold DM.\n\n${firm} — zakładam że cały czas walczycie z tym samym co inne agencje: handlowiec robi research, przepisuje dane, pisze oferty od zera. Company Brain to eliminuje — zna Waszą firmę i robi to za niego.\n\nWczesna cena zostaje na stałe. Bezpośredni kontakt do mnie, nie do supportu.\n\nJeśli temat Cię zaciekawił, prześlę krótkie wideo. Jeśli nie — napisz „nie".\n\nMaciek`,
+      katAtaku: 'Ból operacyjny + risk reversal',
+      notatkaHandlowca: 'Tryb demo — wygeneruj po dodaniu OPENAI_API_KEY',
+    },
+    {
+      temat: input.channel === 'email' ? `${firm} — system który zastępuje 3 narzędzia` : undefined,
+      tresc: `Cześć ${name},\n\nNapiszę wprost — jest to cold DM.\n\nJesteś w branży gdzie każda godzina handlowca kosztuje. System H14 z Company Brain zwraca te godziny — bo uczy się Waszej firmy i pracuje za handlowca przy powtarzalnych zadaniach.\n\nJesteśmy nowi na rynku — stąd wczesna cena znacząco niższa dla pierwszych klientów, na stałe.\n\nPrześlę 7-minutowe wideo jeśli chcesz zobaczyć jak to działa. Jeśli nie — napisz „nie".\n\nMaciek`,
+      katAtaku: 'Koszt czasu + nowy gracz scarcity',
+      notatkaHandlowca: 'Tryb demo — wygeneruj po dodaniu OPENAI_API_KEY',
+    },
+  ]
+
+  return {
+    warianty: demos.slice(0, input.variantCount ?? 3),
+    typ: input.messageType,
+    typLabel: meta.label,
+    _demo: true,
+  }
 }
 
-async function generateWithQualityCheck(
+// ─── Generate with quality check ─────────────────────────────────────────────
+
+async function generateVariants(
   openai: ReturnType<typeof getOpenAI>,
-  system: string,
+  systemPrompt: string,
   userPrompt: string,
-  maxTokens: number,
+  input: OutreachInput,
   maxRetries = 2,
-): Promise<string> {
-  let lastText = ''
+): Promise<{ warianty: OutreachVariant[]; _warned?: boolean }> {
+  let lastVariants: OutreachVariant[] = []
+  let warned = false
+
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const retryNote = attempt > 0
-      ? `\n\nUWAGA: Poprzednia wersja zawierała zakazane wyrażenia. Napisz zupełnie inaczej — zmień strukturę, otwarcie i sformułowania.`
+      ? '\n\nUWAGA: Poprzednie warianty nie przeszły walidacji. Przepisz wszystkie — zmień strukturę i sformułowania. Przestrzegaj zasad co do CTA/braku CTA i obecności "Company Brain".'
       : ''
+
     const res = await openai.chat.completions.create({
       model: OPENAI_MODEL,
-      max_tokens: maxTokens,
+      max_tokens: 1200,
+      response_format: { type: 'json_object' },
       messages: [
-        { role: 'system', content: system },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt + retryNote },
       ],
     })
-    lastText = res.choices[0]?.message?.content ?? ''
-    if (!containsBannedPhrases(lastText)) return lastText
+
+    const raw = res.choices[0]?.message?.content ?? '{}'
+    let parsed: { warianty?: OutreachVariant[] } = {}
+    try { parsed = JSON.parse(raw) } catch { continue }
+
+    const variants = parsed.warianty ?? []
+    const allValid = variants.every(v => validateVariant(v, input).length === 0)
+
+    if (allValid && variants.length > 0) {
+      return { warianty: variants }
+    }
+    lastVariants = variants
   }
-  return lastText
+
+  warned = true
+  return { warianty: lastVariants, _warned: warned }
 }
+
+// ─── Route ────────────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
   try {
+    const body = await req.json() as OutreachInput
+
     const {
+      messageType,
+      channel,
       companyName,
       decisionMakerName,
       decisionMakerRole,
-      websiteUrl,
       industry,
       observations,
-      channel,
-    } = await req.json()
+      context,
+      wysylajacy,
+    } = body
 
     if (!companyName || companyName.trim().length < 2) {
       return NextResponse.json({ error: 'Nazwa firmy jest wymagana' }, { status: 400 })
     }
 
+    if (!messageType) {
+      return NextResponse.json({ error: 'Typ wiadomości jest wymagany' }, { status: 400 })
+    }
+
+    if (messageType === 'reengagement' && !context?.trim()) {
+      return NextResponse.json({
+        error: 'Brak kontekstu reaktywacji — uzupełnij pole Kontekst przed generowaniem re-engagement.',
+      }, { status: 400 })
+    }
+
+    const input: OutreachInput = {
+      messageType,
+      channel: channel ?? 'linkedin',
+      companyName: companyName.trim(),
+      decisionMakerName: decisionMakerName?.trim(),
+      decisionMakerRole: decisionMakerRole?.trim(),
+      industry: industry?.trim(),
+      observations: observations?.trim(),
+      context: context?.trim(),
+      wysylajacy: wysylajacy?.trim() || 'Maciek',
+      variantCount: 3,
+    }
+
     if (!hasOpenAIKey()) {
-      return NextResponse.json(getDemoOutreach(companyName.trim(), decisionMakerName?.trim()))
+      return NextResponse.json(getDemoVariants(input))
     }
-
-    const channelLabel: Record<string, string> = {
-      linkedin: 'LinkedIn DM (maks. 5-6 zdań, bardzo zwięźle)',
-      email:    'Cold Email (do 150 słów, ma temat wiadomości jako pierwsza linia)',
-      whatsapp: 'WhatsApp (krótko, niezobowiązująco, maksymalnie 4 zdania)',
-    }
-    const channelInstruction = channelLabel[channel] ?? 'LinkedIn DM'
-
-    const urlNote = websiteUrl
-      ? `URL strony: ${websiteUrl}`
-      : 'URL strony: nie podano — stwórz wiadomość bez analizy strony'
-
-    const userPrompt = `Firma prospekta: ${companyName}
-${decisionMakerName ? `Decydent: ${decisionMakerName}${decisionMakerRole ? ` (${decisionMakerRole})` : ''}` : 'Decydent: nieznany'}
-${industry ? `Branża prospekta: ${industry}` : ''}
-${urlNote}
-${observations ? `Moje obserwacje o prospekcie: ${observations}` : ''}
-
-Kanał: ${channelInstruction}
-
-Napisz wiadomość outreachową według swoich zasad.`
 
     const brainCtx = await buildContext('outreach_generator', {
       query: `cold outreach ${companyName} ${industry ?? ''} kwalifikacja leada ICP sprzedaż`,
@@ -82,41 +145,44 @@ Napisz wiadomość outreachową według swoich zasad.`
     const brainString = brainCtx?.contextString ?? ''
 
     const openai = getOpenAI()
+    const systemPrompt = composeSystemPrompt(input, brainString)
 
-    const [kennedyRes, belfortRes, hormoziRes, icpRes] = await Promise.allSettled([
-      generateWithQualityCheck(openai, withBrain(EXPERTS[0].systemPrompt, brainString), userPrompt, 400),
-      generateWithQualityCheck(openai, withBrain(EXPERTS[1].systemPrompt, brainString), userPrompt, 400),
-      generateWithQualityCheck(openai, withBrain(EXPERTS[2].systemPrompt, brainString), userPrompt, 400),
+    const userPrompt = `Wygeneruj 3 zróżnicowane warianty wiadomości dla:
+Firma: ${input.companyName}
+Decydent: ${input.decisionMakerName || 'nieznany'}${input.decisionMakerRole ? ` (${input.decisionMakerRole})` : ''}
+Branża: ${input.industry || 'agencja marketingowa'}
+Obserwacje: ${input.observations || '(brak)'}
+Kontekst: ${input.context || '(brak)'}
+Kanał: ${input.channel}
+Typ: ${MESSAGE_TYPE_META[input.messageType].label}`
+
+    const [variantsResult, icpRes] = await Promise.allSettled([
+      generateVariants(openai, systemPrompt, userPrompt, input),
       openai.chat.completions.create({
         model: OPENAI_MODEL,
         max_tokens: 200,
+        response_format: { type: 'json_object' },
         messages: [
-          { role: 'system', content: withBrain(ICP_ANALYSIS_PROMPT, brainString) },
+          { role: 'system', content: ICP_ANALYSIS_PROMPT },
           {
             role: 'user',
-            content: `Firma: ${companyName}\n${industry ? `Branża: ${industry}` : ''}\n${observations ? `Obserwacje: ${observations}` : ''}`,
+            content: `Firma: ${input.companyName}\n${input.industry ? `Branża: ${input.industry}` : ''}\n${input.observations ? `Obserwacje: ${input.observations}` : ''}`,
           },
         ],
       }),
     ])
 
-    function extractText(res: PromiseSettledResult<string | { choices: Array<{ message: { content: string | null } }> }>): string {
-      if (res.status === 'rejected') return ''
-      if (typeof res.value === 'string') return res.value
-      return (res.value as { choices: Array<{ message: { content: string | null } }> }).choices[0]?.message?.content ?? ''
-    }
-
-    const kennedy = extractText(kennedyRes)
-    const belfort = extractText(belfortRes)
-    const hormozi = extractText(hormoziRes)
-    const icpRaw  = extractText(icpRes)
+    const { warianty, _warned } = variantsResult.status === 'fulfilled'
+      ? variantsResult.value
+      : { warianty: [], _warned: true }
 
     let icpAnalysis: { score: number; fit: string; reason: string; pain_point: string } | null = null
-    try {
-      const cleaned = icpRaw.replace(/```json\n?|\n?```/g, '').trim()
-      icpAnalysis = JSON.parse(cleaned)
-    } catch {
-      icpAnalysis = null
+    if (icpRes.status === 'fulfilled') {
+      try {
+        const raw = icpRes.value.choices[0]?.message?.content ?? ''
+        const cleaned = raw.replace(/```json\n?|\n?```/g, '').trim()
+        icpAnalysis = JSON.parse(cleaned)
+      } catch { /* ignore */ }
     }
 
     const dna = brainCtx?.dna as Record<string, unknown> | null | undefined
@@ -125,14 +191,13 @@ Napisz wiadomość outreachową według swoich zasad.`
       : false
 
     return NextResponse.json({
-      variants: {
-        kennedy: { message: kennedy, expert: EXPERTS[0] },
-        belfort: { message: belfort, expert: EXPERTS[1] },
-        hormozi: { message: hormozi, expert: EXPERTS[2] },
-      },
+      warianty,
+      typ: input.messageType,
+      typLabel: MESSAGE_TYPE_META[input.messageType].label,
       icp: icpAnalysis,
       _brainUsed: !!dna,
       _brainComplete: brainComplete,
+      _warned,
     })
   } catch (err) {
     console.error('generate-outreach error:', err)
