@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAnthropic, hasAnthropicKey, CLAUDE_MODEL } from '@/lib/ai/anthropic'
+import { getOpenAI, hasOpenAIKey, OPENAI_MODEL } from '@/lib/ai/openai'
 import { EXPERTS, ICP_ANALYSIS_PROMPT, containsBannedPhrases } from '@/lib/ai/experts'
 import { getDemoOutreach } from '@/lib/ai/demo-fallback'
 import { buildContext } from '@/lib/company-brain/context-builder'
@@ -10,8 +10,7 @@ function withBrain(systemPrompt: string, brainCtx: string): string {
 }
 
 async function generateWithQualityCheck(
-  anthropic: ReturnType<typeof getAnthropic>,
-  model: string,
+  openai: ReturnType<typeof getOpenAI>,
   system: string,
   userPrompt: string,
   maxTokens: number,
@@ -22,17 +21,17 @@ async function generateWithQualityCheck(
     const retryNote = attempt > 0
       ? `\n\nUWAGA: Poprzednia wersja zawierała zakazane wyrażenia. Napisz zupełnie inaczej — zmień strukturę, otwarcie i sformułowania.`
       : ''
-    const res = await anthropic.messages.create({
-      model,
+    const res = await openai.chat.completions.create({
+      model: OPENAI_MODEL,
       max_tokens: maxTokens,
-      system,
-      messages: [{ role: 'user', content: userPrompt + retryNote }],
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: userPrompt + retryNote },
+      ],
     })
-    const block = res.content.find(b => b.type === 'text')
-    lastText = (block as { type: 'text'; text: string } | undefined)?.text ?? ''
+    lastText = res.choices[0]?.message?.content ?? ''
     if (!containsBannedPhrases(lastText)) return lastText
   }
-  // All retries exhausted — return last attempt anyway (better than empty)
   return lastText
 }
 
@@ -52,7 +51,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Nazwa firmy jest wymagana' }, { status: 400 })
     }
 
-    if (!hasAnthropicKey()) {
+    if (!hasOpenAIKey()) {
       return NextResponse.json(getDemoOutreach(companyName.trim(), decisionMakerName?.trim()))
     }
 
@@ -77,34 +76,34 @@ Kanał: ${channelInstruction}
 
 Napisz wiadomość outreachową według swoich zasad.`
 
-    // Fetch Company Brain context once — degrades gracefully without OpenAI key
     const brainCtx = await buildContext('outreach_generator', {
       query: `cold outreach ${companyName} ${industry ?? ''} kwalifikacja leada ICP sprzedaż`,
     }).catch(() => null)
     const brainString = brainCtx?.contextString ?? ''
 
-    const anthropic = getAnthropic()
+    const openai = getOpenAI()
 
     const [kennedyRes, belfortRes, hormoziRes, icpRes] = await Promise.allSettled([
-      generateWithQualityCheck(anthropic, CLAUDE_MODEL, withBrain(EXPERTS[0].systemPrompt, brainString), userPrompt, 400),
-      generateWithQualityCheck(anthropic, CLAUDE_MODEL, withBrain(EXPERTS[1].systemPrompt, brainString), userPrompt, 400),
-      generateWithQualityCheck(anthropic, CLAUDE_MODEL, withBrain(EXPERTS[2].systemPrompt, brainString), userPrompt, 400),
-      anthropic.messages.create({
-        model: CLAUDE_MODEL,
+      generateWithQualityCheck(openai, withBrain(EXPERTS[0].systemPrompt, brainString), userPrompt, 400),
+      generateWithQualityCheck(openai, withBrain(EXPERTS[1].systemPrompt, brainString), userPrompt, 400),
+      generateWithQualityCheck(openai, withBrain(EXPERTS[2].systemPrompt, brainString), userPrompt, 400),
+      openai.chat.completions.create({
+        model: OPENAI_MODEL,
         max_tokens: 200,
-        system: withBrain(ICP_ANALYSIS_PROMPT, brainString),
-        messages: [{
-          role: 'user',
-          content: `Firma: ${companyName}\n${industry ? `Branża: ${industry}` : ''}\n${observations ? `Obserwacje: ${observations}` : ''}`,
-        }],
+        messages: [
+          { role: 'system', content: withBrain(ICP_ANALYSIS_PROMPT, brainString) },
+          {
+            role: 'user',
+            content: `Firma: ${companyName}\n${industry ? `Branża: ${industry}` : ''}\n${observations ? `Obserwacje: ${observations}` : ''}`,
+          },
+        ],
       }),
     ])
 
-    function extractText(res: PromiseSettledResult<string | { content: Array<{ type: string; text?: string }> }>): string {
+    function extractText(res: PromiseSettledResult<string | { choices: Array<{ message: { content: string | null } }> }>): string {
       if (res.status === 'rejected') return ''
       if (typeof res.value === 'string') return res.value
-      const block = (res.value as { content: Array<{ type: string; text?: string }> }).content.find(b => b.type === 'text')
-      return (block as { type: 'text'; text: string } | undefined)?.text ?? ''
+      return (res.value as { choices: Array<{ message: { content: string | null } }> }).choices[0]?.message?.content ?? ''
     }
 
     const kennedy = extractText(kennedyRes)
