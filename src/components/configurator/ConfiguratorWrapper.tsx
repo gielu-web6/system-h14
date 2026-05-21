@@ -74,7 +74,7 @@ export function ConfiguratorWrapper() {
   }
 
   return (
-    <div className="min-h-screen bg-[#080808] flex flex-col">
+    <div className="force-dark min-h-screen bg-[#080808] flex flex-col">
       <ProgressBar currentStep={step} totalSteps={TOTAL_STEPS} />
 
       <div className="flex-1 overflow-hidden">

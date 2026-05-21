@@ -49,6 +49,12 @@
   --accent:     #009e95;
   --accent-dim: rgba(0, 158, 149, 0.10);
 
+  /* Status colours darkened for WCAG AA on white backgrounds */
+  --c-amber:    #92400e;
+  --c-red:      #b91c1c;
+  --c-green:    #15803d;
+  --c-blue:     #1d4ed8;
+
   color-scheme: light;
 }
 
@@ -214,3 +220,115 @@ body {
 /* Sidebar / topbar in light */
 .light aside { background-color: var(--bg-sidebar) !important; border-right-color: var(--border) !important; }
 .light header { background-color: rgba(248, 250, 252, 0.92) !important; border-bottom-color: var(--border) !important; }
+
+/* ══════════════════════════════════════════════════════════════════
+   LIGHT MODE — Contrast & readability fixes
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── text-white opacity levels not covered above ────────── */
+.light .text-white\/20,
+.light .text-white\/15,
+.light .text-white\/10,
+.light .text-white\/5   { color: var(--fg-subtle) !important; }
+
+/* ── Semi-transparent white backgrounds → visible on light ─ */
+.light .bg-white\/15  { background-color: rgba(0,0,0,0.08) !important; }
+.light .bg-white\/10  { background-color: rgba(0,0,0,0.06) !important; }
+.light .bg-white\/5   { background-color: rgba(0,0,0,0.03) !important; }
+
+/* ── Hover: white backgrounds → dark-tinted ────────────── */
+.light .hover\:bg-white\/15:hover        { background-color: rgba(0,0,0,0.08) !important; }
+.light .hover\:bg-white\/10:hover        { background-color: rgba(0,0,0,0.06) !important; }
+.light .hover\:bg-white\/5:hover         { background-color: rgba(0,0,0,0.03) !important; }
+.light .hover\:bg-white\/\[0\.09\]:hover { background-color: rgba(0,0,0,0.06) !important; }
+.light .hover\:bg-white\/\[0\.08\]:hover { background-color: rgba(0,0,0,0.05) !important; }
+.light .hover\:bg-white\/\[0\.06\]:hover { background-color: rgba(0,0,0,0.04) !important; }
+
+/* ── Hover: white text → legible dark ──────────────────── */
+.light .hover\:text-white:hover          { color: var(--fg) !important; }
+.light .hover\:text-white\/70:hover      { color: #3a4253 !important; }
+.light .hover\:text-white\/60:hover      { color: var(--fg-muted) !important; }
+.light .hover\:text-white\/50:hover      { color: var(--fg-muted) !important; }
+
+/* ── Hover: borders ─────────────────────────────────────── */
+.light .hover\:border-white\/20:hover    { border-color: var(--border) !important; }
+.light .hover\:border-white\/15:hover    { border-color: var(--border) !important; }
+
+/* ── Static border white opacities ─────────────────────── */
+.light .border-white\/20   { border-color: var(--border) !important; }
+.light .border-white\/15   { border-color: var(--border-s) !important; }
+.light .border-white\/10   { border-color: var(--border-s) !important; }
+
+/* ── Navy / dark-blue card backgrounds → light tokens ───── */
+.light .bg-\[\#1a2239\],
+.light .bg-\[\#1e2a45\],
+.light .bg-\[\#1A2744\]  { background-color: var(--bg-card) !important; }
+.light .bg-\[\#0f1a30\]  { background-color: var(--bg-raised) !important; }
+.light .bg-\[\#0d1929\]  { background-color: var(--bg-raised) !important; }
+
+/* ── Hover: navy card backgrounds ───────────────────────── */
+.light .hover\:bg-\[\#1e2a45\]:hover { background-color: var(--bg-raised) !important; }
+
+/* ── Indigo / blue action buttons → system accent (teal) ── */
+.light .bg-\[\#6366f1\],
+.light .bg-\[\#5254cc\],
+.light .bg-\[\#3b82f6\]  { background-color: var(--accent) !important; }
+.light .hover\:bg-\[\#6366f1\]:hover,
+.light .hover\:bg-\[\#5254cc\]:hover,
+.light .hover\:bg-\[\#2563eb\]:hover { background-color: #007b73 !important; }
+
+/* ── Blue / indigo text → dark enough to read ──────────── */
+.light .text-blue-400,
+.light .text-blue-300,
+.light .text-blue-200    { color: #1d4ed8 !important; }
+.light .text-indigo-400,
+.light .text-indigo-300  { color: #4338ca !important; }
+
+/* ── Blue / indigo badge chip backgrounds ───────────────── */
+.light .bg-blue-500\/15,
+.light .bg-blue-500\/20  { background-color: #dbeafe !important; }
+.light .bg-blue-400\/10,
+.light .bg-blue-600\/10,
+.light .bg-blue-600\/15  { background-color: #eff6ff !important; }
+.light .bg-indigo-500\/15,
+.light .bg-indigo-500\/20 { background-color: #e0e7ff !important; }
+.light .bg-blue-600\/20  { background-color: #dbeafe !important; }
+
+/* ══════════════════════════════════════════════════════════════════
+   FORCE-DARK — always-dark zones (e.g. configurator) inside light page
+   Restores original dark-mode colours so they read against dark bg.
+   ══════════════════════════════════════════════════════════════════ */
+.light .force-dark { color-scheme: dark; }
+.light .force-dark,
+.light .force-dark * { --bg: #0a0d0f; --bg-card: #0f1418; --bg-raised: #141a1f; --fg: #e8edf2; --fg-muted: #6b7a88; --fg-subtle: #37434d; --border: #1c2329; --accent: #00c8be; --c-blue: #5898f0; --c-amber: #f0a040; --c-red: #e84040; --c-green: #30c060; }
+
+.light .force-dark .text-white      { color: white !important; }
+.light .force-dark .text-white\/80,
+.light .force-dark .text-white\/75,
+.light .force-dark .text-white\/70  { color: rgba(255,255,255,0.8) !important; }
+.light .force-dark .text-white\/60,
+.light .force-dark .text-white\/55,
+.light .force-dark .text-white\/50  { color: rgba(255,255,255,0.6) !important; }
+.light .force-dark .text-white\/40,
+.light .force-dark .text-white\/35,
+.light .force-dark .text-white\/30,
+.light .force-dark .text-white\/25,
+.light .force-dark .text-white\/20,
+.light .force-dark .text-white\/15,
+.light .force-dark .text-white\/10  { color: rgba(255,255,255,0.35) !important; }
+
+.light .force-dark .text-blue-400,
+.light .force-dark .text-blue-300   { color: #5898f0 !important; }
+.light .force-dark .text-indigo-400,
+.light .force-dark .text-indigo-300 { color: #818cf8 !important; }
+
+.light .force-dark .bg-white\/10  { background-color: rgba(255,255,255,0.1) !important; }
+.light .force-dark .bg-white\/5   { background-color: rgba(255,255,255,0.05) !important; }
+.light .force-dark .hover\:text-white:hover     { color: white !important; }
+.light .force-dark .hover\:bg-white\/10:hover   { background-color: rgba(255,255,255,0.1) !important; }
+.light .force-dark .border-white\/20 { border-color: rgba(255,255,255,0.2) !important; }
+.light .force-dark .border-white\/10 { border-color: rgba(255,255,255,0.1) !important; }
+.light .force-dark .bg-blue-500\/15,
+.light .force-dark .bg-blue-500\/20  { background-color: rgba(88,152,240,0.15) !important; }
+.light .force-dark .bg-blue-600\/20  { background-color: rgba(37,99,235,0.2) !important; }
+.light .force-dark .bg-indigo-500\/15 { background-color: rgba(99,102,241,0.15) !important; }
