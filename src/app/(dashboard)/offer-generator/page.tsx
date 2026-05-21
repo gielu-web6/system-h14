@@ -1090,17 +1090,6 @@ export default function OfferGeneratorPage() {
         })
         fetchOffers()
       })
-      .on('broadcast', { event: 'section_time' }, (payload: { payload: { clientName: string; sections: Array<{ label: string; seconds: number }> } }) => {
-        const top = payload.payload.sections[0]
-        if (!top) return
-        const mins = Math.floor(top.seconds / 60)
-        const secs = top.seconds % 60
-        const timeStr = mins > 0 ? `${mins} min ${secs}s` : `${secs}s`
-        toast(`📊 ${payload.payload.clientName} — ${timeStr} na sekcji ${top.label}`, {
-          duration: 6000,
-          style: { background: '#1a2940', color: '#fff', border: '1px solid rgba(99,102,241,0.3)' },
-        })
-      })
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }

@@ -37,7 +37,7 @@ export default function ClientProfilePage() {
 
   useEffect(() => { load() }, [load])
 
-  if (loading) return <div className="flex items-center justify-center h-40"><Loader2 size={20} className="animate-spin text-accent" /></div>
+  if (loading) return <div className="flex items-center justify-center h-40"><Loader2 size={20} className="animate-spin text-[#6366f1]" /></div>
   if (!client) return <div className="text-white/40">Klient nie znaleziony.</div>
 
   const hasBrandVoice = !!brandVoice
@@ -60,7 +60,7 @@ export default function ClientProfilePage() {
         </div>
         <Link
           href={`/content-studio/clients/${clientId}/generate`}
-          className="flex items-center gap-2 px-4 py-2 rounded-[10px] bg-accent hover:opacity-90 text-white text-[13px] font-semibold transition-all shadow-lg shadow-indigo-500/20"
+          className="flex items-center gap-2 px-4 py-2 rounded-[10px] bg-[#6366f1] hover:bg-[#5254cc] text-white text-[13px] font-semibold transition-all shadow-lg shadow-indigo-500/20"
         >
           <Wand2 size={14} /> Generuj post
         </Link>
@@ -96,9 +96,9 @@ export default function ClientProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Brand Voice summary */}
         {hasBrandVoice && (
-          <div className="lg:col-span-2 p-5 rounded-[14px] bg-card border border-white/[0.07] space-y-4">
+          <div className="lg:col-span-2 p-5 rounded-[14px] bg-[#16213E] border border-white/[0.07] space-y-4">
             <p className="text-[13px] font-semibold text-white flex items-center gap-2">
-              <Sparkles size={14} className="text-accent" /> Brand Voice
+              <Sparkles size={14} className="text-[#a5b4fc]" /> Brand Voice
             </p>
 
             <div className="grid grid-cols-2 gap-3">
@@ -108,7 +108,7 @@ export default function ClientProfilePage() {
                 </p>
                 <div className="flex flex-wrap gap-1">
                   {brandVoice.tone.keywords.map(k => (
-                    <span key={k} className="px-2 py-0.5 rounded-full bg-accent/15 text-accent text-[10px] font-medium">{k}</span>
+                    <span key={k} className="px-2 py-0.5 rounded-full bg-[#6366f1]/15 text-[#a5b4fc] text-[10px] font-medium">{k}</span>
                   ))}
                 </div>
               </div>
@@ -129,7 +129,7 @@ export default function ClientProfilePage() {
               <div className="space-y-1.5">
                 {brandVoice.content_pillars.map((pillar, i) => (
                   <div key={i} className="flex items-start gap-2 p-2 rounded-[8px] bg-white/[0.03]">
-                    <span className="text-[10px] font-bold text-accent mt-0.5 w-4 flex-shrink-0">{i + 1}.</span>
+                    <span className="text-[10px] font-bold text-[#6366f1] mt-0.5 w-4 flex-shrink-0">{i + 1}.</span>
                     <div>
                       <p className="text-[12px] font-semibold text-white">{pillar.name}</p>
                       <p className="text-[10px] text-white/40">{pillar.description}</p>
@@ -159,7 +159,7 @@ export default function ClientProfilePage() {
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center justify-between p-3.5 rounded-[12px] bg-card border border-white/[0.07] hover:border-white/[0.15] transition-all group"
+              className="flex items-center justify-between p-3.5 rounded-[12px] bg-[#16213E] border border-white/[0.07] hover:border-white/[0.15] transition-all group"
             >
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0" style={{ background: `${item.color}1a` }}>
@@ -178,10 +178,10 @@ export default function ClientProfilePage() {
 
       {/* Recent photos */}
       {photos.length > 0 && (
-        <div className="p-4 rounded-[14px] bg-card border border-white/[0.07]">
+        <div className="p-4 rounded-[14px] bg-[#16213E] border border-white/[0.07]">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[13px] font-semibold text-white">Ostatnie zdjęcia</p>
-            <Link href={`/content-studio/clients/${clientId}/photos`} className="text-[11px] text-accent hover:text-white transition-colors">
+            <Link href={`/content-studio/clients/${clientId}/photos`} className="text-[11px] text-[#a5b4fc] hover:text-white transition-colors">
               Wszystkie →
             </Link>
           </div>

@@ -24,7 +24,7 @@ function NavLink({ href, label, icon: Icon, exact }: CSNav) {
       href={href}
       className={`flex items-center gap-2 px-3 py-2 rounded-[8px] text-[12px] font-medium transition-all ${
         active
-          ? 'bg-accent/20 text-accent border border-accent/30'
+          ? 'bg-[#6366f1]/20 text-[#a5b4fc] border border-[#6366f1]/30'
           : 'text-white/50 hover:text-white hover:bg-white/[0.06]'
       }`}
     >

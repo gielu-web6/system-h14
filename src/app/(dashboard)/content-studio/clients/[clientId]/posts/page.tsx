@@ -105,7 +105,7 @@ export default function PostsPage() {
     return scheduledPosts.filter(p => p.scheduled_at && isSameDay(new Date(p.scheduled_at), day))
   }
 
-  if (loading) return <div className="flex items-center justify-center h-40"><Loader2 size={20} className="animate-spin text-accent" /></div>
+  if (loading) return <div className="flex items-center justify-center h-40"><Loader2 size={20} className="animate-spin text-[#6366f1]" /></div>
 
   return (
     <div className="space-y-5">
@@ -125,7 +125,7 @@ export default function PostsPage() {
           </button>
           <button
             onClick={() => router.push(`/content-studio/clients/${clientId}/generate`)}
-            className="flex items-center gap-2 px-4 py-2 rounded-[10px] bg-accent hover:opacity-90 text-white text-[12px] font-semibold transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-[10px] bg-[#6366f1] hover:bg-[#5254cc] text-white text-[12px] font-semibold transition-all"
           >
             <Plus size={13} /> Nowy post
           </button>
@@ -163,7 +163,7 @@ export default function PostsPage() {
               <p className="text-[12px] text-white/30">Brak postów. Wygeneruj pierwszy!</p>
               <button
                 onClick={() => router.push(`/content-studio/clients/${clientId}/generate`)}
-                className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-[9px] bg-accent/15 border border-accent/30 text-accent text-[12px] font-medium hover:bg-accent/25 transition-all"
+                className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-[9px] bg-[#6366f1]/15 border border-[#6366f1]/30 text-[#a5b4fc] text-[12px] font-medium hover:bg-[#6366f1]/25 transition-all"
               >
                 <Wand2 size={12} /> Generuj post
               </button>
@@ -176,7 +176,7 @@ export default function PostsPage() {
         </div>
       ) : (
         /* ── Calendar view ──────────────────────────────────────────────────── */
-        <div className="p-4 rounded-[14px] bg-card border border-white/[0.07]">
+        <div className="p-4 rounded-[14px] bg-[#16213E] border border-white/[0.07]">
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={() => setCurrentMonth(d => { const m = new Date(d); m.setMonth(m.getMonth() - 1); return m })}
@@ -215,11 +215,11 @@ export default function PostsPage() {
                   key={day.toISOString()}
                   className={`min-h-[52px] rounded-[8px] p-1.5 border transition-all ${
                     isToday(day)
-                      ? 'border-accent/50 bg-accent/10'
+                      ? 'border-[#6366f1]/50 bg-[#6366f1]/10'
                       : 'border-white/[0.05] hover:border-white/[0.12]'
                   }`}
                 >
-                  <p className={`text-[10px] font-semibold mb-1 ${isToday(day) ? 'text-accent' : 'text-white/40'}`}>
+                  <p className={`text-[10px] font-semibold mb-1 ${isToday(day) ? 'text-[#a5b4fc]' : 'text-white/40'}`}>
                     {format(day, 'd')}
                   </p>
                   {dayPosts.slice(0, 2).map(post => {
@@ -252,7 +252,7 @@ export default function PostsPage() {
       {selectedPost && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedPost(null)}>
           <div
-            className="bg-sidebar border border-white/[0.12] rounded-[16px] p-5 max-w-[500px] w-full space-y-4"
+            className="bg-[#0F0F1A] border border-white/[0.12] rounded-[16px] p-5 max-w-[500px] w-full space-y-4"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-start justify-between">
@@ -284,7 +284,7 @@ export default function PostsPage() {
             {selectedPost.hashtags?.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {selectedPost.hashtags.map(h => (
-                  <span key={h} className="px-2 py-0.5 rounded-full bg-accent/10 text-accent text-[10px]">{h}</span>
+                  <span key={h} className="px-2 py-0.5 rounded-full bg-[#6366f1]/10 text-[#a5b4fc] text-[10px]">{h}</span>
                 ))}
               </div>
             )}
@@ -299,11 +299,11 @@ export default function PostsPage() {
             <div className="flex gap-2 pt-1">
               <button
                 onClick={() => { router.push(`/content-studio/clients/${clientId}/generate`); setSelectedPost(null) }}
-                className="flex-1 py-2 rounded-[9px] bg-accent/15 border border-accent/30 text-accent text-[12px] font-medium hover:bg-accent/25 transition-all flex items-center justify-center gap-1.5"
+                className="flex-1 py-2 rounded-[9px] bg-[#6366f1]/15 border border-[#6366f1]/30 text-[#a5b4fc] text-[12px] font-medium hover:bg-[#6366f1]/25 transition-all flex items-center justify-center gap-1.5"
               >
                 <Wand2 size={12} /> Edytuj
               </button>
-              <button className="flex-1 py-2 rounded-[9px] bg-accent text-white text-[12px] font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-1.5">
+              <button className="flex-1 py-2 rounded-[9px] bg-[#6366f1] text-white text-[12px] font-semibold hover:bg-[#5254cc] transition-all flex items-center justify-center gap-1.5">
                 <Send size={12} /> Publikuj
               </button>
             </div>

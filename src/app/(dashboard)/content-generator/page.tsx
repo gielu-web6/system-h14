@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import {
   Sparkles, Copy, Check, RefreshCw,
   Loader2, ImageIcon, Link2,
-  Lightbulb, Layers, Brain,
+  Lightbulb, Layers,
 } from 'lucide-react'
 
 type Tab = 'instagram' | 'linkedin' | 'repurpose'
@@ -85,7 +85,7 @@ function TopicSuggestions({ onSelect, channel }: { onSelect: (t: string) => void
     return (
       <button
         onClick={load}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-accent/10 border border-accent/25 text-accent text-[11px] font-medium hover:bg-accent/20 transition-all"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#6366f1]/10 border border-[#6366f1]/25 text-[#a5b4fc] text-[11px] font-medium hover:bg-[#6366f1]/20 transition-all"
       >
         <Lightbulb size={11} /> Sugestie tematów z Bazy Wiedzy
       </button>
@@ -103,7 +103,7 @@ function TopicSuggestions({ onSelect, channel }: { onSelect: (t: string) => void
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <Lightbulb size={11} className="text-accent" />
+        <Lightbulb size={11} className="text-[#a5b4fc]" />
         <p className="text-[11px] text-white/50">Sugestie na podstawie Twojej Bazy Wiedzy — kliknij aby użyć:</p>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -111,7 +111,7 @@ function TopicSuggestions({ onSelect, channel }: { onSelect: (t: string) => void
           <button
             key={i}
             onClick={() => onSelect(t)}
-            className="px-3 py-1.5 rounded-[8px] bg-accent/10 border border-accent/20 text-accent text-[11px] font-medium hover:bg-accent/20 hover:border-accent/40 transition-all text-left"
+            className="px-3 py-1.5 rounded-[8px] bg-[#6366f1]/10 border border-[#6366f1]/20 text-[#a5b4fc] text-[11px] font-medium hover:bg-[#6366f1]/20 hover:border-[#6366f1]/40 transition-all text-left"
           >
             {t}
           </button>
@@ -171,7 +171,7 @@ function InstagramTab() {
 
   return (
     <div className="space-y-5">
-      <div className="p-5 rounded-[14px] bg-card border border-white/[0.07] space-y-4">
+      <div className="p-5 rounded-[14px] bg-[#16213E] border border-white/[0.07] space-y-4">
 
         {/* Topic suggestions */}
         <TopicSuggestions channel="instagram" onSelect={setTopic} />
@@ -185,7 +185,7 @@ function InstagramTab() {
             value={topic}
             onChange={e => setTopic(e.target.value)}
             placeholder="np. 5 błędów w zarządzaniu leadami"
-            className="w-full px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-accent/60 transition-all"
+            className="w-full px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-[#6366f1]/60 transition-all"
           />
         </div>
 
@@ -201,7 +201,7 @@ function InstagramTab() {
                 onClick={() => setSlideCount(n)}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-[8px] text-[12px] font-semibold transition-all ${
                   slideCount === n
-                    ? 'bg-accent text-white shadow-md shadow-indigo-500/20'
+                    ? 'bg-[#6366f1] text-white shadow-md shadow-indigo-500/20'
                     : 'bg-white/[0.05] border border-white/[0.08] text-white/50 hover:text-white hover:bg-white/[0.09]'
                 }`}
               >
@@ -222,14 +222,14 @@ function InstagramTab() {
             onChange={e => setContentDesc(e.target.value)}
             rows={3}
             placeholder="Opisz co dokładnie ma być na slajdach – punkty, fakty, przykłady, storytelling..."
-            className="w-full px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-accent/60 transition-all resize-none"
+            className="w-full px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-[#6366f1]/60 transition-all resize-none"
           />
         </div>
 
         <button
           onClick={handleGenerate}
           disabled={loading || !topic.trim()}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-accent hover:opacity-90 disabled:opacity-60 text-white text-[13px] font-semibold transition-all shadow-lg shadow-indigo-500/20"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-[#6366f1] hover:bg-[#5254cc] disabled:opacity-60 text-white text-[13px] font-semibold transition-all shadow-lg shadow-indigo-500/20"
         >
           {loading ? (
             <><Loader2 size={15} className="animate-spin" /> AI generuje karuzele ({slideCount} slajdów)...</>
@@ -241,14 +241,14 @@ function InstagramTab() {
       </div>
 
       {result && (
-        <div className="p-5 rounded-[14px] bg-card border border-accent/30 space-y-4">
+        <div className="p-5 rounded-[14px] bg-[#16213E] border border-[#6366f1]/30 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center">
-                <Sparkles size={12} className="text-accent" />
+              <div className="w-6 h-6 rounded-full bg-[#6366f1]/20 flex items-center justify-center">
+                <Sparkles size={12} className="text-[#6366f1]" />
               </div>
               <p className="text-[13px] font-semibold text-white">{result.title}</p>
-              <span className="px-2 py-0.5 rounded-full bg-accent/15 text-accent text-[10px] font-semibold">{slideCount} slajdów</span>
+              <span className="px-2 py-0.5 rounded-full bg-[#6366f1]/15 text-[#a5b4fc] text-[10px] font-semibold">{slideCount} slajdów</span>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -261,13 +261,13 @@ function InstagramTab() {
           </div>
 
           {result.hook && (
-            <div className="p-3 rounded-[10px] bg-accent/10 border border-accent/30">
-              <p className="text-[10px] font-semibold text-accent uppercase tracking-wide mb-1">Hook (slajd 1)</p>
+            <div className="p-3 rounded-[10px] bg-[#6366f1]/10 border border-[#6366f1]/30">
+              <p className="text-[10px] font-semibold text-[#a5b4fc] uppercase tracking-wide mb-1">Hook (slajd 1)</p>
               <p className="text-[13px] text-white font-semibold leading-snug">{result.hook}</p>
             </div>
           )}
 
-          <div className="bg-sidebar border border-white/[0.07] rounded-[10px] p-4">
+          <div className="bg-[#0F0F1A] border border-white/[0.07] rounded-[10px] p-4">
             <p className="text-[10px] font-semibold text-white/35 uppercase tracking-wide mb-2">Treść karuzeli ({slideCount} slajdów)</p>
             <pre className="text-[12px] text-white/70 leading-relaxed whitespace-pre-wrap font-sans">{result.content_body}</pre>
           </div>
@@ -282,21 +282,15 @@ function InstagramTab() {
           {result.hashtags?.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {result.hashtags.map(h => (
-                <span key={h} className="px-2 py-0.5 rounded-full bg-accent/10 text-accent text-[10px] font-medium">{h}</span>
+                <span key={h} className="px-2 py-0.5 rounded-full bg-[#6366f1]/10 text-[#a5b4fc] text-[10px] font-medium">{h}</span>
               ))}
             </div>
           )}
 
-          <div className="flex items-center justify-between">
-            <CopyBtn
-              text={[result.hook, result.content_body, result.cta, result.hashtags?.join(' ')].filter(Boolean).join('\n\n')}
-              label="Kopiuj całość"
-            />
-            <div className="flex items-center gap-1.5">
-              <Brain size={10} className="text-[#E8A838]/60" />
-              <span className="text-[10px] text-white/30">Ten output powstał na bazie DNA Twojej firmy (ton, ICP, strategia)</span>
-            </div>
-          </div>
+          <CopyBtn
+            text={[result.hook, result.content_body, result.cta, result.hashtags?.join(' ')].filter(Boolean).join('\n\n')}
+            label="Kopiuj całość"
+          />
         </div>
       )}
     </div>
@@ -363,7 +357,7 @@ function LinkedInTab() {
 
   return (
     <div className="space-y-5">
-      <div className="p-5 rounded-[14px] bg-card border border-white/[0.07] space-y-4">
+      <div className="p-5 rounded-[14px] bg-[#16213E] border border-white/[0.07] space-y-4">
 
         {/* LinkedIn profile URL */}
         <div>
@@ -443,7 +437,7 @@ function LinkedInTab() {
       </div>
 
       {result && (
-        <div className="p-5 rounded-[14px] bg-card border border-blue-500/25 space-y-4">
+        <div className="p-5 rounded-[14px] bg-[#16213E] border border-blue-500/25 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles size={14} className="text-blue-400" />
@@ -459,18 +453,12 @@ function LinkedInTab() {
               </button>
             </div>
           </div>
-          <div className="bg-sidebar border border-white/[0.07] rounded-[10px] p-4">
+          <div className="bg-[#0F0F1A] border border-white/[0.07] rounded-[10px] p-4">
             <pre className="text-[13px] text-white/75 leading-relaxed whitespace-pre-wrap font-sans">
               {fullText}
             </pre>
           </div>
-          <div className="flex items-center justify-between">
-            <CopyBtn text={fullText} label="Kopiuj post" />
-            <div className="flex items-center gap-1.5">
-              <Brain size={10} className="text-[#E8A838]/60" />
-              <span className="text-[10px] text-white/30">Ten output powstał na bazie DNA Twojej firmy (ton, ICP, strategia)</span>
-            </div>
-          </div>
+          <CopyBtn text={fullText} label="Kopiuj post" />
         </div>
       )}
     </div>
@@ -517,7 +505,7 @@ function RepurposeTab() {
 
   return (
     <div className="space-y-5">
-      <div className="p-5 rounded-[14px] bg-card border border-white/[0.07]">
+      <div className="p-5 rounded-[14px] bg-[#16213E] border border-white/[0.07]">
         <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-2">
           Wklej istniejący post lub tekst
         </label>
@@ -526,7 +514,7 @@ function RepurposeTab() {
           onChange={e => setSource(e.target.value)}
           rows={5}
           placeholder="Wklej tutaj swój post, artykuł lub opis tematu..."
-          className="w-full px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-accent/60 transition-all resize-none mb-4"
+          className="w-full px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-[#6366f1]/60 transition-all resize-none mb-4"
         />
         <button
           onClick={handleGenerate}
@@ -543,7 +531,7 @@ function RepurposeTab() {
       </div>
 
       {versions && (
-        <div className="p-5 rounded-[14px] bg-card border border-[#8b5cf6]/30 space-y-4">
+        <div className="p-5 rounded-[14px] bg-[#16213E] border border-[#8b5cf6]/30 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles size={14} className="text-[#a78bfa]" />
             <p className="text-[13px] font-semibold text-white">5 wygenerowanych wersji</p>
@@ -556,7 +544,7 @@ function RepurposeTab() {
                 onClick={() => setActiveVersion(i)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12px] font-medium transition-all ${
                   activeVersion === i
-                    ? 'bg-accent/20 border border-accent/40 text-accent'
+                    ? 'bg-[#6366f1]/20 border border-[#6366f1]/40 text-[#a5b4fc]'
                     : 'bg-white/[0.04] border border-white/[0.08] text-white/50 hover:text-white'
                 }`}
               >
@@ -565,7 +553,7 @@ function RepurposeTab() {
             ))}
           </div>
 
-          <div className="bg-sidebar border border-white/[0.07] rounded-[10px] p-4">
+          <div className="bg-[#0F0F1A] border border-white/[0.07] rounded-[10px] p-4">
             <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-3">
               {versions[activeVersion].icon} {versions[activeVersion].format}
             </p>
@@ -573,16 +561,10 @@ function RepurposeTab() {
               {[versions[activeVersion].hook, versions[activeVersion].content_body, versions[activeVersion].cta].filter(Boolean).join('\n\n')}
             </pre>
           </div>
-          <div className="flex items-center justify-between">
-            <CopyBtn
-              text={[versions[activeVersion].hook, versions[activeVersion].content_body, versions[activeVersion].cta, versions[activeVersion].hashtags?.join(' ')].filter(Boolean).join('\n\n')}
-              label="Kopiuj wersję"
-            />
-            <div className="flex items-center gap-1.5">
-              <Brain size={10} className="text-[#E8A838]/60" />
-              <span className="text-[10px] text-white/30">Ten output powstał na bazie DNA Twojej firmy (ton, ICP, strategia)</span>
-            </div>
-          </div>
+          <CopyBtn
+            text={[versions[activeVersion].hook, versions[activeVersion].content_body, versions[activeVersion].cta, versions[activeVersion].hashtags?.join(' ')].filter(Boolean).join('\n\n')}
+            label="Kopiuj wersję"
+          />
         </div>
       )}
     </div>
@@ -604,7 +586,7 @@ export default function ContentGeneratorPage() {
     <div className="max-w-[1100px] space-y-5">
       <div>
         <h1 className="text-[20px] font-bold text-white flex items-center gap-2">
-          <Sparkles size={20} className="text-accent" />
+          <Sparkles size={20} className="text-[#6366f1]" />
           Generator Treści AI
         </h1>
         <p className="text-[12px] text-white/40 mt-0.5">Generuj posty, karuzele i repurposing z AI — na podstawie Twojej Bazy Wiedzy</p>
@@ -617,7 +599,7 @@ export default function ContentGeneratorPage() {
             onClick={() => setTab(t.id)}
             className={`flex items-center gap-2 px-4 py-2 rounded-[10px] text-[13px] font-medium transition-all ${
               tab === t.id
-                ? 'bg-accent text-white shadow-md shadow-indigo-500/20'
+                ? 'bg-[#6366f1] text-white shadow-md shadow-indigo-500/20'
                 : 'text-white/50 hover:text-white hover:bg-white/[0.05]'
             }`}
           >

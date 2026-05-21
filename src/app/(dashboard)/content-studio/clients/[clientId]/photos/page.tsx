@@ -101,7 +101,7 @@ export default function PhotosPage() {
         </div>
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-2 px-4 py-2 rounded-[10px] bg-accent hover:opacity-90 text-white text-[13px] font-semibold transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-[10px] bg-[#6366f1] hover:bg-[#5254cc] text-white text-[13px] font-semibold transition-all"
         >
           <Upload size={14} /> Wgraj zdjęcia
         </button>
@@ -121,7 +121,7 @@ export default function PhotosPage() {
           onDrop={handleDrop}
           onDragOver={e => e.preventDefault()}
           onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-white/[0.12] rounded-[14px] p-16 text-center cursor-pointer hover:border-accent/50 hover:bg-white/[0.02] transition-all"
+          className="border-2 border-dashed border-white/[0.12] rounded-[14px] p-16 text-center cursor-pointer hover:border-[#6366f1]/50 hover:bg-white/[0.02] transition-all"
         >
           <Upload size={28} className="text-white/20 mx-auto mb-3" />
           <p className="text-[14px] font-semibold text-white/40">Przeciągnij zdjęcia tutaj</p>
@@ -131,12 +131,12 @@ export default function PhotosPage() {
 
       {/* Upload progress */}
       {(uploading || analyzing.length > 0) && (
-        <div className="flex items-center gap-3 p-3 rounded-[10px] bg-accent/10 border border-accent/25">
-          <Sparkles size={14} className="text-accent animate-pulse flex-shrink-0" />
-          <p className="text-[12px] text-accent">
+        <div className="flex items-center gap-3 p-3 rounded-[10px] bg-[#6366f1]/10 border border-[#6366f1]/25">
+          <Sparkles size={14} className="text-[#6366f1] animate-pulse flex-shrink-0" />
+          <p className="text-[12px] text-[#a5b4fc]">
             Analizuję zdjęcia AI (GPT-4o Vision)...
           </p>
-          <Loader2 size={13} className="animate-spin text-accent ml-auto" />
+          <Loader2 size={13} className="animate-spin text-[#6366f1] ml-auto" />
         </div>
       )}
 
@@ -150,7 +150,7 @@ export default function PhotosPage() {
               onClick={() => setFilter(cat)}
               className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all ${
                 filter === cat
-                  ? 'bg-accent/20 border border-accent/40 text-accent'
+                  ? 'bg-[#6366f1]/20 border border-[#6366f1]/40 text-[#a5b4fc]'
                   : 'bg-white/[0.04] border border-white/[0.07] text-white/40 hover:text-white'
               }`}
             >
@@ -251,7 +251,7 @@ export default function PhotosPage() {
 
       {loading && (
         <div className="flex items-center justify-center h-32">
-          <Loader2 size={20} className="animate-spin text-accent" />
+          <Loader2 size={20} className="animate-spin text-[#6366f1]" />
         </div>
       )}
     </div>

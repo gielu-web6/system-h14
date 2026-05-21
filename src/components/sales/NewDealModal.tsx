@@ -44,7 +44,7 @@ export function NewDealModal({ onConfirm, onClose }: NewDealModalProps) {
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="bg-card border border-white/10 rounded-2xl p-6 w-full max-w-md"
+        className="bg-[#16213E] border border-white/10 rounded-2xl p-6 w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 mb-5">
@@ -66,7 +66,7 @@ export function NewDealModal({ onConfirm, onClose }: NewDealModalProps) {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="np. Jan Kowalski – Automatyzacja procesów"
               autoFocus
-              className="w-full bg-bg border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-white/25"
+              className="w-full bg-[#1A1A2E] border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-white/25"
             />
           </div>
 
@@ -79,7 +79,7 @@ export function NewDealModal({ onConfirm, onClose }: NewDealModalProps) {
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 placeholder="np. 5000"
-                className="w-full bg-bg border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-white/25"
+                className="w-full bg-[#1A1A2E] border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-white/25"
               />
             </div>
             <div>
@@ -87,7 +87,7 @@ export function NewDealModal({ onConfirm, onClose }: NewDealModalProps) {
               <select
                 value={stage}
                 onChange={(e) => setStage(e.target.value as PipelineStage)}
-                className="w-full bg-bg border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                className="w-full bg-[#1A1A2E] border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
               >
                 {activeStages.map((s) => (
                   <option key={s.value} value={s.value}>{s.label}</option>
@@ -103,7 +103,7 @@ export function NewDealModal({ onConfirm, onClose }: NewDealModalProps) {
               value={projectType}
               onChange={(e) => setProjectType(e.target.value)}
               placeholder="np. Chatbot, Automatyzacja, Lead Gen..."
-              className="w-full bg-bg border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-white/25"
+              className="w-full bg-[#1A1A2E] border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-white/25"
             />
           </div>
 
@@ -114,7 +114,7 @@ export function NewDealModal({ onConfirm, onClose }: NewDealModalProps) {
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Dodatkowe informacje o dealu..."
               rows={2}
-              className="w-full bg-bg border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none placeholder:text-white/25"
+              className="w-full bg-[#1A1A2E] border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none placeholder:text-white/25"
             />
           </div>
         </div>

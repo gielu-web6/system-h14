@@ -62,7 +62,7 @@ export function BrandThemeSwitcher() {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-[210px] bg-sidebar border border-white/10 rounded-[14px] shadow-2xl shadow-black/60 overflow-hidden z-50 p-2">
+        <div className="absolute right-0 top-full mt-2 w-[210px] bg-[#0F0F1A] border border-white/10 rounded-[14px] shadow-2xl shadow-black/60 overflow-hidden z-50 p-2">
           <p className="text-[9px] font-bold text-white/25 uppercase tracking-[0.12em] px-2 pt-1 pb-2">
             Kolorystyka
           </p>

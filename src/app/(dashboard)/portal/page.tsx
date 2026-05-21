@@ -83,7 +83,7 @@ function OfferPreview({ offer }: { offer: OfferData }) {
   return (
     <div className="bg-white rounded-[16px] overflow-hidden shadow-2xl text-gray-900 max-h-[calc(100vh-180px)] overflow-y-auto">
       {/* Header */}
-      <div className="bg-accent px-8 py-8 text-white">
+      <div className="bg-[#6366f1] px-8 py-8 text-white">
         {offer.preparedBy && (
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-[10px] bg-white/20 flex items-center justify-center font-bold text-lg">
@@ -129,13 +129,13 @@ function OfferPreview({ offer }: { offer: OfferData }) {
         {offer.solution.some(s => s.item) && (
           <div>
             <h2 className="text-[15px] font-bold text-gray-800 mb-3 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-accent/15 text-accent flex items-center justify-center text-[11px] font-bold">✓</span>
+              <span className="w-6 h-6 rounded-full bg-[#6366f1]/15 text-[#6366f1] flex items-center justify-center text-[11px] font-bold">✓</span>
               Zakres rozwiązania
             </h2>
             <div className="space-y-2">
               {offer.solution.filter(s => s.item).map((s, i) => (
                 <div key={i} className="flex items-start gap-3 p-3 rounded-[10px] bg-gray-50">
-                  <CheckCircle2 size={15} className="text-accent flex-shrink-0 mt-0.5" />
+                  <CheckCircle2 size={15} className="text-[#6366f1] flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-[13px] font-semibold text-gray-800">{s.item}</p>
                     {s.desc && <p className="text-[11px] text-gray-500 mt-0.5">{s.desc}</p>}
@@ -153,12 +153,12 @@ function OfferPreview({ offer }: { offer: OfferData }) {
             <div className="space-y-2">
               {offer.timeline.filter(t => t.stage).map((t, i) => (
                 <div key={i} className="flex items-center gap-3 p-3 rounded-[10px] border border-gray-100">
-                  <div className="w-6 h-6 rounded-full bg-accent text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0">{i + 1}</div>
+                  <div className="w-6 h-6 rounded-full bg-[#6366f1] text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0">{i + 1}</div>
                   <div className="flex-1">
                     <p className="text-[13px] font-semibold text-gray-800">{t.stage}</p>
                     {t.date && <p className="text-[11px] text-gray-500">{t.date}</p>}
                   </div>
-                  {t.duration && <span className="text-[11px] text-accent font-semibold">{t.duration}</span>}
+                  {t.duration && <span className="text-[11px] text-[#6366f1] font-semibold">{t.duration}</span>}
                 </div>
               ))}
             </div>
@@ -167,11 +167,11 @@ function OfferPreview({ offer }: { offer: OfferData }) {
 
         {/* Investment */}
         {offer.price > 0 && (
-          <div className="p-5 rounded-[14px] bg-accent/5 border border-accent/20">
+          <div className="p-5 rounded-[14px] bg-[#6366f1]/5 border border-[#6366f1]/20">
             <h2 className="text-[15px] font-bold text-gray-800 mb-3">Inwestycja</h2>
             <div className="flex items-center justify-between mb-3">
               <span className="text-[13px] text-gray-600">Wartość projektu:</span>
-              <span className="text-[24px] font-bold text-accent">{offer.price.toLocaleString('pl-PL')} PLN</span>
+              <span className="text-[24px] font-bold text-[#6366f1]">{offer.price.toLocaleString('pl-PL')} PLN</span>
             </div>
             <div className="space-y-1.5 mb-4">
               <div className="flex justify-between text-[12px]">
@@ -193,7 +193,7 @@ function OfferPreview({ offer }: { offer: OfferData }) {
         <div className="text-center space-y-3">
           <h2 className="text-[15px] font-bold text-gray-800">Następny krok</h2>
           <p className="text-[13px] text-gray-500">Kliknij przycisk poniżej lub napisz do nas — przeprowadzimy Cię przez cały proces.</p>
-          <button className="w-full py-3 rounded-[12px] bg-accent text-white text-[14px] font-bold hover:opacity-90 transition-all shadow-lg shadow-indigo-500/25">
+          <button className="w-full py-3 rounded-[12px] bg-[#6366f1] text-white text-[14px] font-bold hover:bg-[#5254cc] transition-all shadow-lg shadow-indigo-500/25">
             Akceptuję ofertę — zaczynam!
           </button>
         </div>
@@ -230,13 +230,13 @@ export default function PortalPage() {
     setOffer(prev => ({ ...prev, solution: prev.solution.filter((_, idx) => idx !== i) }))
 
   const labelClass = 'block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5'
-  const inputClass = 'w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all placeholder:text-white/20'
+  const inputClass = 'w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-[#6366f1]/50 transition-all placeholder:text-white/20'
 
   return (
     <div className="max-w-[1300px]">
       <div className="mb-5">
         <h1 className="text-[20px] font-bold text-white flex items-center gap-2">
-          <Globe size={19} className="text-accent" />
+          <Globe size={19} className="text-[#6366f1]" />
           Portal Klienta
         </h1>
         <p className="text-[12px] text-white/40 mt-0.5">Twórz micro-strony ofert z trackerem otwarć</p>
@@ -256,7 +256,7 @@ export default function PortalPage() {
         <div className="space-y-4 max-h-[calc(100vh-160px)] overflow-y-auto pr-1">
 
           {/* Basic info */}
-          <div className="bg-card border border-white/[0.07] rounded-[14px] p-5 space-y-3">
+          <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5 space-y-3">
             <p className="text-[13px] font-semibold text-white">Dane oferty</p>
             <div>
               <label className={labelClass}>Klient *</label>
@@ -277,7 +277,7 @@ export default function PortalPage() {
           </div>
 
           {/* Problem */}
-          <div className="bg-card border border-white/[0.07] rounded-[14px] p-5 space-y-3">
+          <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5 space-y-3">
             <p className="text-[13px] font-semibold text-white">Problem klienta</p>
             <textarea value={offer.problem} onChange={setField('problem')} rows={3}
               placeholder="Opisz problem biznesowy klienta który rozwiązujesz..."
@@ -286,7 +286,7 @@ export default function PortalPage() {
 
           {/* Services quick-add from catalog */}
           {dbServices.length > 0 && (
-            <div className="bg-card border border-white/[0.07] rounded-[14px] p-4 space-y-2">
+            <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-4 space-y-2">
               <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide flex items-center gap-1.5">
                 <Briefcase size={10} /> Dodaj z katalogu usług
               </p>
@@ -306,11 +306,11 @@ export default function PortalPage() {
           )}
 
           {/* Solution */}
-          <div className="bg-card border border-white/[0.07] rounded-[14px] p-5 space-y-3">
+          <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5 space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-[13px] font-semibold text-white">Zakres rozwiązania</p>
               <button onClick={addSolution}
-                className="flex items-center gap-1 px-2 py-1 rounded-[6px] bg-accent/15 text-accent text-[11px] font-medium hover:bg-accent/25 transition-all">
+                className="flex items-center gap-1 px-2 py-1 rounded-[6px] bg-[#6366f1]/15 text-[#a5b4fc] text-[11px] font-medium hover:bg-[#6366f1]/25 transition-all">
                 <Plus size={11} /> Dodaj
               </button>
             </div>
@@ -332,7 +332,7 @@ export default function PortalPage() {
           </div>
 
           {/* Timeline */}
-          <div className="bg-card border border-white/[0.07] rounded-[14px] p-5 space-y-3">
+          <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5 space-y-3">
             <p className="text-[13px] font-semibold text-white">Harmonogram</p>
             {offer.timeline.map((t, i) => (
               <div key={i} className="space-y-1.5 p-3 rounded-[10px] bg-white/[0.02] border border-white/[0.05]">
@@ -349,7 +349,7 @@ export default function PortalPage() {
           </div>
 
           {/* Price */}
-          <div className="bg-card border border-white/[0.07] rounded-[14px] p-5 space-y-3">
+          <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5 space-y-3">
             <p className="text-[13px] font-semibold text-white">Inwestycja</p>
             <div>
               <label className={labelClass}>Cena (PLN netto)</label>
@@ -364,7 +364,7 @@ export default function PortalPage() {
           </div>
 
           {/* Actions */}
-          <div className="bg-card border border-white/[0.07] rounded-[14px] p-4 space-y-2">
+          <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-4 space-y-2">
             <p className="text-[12px] font-semibold text-white mb-2">Udostępnij ofertę</p>
             <CopyBtn text={`${typeof window !== 'undefined' ? window.location.origin : ''}/oferta/${offer.client ? offer.client.toLowerCase().replace(/\s+/g, '-') : 'klient'}`} />
             <button className="w-full flex items-center justify-center gap-1.5 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white/55 text-[12px] font-medium hover:bg-white/[0.08] hover:text-white transition-all">

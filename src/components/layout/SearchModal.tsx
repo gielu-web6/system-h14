@@ -108,7 +108,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
 
       {/* Modal */}
       <div
-        className="relative w-full max-w-[560px] bg-sidebar border border-white/10 rounded-[16px] shadow-2xl shadow-black/60 overflow-hidden"
+        className="relative w-full max-w-[560px] bg-[#0F0F1A] border border-white/10 rounded-[16px] shadow-2xl shadow-black/60 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Input row */}

@@ -258,7 +258,7 @@ export default function AiScoringPage() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-[20px] font-bold text-white flex items-center gap-2">
-            <BrainCircuit size={20} className="text-accent" />
+            <BrainCircuit size={20} className="text-[#6366f1]" />
             AI Scoring Leadów
           </h1>
           <p className="text-[12px] text-white/40 mt-0.5">
@@ -287,7 +287,7 @@ export default function AiScoringPage() {
                 </button>
                 {unscored.length > 0 && (
                   <button onClick={() => void runBatchScoring()}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-accent hover:opacity-90 text-white text-[12px] font-bold transition-all shadow-lg shadow-indigo-500/20">
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-[#6366f1] hover:bg-[#5254cc] text-white text-[12px] font-bold transition-all shadow-lg shadow-indigo-500/20">
                     <Play size={13} /> Oceń wszystkich bez scoringu ({unscored.length})
                   </button>
                 )}
@@ -321,7 +321,7 @@ export default function AiScoringPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4">
 
           {/* Methodology */}
-          <div className="bg-card border border-white/[0.07] rounded-[14px] p-5">
+          <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5">
             <p className="text-[14px] font-semibold text-white mb-1">Metodologia scoringu</p>
             <p className="text-[12px] text-white/40 mb-4">4 kryteria po max 25 pkt = 100 pkt łącznie</p>
             <div className="space-y-3">
@@ -341,7 +341,7 @@ export default function AiScoringPage() {
           </div>
 
           {/* Distribution */}
-          <div className="bg-card border border-white/[0.07] rounded-[14px] p-5 flex flex-col">
+          <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] p-5 flex flex-col">
             <p className="text-[14px] font-semibold text-white mb-1">Rozkład bazy</p>
             <p className="text-[12px] text-white/40 mb-4">{scored} z {total} leadów ocenionych</p>
 
@@ -394,7 +394,7 @@ export default function AiScoringPage() {
 
       {/* Leads table */}
       {!loading && total > 0 && (
-        <div className="bg-card border border-white/[0.07] rounded-[14px] overflow-hidden">
+        <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] overflow-hidden">
           <div className="px-5 py-4 border-b border-white/[0.07] flex items-center justify-between">
             <div>
               <p className="text-[14px] font-semibold text-white">Wszystkie leady</p>
@@ -442,7 +442,7 @@ export default function AiScoringPage() {
                     {/* Status */}
                     <div className="flex justify-center">
                       {isScoring ? (
-                        <Loader2 size={13} className="animate-spin text-accent" />
+                        <Loader2 size={13} className="animate-spin text-[#6366f1]" />
                       ) : hasScore ? (
                         <CheckCircle2 size={13} className="text-green-400" />
                       ) : (
@@ -455,7 +455,7 @@ export default function AiScoringPage() {
                       onClick={() => void rescoreLead(lead)}
                       disabled={isScoring || batchRunning || isDemoMode()}
                       title={hasScore ? 'Re-score' : 'Oceń teraz'}
-                      className="p-1.5 rounded-[6px] text-white/30 hover:text-accent hover:bg-accent/10 disabled:opacity-30 transition-all"
+                      className="p-1.5 rounded-[6px] text-white/30 hover:text-[#a5b4fc] hover:bg-[#6366f1]/10 disabled:opacity-30 transition-all"
                     >
                       <RefreshCw size={12} />
                     </button>
@@ -495,8 +495,8 @@ export default function AiScoringPage() {
 
                       {/* Icebreaker */}
                       {lead.icebreaker && (
-                        <div className="p-3 rounded-[8px] bg-[#6366f1]/[0.08] border border-accent/20">
-                          <p className="text-[10px] font-semibold text-accent uppercase tracking-wide mb-1">Icebreaker AI</p>
+                        <div className="p-3 rounded-[8px] bg-[#6366f1]/[0.08] border border-[#6366f1]/20">
+                          <p className="text-[10px] font-semibold text-[#a5b4fc] uppercase tracking-wide mb-1">Icebreaker AI</p>
                           <p className="text-[12px] text-white/80 leading-snug italic">&quot;{lead.icebreaker}&quot;</p>
                         </div>
                       )}
@@ -514,7 +514,7 @@ export default function AiScoringPage() {
                         <button
                           onClick={() => void rescoreLead(lead)}
                           disabled={isScoring || batchRunning || isDemoMode()}
-                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-accent/10 border border-accent/30 text-accent text-[12px] font-semibold hover:bg-accent/20 disabled:opacity-50 transition-all"
+                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-[#6366f1]/10 border border-[#6366f1]/30 text-[#a5b4fc] text-[12px] font-semibold hover:bg-[#6366f1]/20 disabled:opacity-50 transition-all"
                         >
                           {isScoring
                             ? <><Loader2 size={13} className="animate-spin" /> Oceniam…</>

@@ -181,12 +181,12 @@ export default function OnboardingPage() {
             <ArrowLeft size={13} /> Wróć
           </button>
           <h1 className="text-[20px] font-bold text-white flex items-center gap-2">
-            <Building2 size={20} className="text-accent" /> Nowy klient
+            <Building2 size={20} className="text-[#6366f1]" /> Nowy klient
           </h1>
           <p className="text-[12px] text-white/40 mt-1">Podaj podstawowe info, a AI przeprowadzi Cię przez onboarding</p>
         </div>
 
-        <div className="p-5 rounded-[14px] bg-card border border-white/[0.07] space-y-4">
+        <div className="p-5 rounded-[14px] bg-[#16213E] border border-white/[0.07] space-y-4">
           <div>
             <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-2">
               Nazwa firmy / marki *
@@ -195,7 +195,7 @@ export default function OnboardingPage() {
               value={businessName}
               onChange={e => setBusinessName(e.target.value)}
               placeholder="np. Pizzeria Roma, Studio Kreatywne XYZ"
-              className="w-full px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-accent/60 transition-all"
+              className="w-full px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-[#6366f1]/60 transition-all"
             />
           </div>
 
@@ -210,7 +210,7 @@ export default function OnboardingPage() {
                   onClick={() => setBusinessType(bt.value)}
                   className={`flex items-center gap-2 px-3 py-2.5 rounded-[10px] border text-[12px] font-medium transition-all text-left ${
                     businessType === bt.value
-                      ? 'bg-accent/20 border-accent/50 text-accent'
+                      ? 'bg-[#6366f1]/20 border-[#6366f1]/50 text-[#a5b4fc]'
                       : 'bg-white/[0.03] border-white/[0.07] text-white/60 hover:text-white hover:bg-white/[0.07]'
                   }`}
                 >
@@ -223,7 +223,7 @@ export default function OnboardingPage() {
           <button
             onClick={startOnboarding}
             disabled={!businessName.trim() || !businessType}
-            className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-[10px] bg-accent hover:opacity-90 disabled:opacity-40 text-white text-[13px] font-semibold transition-all shadow-lg shadow-indigo-500/20"
+            className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-[10px] bg-[#6366f1] hover:bg-[#5254cc] disabled:opacity-40 text-white text-[13px] font-semibold transition-all shadow-lg shadow-indigo-500/20"
           >
             <ChevronRight size={15} /> Rozpocznij onboarding
           </button>
@@ -236,14 +236,14 @@ export default function OnboardingPage() {
   if (step === 'generating') {
     return (
       <div className="max-w-[560px] flex flex-col items-center justify-center py-20 space-y-4">
-        <div className="w-14 h-14 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center">
-          <Sparkles size={24} className="text-accent animate-pulse" />
+        <div className="w-14 h-14 rounded-full bg-[#6366f1]/20 border border-[#6366f1]/30 flex items-center justify-center">
+          <Sparkles size={24} className="text-[#6366f1] animate-pulse" />
         </div>
         <p className="text-[16px] font-semibold text-white">Generuję profil Twojej marki...</p>
         <p className="text-[12px] text-white/40 text-center max-w-xs">
           GPT-4o analizuje Twoje odpowiedzi i tworzy szczegółowy Brand Voice Document
         </p>
-        <Loader2 size={20} className="animate-spin text-accent" />
+        <Loader2 size={20} className="animate-spin text-[#6366f1]" />
       </div>
     )
   }
@@ -252,7 +252,7 @@ export default function OnboardingPage() {
   if (step === 'done') {
     return (
       <div className="max-w-[560px] space-y-5">
-        <div className="p-6 rounded-[14px] bg-card border border-green-500/30 space-y-4 text-center">
+        <div className="p-6 rounded-[14px] bg-[#16213E] border border-green-500/30 space-y-4 text-center">
           <div className="w-12 h-12 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center mx-auto">
             <CheckCircle2 size={22} className="text-green-400" />
           </div>
@@ -269,7 +269,7 @@ export default function OnboardingPage() {
           <div className="flex gap-2 justify-center">
             <button
               onClick={() => clientId && router.push(`/content-studio/clients/${clientId}/generate`)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-accent hover:opacity-90 text-white text-[13px] font-semibold transition-all"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-[#6366f1] hover:bg-[#5254cc] text-white text-[13px] font-semibold transition-all"
             >
               <Sparkles size={14} /> Generuj pierwszy post
             </button>
@@ -297,7 +297,7 @@ export default function OnboardingPage() {
           <p className="text-[11px] text-white/40">Pytanie {questionIndex + 1} z {TOTAL_QUESTIONS}</p>
           <div className="w-32 h-1.5 bg-white/[0.06] rounded-full mt-1 overflow-hidden">
             <div
-              className="h-full bg-accent rounded-full transition-all duration-500"
+              className="h-full bg-[#6366f1] rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -309,15 +309,15 @@ export default function OnboardingPage() {
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             {msg.role === 'assistant' && (
-              <div className="w-6 h-6 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center flex-shrink-0 mr-2 mt-0.5">
-                <Sparkles size={10} className="text-accent" />
+              <div className="w-6 h-6 rounded-full bg-[#6366f1]/20 border border-[#6366f1]/30 flex items-center justify-center flex-shrink-0 mr-2 mt-0.5">
+                <Sparkles size={10} className="text-[#6366f1]" />
               </div>
             )}
             <div
               className={`max-w-[80%] px-4 py-2.5 rounded-[14px] text-[13px] leading-relaxed whitespace-pre-wrap ${
                 msg.role === 'user'
-                  ? 'bg-accent text-white rounded-tr-[4px]'
-                  : 'bg-card border border-white/[0.08] text-white/80 rounded-tl-[4px]'
+                  ? 'bg-[#6366f1] text-white rounded-tr-[4px]'
+                  : 'bg-[#16213E] border border-white/[0.08] text-white/80 rounded-tl-[4px]'
               }`}
             >
               {msg.content.replace(/\*\*/g, '')}
@@ -327,10 +327,10 @@ export default function OnboardingPage() {
 
         {sending && (
           <div className="flex justify-start">
-            <div className="w-6 h-6 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center flex-shrink-0 mr-2">
-              <Sparkles size={10} className="text-accent" />
+            <div className="w-6 h-6 rounded-full bg-[#6366f1]/20 border border-[#6366f1]/30 flex items-center justify-center flex-shrink-0 mr-2">
+              <Sparkles size={10} className="text-[#6366f1]" />
             </div>
-            <div className="px-4 py-2.5 rounded-[14px] bg-card border border-white/[0.08]">
+            <div className="px-4 py-2.5 rounded-[14px] bg-[#16213E] border border-white/[0.08]">
               <div className="flex gap-1">
                 {[0,1,2].map(i => (
                   <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/30 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
@@ -350,12 +350,12 @@ export default function OnboardingPage() {
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
           placeholder="Twoja odpowiedź..."
           disabled={sending}
-          className="flex-1 px-3.5 py-2.5 rounded-[10px] bg-card border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-accent/50 transition-all"
+          className="flex-1 px-3.5 py-2.5 rounded-[10px] bg-[#16213E] border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-[#6366f1]/50 transition-all"
         />
         <button
           onClick={sendMessage}
           disabled={!input.trim() || sending}
-          className="w-10 h-10 rounded-[10px] bg-accent hover:opacity-90 disabled:opacity-40 flex items-center justify-center transition-all"
+          className="w-10 h-10 rounded-[10px] bg-[#6366f1] hover:bg-[#5254cc] disabled:opacity-40 flex items-center justify-center transition-all"
         >
           <Send size={15} className="text-white" />
         </button>

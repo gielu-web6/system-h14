@@ -30,8 +30,8 @@ function DashboardGuard({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-bg flex items-center justify-center">
-        <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#1A1A2E] flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-[#6366f1] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -43,7 +43,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <DashboardGuard>
       <LayoutProvider>
-        <div className="min-h-screen bg-bg text-fg">
+        <div className="min-h-screen bg-[#1A1A2E] text-white">
           <Sidebar />
           <MainContent>
             <Topbar />
@@ -60,17 +60,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           toastOptions={{
             duration: 3500,
             style: {
-              background: '#0f1418',
-              color: '#e8edf2',
-              border: '1px solid #1c2329',
-              borderRadius: '8px',
-              fontSize: '12.5px',
+              background: '#0F0F1A',
+              color: '#fff',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '10px',
+              fontSize: '13px',
               fontFamily: 'var(--font-inter, system-ui)',
               padding: '10px 14px',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
             },
-            success: { iconTheme: { primary: '#30c060', secondary: '#0f1418' } },
-            error:   { iconTheme: { primary: '#e84040', secondary: '#0f1418' } },
+            success: { iconTheme: { primary: '#00B894', secondary: '#fff' } },
+            error:   { iconTheme: { primary: '#FD7272', secondary: '#fff' } },
           }}
         />
       </LayoutProvider>

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { Inter, Syne, DM_Sans } from 'next/font/google'
-import { GeistMono } from 'geist/font/mono'
 import { ThemeProvider } from 'next-themes'
 import { UserProvider } from '@/contexts/UserContext'
 import { BrandThemeProvider } from '@/contexts/BrandThemeContext'
@@ -32,7 +31,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pl" className={`${inter.variable} ${syne.variable} ${dmSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
+    <html lang="pl" className={`${inter.variable} ${syne.variable} ${dmSans.variable}`} suppressHydrationWarning>
       <head>
         {/* FOWT prevention — reads localStorage before React hydration */}
         <script
@@ -42,7 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen antialiased">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
           <UIThemeProvider>
             <BrandThemeProvider>
               <UserProvider>

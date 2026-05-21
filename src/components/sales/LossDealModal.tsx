@@ -25,7 +25,7 @@ export function LossDealModal({ onConfirm, onClose }: LossDealModalProps) {
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="bg-card border border-white/10 rounded-2xl p-6 w-full max-w-md"
+        className="bg-[#16213E] border border-white/10 rounded-2xl p-6 w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 mb-5">
@@ -51,7 +51,7 @@ export function LossDealModal({ onConfirm, onClose }: LossDealModalProps) {
                   className={`px-3 py-2 rounded-xl text-xs text-left transition-all ${
                     reason === r.value
                       ? 'bg-[#636E72]/20 border border-[#636E72]/50 text-white'
-                      : 'bg-bg border border-white/5 text-white/50 hover:border-white/20 hover:text-white/70'
+                      : 'bg-[#1A1A2E] border border-white/5 text-white/50 hover:border-white/20 hover:text-white/70'
                   }`}
                 >
                   {r.label}
@@ -66,7 +66,7 @@ export function LossDealModal({ onConfirm, onClose }: LossDealModalProps) {
               onChange={(e) => setDetails(e.target.value)}
               placeholder="Co dokładnie powiedział klient?"
               rows={3}
-              className="w-full bg-bg border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/10 resize-none placeholder:text-white/25"
+              className="w-full bg-[#1A1A2E] border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/10 resize-none placeholder:text-white/25"
             />
           </div>
         </div>

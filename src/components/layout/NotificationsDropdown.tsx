@@ -6,7 +6,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { pl } from 'date-fns/locale'
 import {
   Bell, Check, Flame, TrendingUp, FileText, DollarSign,
-  Users, AlertCircle, ArrowRight, Clock,
+  Users, AlertCircle, ArrowRight,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useAppUser } from '@/contexts/UserContext'
@@ -29,15 +29,12 @@ export interface AppNotification {
 
 function notifStyle(type: string) {
   switch (type) {
-    case 'hot_lead':          return { Icon: Flame,      color: 'text-red-400',     bg: 'bg-red-500/15' }
-    case 'offer_accepted':    return { Icon: DollarSign,  color: 'text-emerald-400', bg: 'bg-emerald-500/15' }
-    case 'offer_viewed':      return { Icon: FileText,    color: 'text-blue-400',    bg: 'bg-blue-500/15' }
-    case 'deal_won':          return { Icon: TrendingUp,  color: 'text-primary',     bg: 'bg-primary/15' }
-    case 'new_lead':          return { Icon: Users,       color: 'text-secondary',   bg: 'bg-secondary/15' }
-    case 'pricing_attention': return { Icon: DollarSign,  color: 'text-amber-400',   bg: 'bg-amber-500/15' }
-    case 'section_time':      return { Icon: Clock,       color: 'text-blue-300',    bg: 'bg-blue-400/10' }
-    case 'cta_clicked':       return { Icon: TrendingUp,  color: 'text-emerald-400', bg: 'bg-emerald-500/15' }
-    default:                  return { Icon: AlertCircle, color: 'text-white/40',    bg: 'bg-white/5' }
+    case 'hot_lead':      return { Icon: Flame,      color: 'text-red-400',     bg: 'bg-red-500/15' }
+    case 'offer_accepted':return { Icon: DollarSign,  color: 'text-emerald-400', bg: 'bg-emerald-500/15' }
+    case 'offer_viewed':  return { Icon: FileText,    color: 'text-blue-400',    bg: 'bg-blue-500/15' }
+    case 'deal_won':      return { Icon: TrendingUp,  color: 'text-primary',     bg: 'bg-primary/15' }
+    case 'new_lead':      return { Icon: Users,       color: 'text-secondary',   bg: 'bg-secondary/15' }
+    default:              return { Icon: AlertCircle, color: 'text-white/40',    bg: 'bg-white/5' }
   }
 }
 
@@ -136,7 +133,7 @@ export function NotificationsDropdown({
 }) {
 
   return (
-    <div className="absolute right-0 top-full mt-2 w-[360px] bg-sidebar border border-white/10 rounded-[14px] shadow-2xl shadow-black/50 overflow-hidden z-50">
+    <div className="absolute right-0 top-full mt-2 w-[360px] bg-[#0F0F1A] border border-white/10 rounded-[14px] shadow-2xl shadow-black/50 overflow-hidden z-50">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.07]">
         <div className="flex items-center gap-2">

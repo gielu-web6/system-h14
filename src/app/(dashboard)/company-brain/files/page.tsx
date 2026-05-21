@@ -108,13 +108,13 @@ function AddFileForm({ onAdded }: { onAdded: () => void }) {
   }
 
   return (
-    <div className="bg-card border border-white/[0.07] rounded-[14px] overflow-hidden">
+    <div className="bg-[#16213E] border border-white/[0.07] rounded-[14px] overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/[0.02] transition-colors"
       >
         <div className="flex items-center gap-2">
-          <Plus size={16} className="text-accent" />
+          <Plus size={16} className="text-[#6366f1]" />
           <span className="text-[14px] font-semibold text-white">Dodaj nowy plik kontekstowy</span>
         </div>
         {open ? <ChevronUp size={14} className="text-white/40" /> : <ChevronDown size={14} className="text-white/40" />}
@@ -122,8 +122,8 @@ function AddFileForm({ onAdded }: { onAdded: () => void }) {
 
       {open && (
         <div className="px-5 pb-5 space-y-4 border-t border-white/[0.06]">
-          <div className="mt-4 p-3 rounded-[8px] bg-[#6366f1]/[0.07] border border-accent/20">
-            <p className="text-[11px] text-accent">
+          <div className="mt-4 p-3 rounded-[8px] bg-[#6366f1]/[0.07] border border-[#6366f1]/20">
+            <p className="text-[11px] text-[#a5b4fc]">
               💡 <strong>Wskazówka:</strong> Wklej treść dokumentu (strategię firmy, case study, cennik, itp.). Im lepiej opisany dokument, tym trafniejszy kontekst AI. Priorytet 5 = zawsze wczytywany.
             </p>
           </div>
@@ -132,13 +132,13 @@ function AddFileForm({ onAdded }: { onAdded: () => void }) {
             <div className="space-y-1.5">
               <label className="text-[11px] font-semibold text-white/50 uppercase tracking-wide">Nazwa pliku *</label>
               <input value={name} onChange={e => setName(e.target.value)} placeholder="np. strategia_sprzedazy_2025.md"
-                className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white placeholder:text-white/25 focus:outline-none focus:border-accent/50 transition-colors" />
+                className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white placeholder:text-white/25 focus:outline-none focus:border-[#6366f1]/50 transition-colors" />
             </div>
             <div className="space-y-1.5">
               <label className="text-[11px] font-semibold text-white/50 uppercase tracking-wide">Kategoria *</label>
               <select value={category} onChange={e => setCategory(e.target.value)}
-                className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white focus:outline-none focus:border-accent/50">
-                {CATEGORIES.map(c => <option key={c.value} value={c.value} className="bg-bg">{c.label}</option>)}
+                className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white focus:outline-none focus:border-[#6366f1]/50">
+                {CATEGORIES.map(c => <option key={c.value} value={c.value} className="bg-[#1A1A2E]">{c.label}</option>)}
               </select>
             </div>
           </div>
@@ -146,7 +146,7 @@ function AddFileForm({ onAdded }: { onAdded: () => void }) {
           <div className="space-y-1.5">
             <label className="text-[11px] font-semibold text-white/50 uppercase tracking-wide">Opis (opcjonalny)</label>
             <input value={description} onChange={e => setDesc(e.target.value)} placeholder="Co zawiera ten plik..."
-              className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white placeholder:text-white/25 focus:outline-none focus:border-accent/50 transition-colors" />
+              className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white placeholder:text-white/25 focus:outline-none focus:border-[#6366f1]/50 transition-colors" />
           </div>
 
           <div className="space-y-1.5">
@@ -162,14 +162,14 @@ function AddFileForm({ onAdded }: { onAdded: () => void }) {
             <textarea value={rawText} onChange={e => setRawText(e.target.value)}
               placeholder="Wklej tutaj pełną treść dokumentu — strategię, case study, cennik, opisy usług itp."
               rows={10}
-              className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[12px] text-white placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-colors resize-y font-mono" />
+              className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[12px] text-white placeholder:text-white/20 focus:outline-none focus:border-[#6366f1]/50 transition-colors resize-y font-mono" />
             <p className="text-[10px] text-white/25">{rawText.length} znaków · ~{Math.round(rawText.length / 3)} tokenów</p>
           </div>
 
           <button
             onClick={() => void submit()}
             disabled={saving}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-accent hover:opacity-90 disabled:opacity-50 text-white text-[13px] font-bold transition-all"
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-[#6366f1] hover:bg-[#5254cc] disabled:opacity-50 text-white text-[13px] font-bold transition-all"
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
             {saving ? 'Dodaję i przetwarzam…' : 'Dodaj i przetwórz plik'}
@@ -258,14 +258,14 @@ function FileCard({ file, onUpdate, onDelete, onProcess }: {
 
           {(file.processing_status === 'pending' || file.processing_status === 'failed') && (
             <button onClick={() => void handleProcess()} title="Przetwórz"
-              className="p-1.5 rounded-[6px] text-accent hover:text-white hover:bg-accent/20 transition-colors">
+              className="p-1.5 rounded-[6px] text-[#a5b4fc] hover:text-white hover:bg-[#6366f1]/20 transition-colors">
               <Play size={13} />
             </button>
           )}
 
           {file.processing_status === 'done' && (
             <button onClick={() => void handleProcess()} title="Przetworz ponownie"
-              className="p-1.5 rounded-[6px] text-white/20 hover:text-accent transition-colors">
+              className="p-1.5 rounded-[6px] text-white/20 hover:text-[#a5b4fc] transition-colors">
               <RefreshCw size={13} />
             </button>
           )}
@@ -298,7 +298,7 @@ function FileCard({ file, onUpdate, onDelete, onProcess }: {
               <ul className="space-y-1">
                 {(file.key_facts as string[]).map((f, i) => (
                   <li key={i} className="text-[11px] text-white/55 flex items-start gap-1.5">
-                    <span className="text-accent flex-shrink-0 mt-0.5">·</span>{f}
+                    <span className="text-[#6366f1] flex-shrink-0 mt-0.5">·</span>{f}
                   </li>
                 ))}
               </ul>
@@ -350,7 +350,7 @@ export default function FilesPage() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-[20px] font-bold text-white flex items-center gap-2">
-            <Layers size={20} className="text-accent" /> Pliki kontekstowe
+            <Layers size={20} className="text-[#6366f1]" /> Pliki kontekstowe
           </h1>
           <p className="text-[12px] text-white/40 mt-0.5">
             {done}/{total} przetworzonych · {chunks} fragmentów w Vector Store

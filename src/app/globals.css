@@ -1,216 +1,507 @@
 @import "tailwindcss";
 
-/* ── Dark variant ──────────────────────────────────────────────── */
+/* Enable dark: prefix via .dark class on html */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ══════════════════════════════════════════════════════════════════
-   QC-SENTINEL DESIGN SYSTEM
-   ══════════════════════════════════════════════════════════════════ */
+@theme inline {
+  /* AgencyOS Brand Colors */
+  --color-primary:   #6366f1;
+  --color-secondary: #8b5cf6;
+  --color-accent:    #FD7272;
 
-/* ── Dark (default) ────────────────────────────────────────────── */
+  /* Surfaces (dark defaults) */
+  --color-sidebar:   #0F0F1A;
+  --color-dark:      #1A1A2E;
+  --color-card:      #16213E;
+  --color-elevated:  #1E2A45;
+
+  /* Typography */
+  --color-foreground: #FFFFFF;
+  --color-muted:      rgba(255,255,255,0.45);
+  --color-subtle:     rgba(255,255,255,0.15);
+
+  /* Font */
+  --font-sans: var(--font-inter, system-ui, -apple-system, sans-serif);
+
+  /* Border radius */
+  --radius-card:   12px;
+  --radius-btn:     8px;
+  --radius-input:   8px;
+}
+
+/* ── CSS variables per theme ────────────────────────── */
 :root {
-  --bg:         #0a0d0f;
-  --bg-card:    #0f1418;
-  --bg-raised:  #141a1f;
-  --bg-sidebar: #0c1014;
-
-  --border:     #1c2329;
-  --border-s:   #141a1f;
-
-  --fg:         #e8edf2;
-  --fg-muted:   #6b7a88;
-  --fg-subtle:  #37434d;
-
-  --accent:     #00c8be;
-  --accent-dim: rgba(0, 200, 190, 0.10);
-
-  --c-amber:    #f0a040;
-  --c-red:      #e84040;
-  --c-green:    #30c060;
-  --c-blue:     #5898f0;
-
+  --bg-page:     #1A1A2E;
+  --bg-sidebar:  #0F0F1A;
+  --bg-card:     #16213E;
+  --bg-elevated: #1E2A45;
+  --text-base:   #FFFFFF;
+  --text-muted:  rgba(255,255,255,0.45);
+  --border:      rgba(255,255,255,0.07);
   color-scheme: dark;
 }
 
-/* ── Light ─────────────────────────────────────────────────────── */
 .light {
-  --bg:         #f2f5f7;
-  --bg-card:    #ffffff;
-  --bg-raised:  #f8fafc;
-  --bg-sidebar: #f0f3f5;
-
-  --border:     #dde2e7;
-  --border-s:   #eef1f4;
-
-  --fg:         #0d1117;
-  --fg-muted:   #64748b;
-  --fg-subtle:  #94a3b8;
-
-  --accent:     #009e95;
-  --accent-dim: rgba(0, 158, 149, 0.10);
-
+  --bg-page:     #f8fafc;
+  --bg-sidebar:  #ffffff;
+  --bg-card:     #ffffff;
+  --bg-elevated: #f1f5f9;
+  --text-base:   #0f172a;
+  --text-muted:  #64748b;
+  --border:      #e2e8f0;
   color-scheme: light;
 }
 
-/* ── Tailwind v4 token registration ────────────────────────────── */
-@theme inline {
-  --font-sans: var(--font-inter, system-ui, sans-serif);
-  --font-mono: var(--font-geist-mono, ui-monospace, 'Cascadia Code', monospace);
-
-  --color-bg:       var(--bg);
-  --color-card:     var(--bg-card);
-  --color-raised:   var(--bg-raised);
-  --color-sidebar:  var(--bg-sidebar);
-
-  --color-border:   var(--border);
-  --color-border-s: var(--border-s);
-
-  --color-fg:       var(--fg);
-  --color-muted:    var(--fg-muted);
-  --color-subtle:   var(--fg-subtle);
-
-  --color-accent:   var(--accent);
-
-  --color-amber:    var(--c-amber);
-  --color-danger:   var(--c-red);
-  --color-success:  var(--c-green);
-  --color-info:     var(--c-blue);
-
-  /* Legacy compat — existing pages reference these */
-  --color-primary:   var(--accent);
-  --color-secondary: var(--accent);
-  --color-foreground: var(--fg);
-
-  /* Border radii */
-  --radius-card: 12px;
-  --radius-btn:   8px;
-  --radius-input: 8px;
-}
-
-/* ── Base ──────────────────────────────────────────────────────── */
 * { box-sizing: border-box; }
 
+/* ── Configurator font utilities ────────────────────── */
+.font-heading { font-family: var(--font-syne, system-ui, sans-serif); }
+.font-body    { font-family: var(--font-dm-sans, system-ui, sans-serif); }
+
 body {
-  background-color: var(--bg);
-  color: var(--fg);
-  font-family: var(--font-inter, system-ui, sans-serif);
+  background-color: var(--bg-page);
+  color: var(--text-base);
+  font-family: var(--font-inter, system-ui, -apple-system, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* ── Scrollbar ─────────────────────────────────────────────────── */
-::-webkit-scrollbar        { width: 4px; height: 4px; }
+/* ── Scrollbar ──────────────────────────────────────── */
+::-webkit-scrollbar        { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track  { background: transparent; }
-::-webkit-scrollbar-thumb  { background: var(--border); border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: var(--fg-subtle); }
+::-webkit-scrollbar-thumb  { background: rgba(128,128,128,0.2); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(128,128,128,0.35); }
 
-/* ── Selection ─────────────────────────────────────────────────── */
-::selection { background: var(--accent-dim); }
+/* ── Selection ──────────────────────────────────────── */
+::selection { background: rgba(108,92,231,0.28); color: #fff; }
 
-/* ── Sidebar transition ────────────────────────────────────────── */
+/* ── Sidebar transition ─────────────────────────────── */
 .sidebar-transition {
-  transition: width 200ms cubic-bezier(0.4, 0, 0.2, 1),
-              transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 220ms cubic-bezier(0.4, 0, 0.2, 1),
+              transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ── Nav active: 2px left accent bar ──────────────────────────── */
-.nav-active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 15%;
-  height: 70%;
-  width: 2px;
-  background: var(--accent);
-  border-radius: 0 2px 2px 0;
-}
-
-/* ── Monospace number utility ──────────────────────────────────── */
-.num {
-  font-family: var(--font-geist-mono, ui-monospace, monospace);
-  font-variant-numeric: tabular-nums;
-}
-
-/* ── Section label ─────────────────────────────────────────────── */
-.section-label {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--fg-subtle);
-}
-
-/* ── Glass card (kept for compat) ──────────────────────────────── */
+/* ── Glass card ─────────────────────────────────────── */
 .glass {
-  background: rgba(15, 20, 24, 0.75);
+  background: rgba(22, 33, 62, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
-.light .glass {
-  background: rgba(255, 255, 255, 0.75);
-}
 
-/* ── Gradient text ─────────────────────────────────────────────── */
+/* ── Gradient text ──────────────────────────────────── */
 .gradient-text {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--c-blue) 100%);
+  background: linear-gradient(135deg, #6C5CE7 0%, #00B894 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   LEGACY COMPAT — existing pages use hardcoded hex values.
-   These overrides make them readable in light mode.
-   ══════════════════════════════════════════════════════════════════ */
+/* ── Nav item active indicator ──────────────────────── */
+.nav-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--color-primary);
+  border-radius: 0 3px 3px 0;
+}
 
+/* ── Mediovee brand theme ────────────────────────────── */
+.theme-mediovee {
+  --color-primary:   #FC0FC0;
+  --color-secondary: #e879f9;
+  --color-accent:    #FC0FC0;
+}
+
+/* Hardcoded indigo → Mediovee pink overrides */
+.theme-mediovee .text-\[\#6366f1\]          { color: #FC0FC0; }
+.theme-mediovee .text-\[\#a5b4fc\]          { color: #fbbfe9; }
+.theme-mediovee .bg-\[\#6366f1\]\/10        { background-color: rgba(252,15,192,0.10); }
+.theme-mediovee .bg-\[\#6366f1\]\/12        { background-color: rgba(252,15,192,0.12); }
+.theme-mediovee .bg-\[\#6366f1\]\/15        { background-color: rgba(252,15,192,0.15); }
+.theme-mediovee .bg-\[\#6366f1\]\/20        { background-color: rgba(252,15,192,0.20); }
+.theme-mediovee .border-\[\#6366f1\]\/25    { border-color: rgba(252,15,192,0.25); }
+.theme-mediovee .border-\[\#6366f1\]\/30    { border-color: rgba(252,15,192,0.30); }
+.theme-mediovee .text-\[\#6366f1\]\/60      { color: rgba(252,15,192,0.60); }
+.theme-mediovee .text-\[\#6366f1\]\/70      { color: rgba(252,15,192,0.70); }
+.theme-mediovee .ring-\[\#6366f1\]          { --tw-ring-color: #FC0FC0; }
+.theme-mediovee ::selection                  { background: rgba(252,15,192,0.28); }
+
+/* ── Light mode overrides for components using hardcoded dark colors ── */
 .light .bg-\[\#0F0F1A\],
-.light .bg-\[\#0c1014\]  { background-color: var(--bg-sidebar) !important; }
-.light .bg-\[\#1A1A2E\]  { background-color: var(--bg) !important; }
-.light .bg-\[\#16213E\]  { background-color: var(--bg-card) !important; }
-.light .bg-\[\#1E2A45\]  { background-color: var(--bg-raised) !important; }
-.light .bg-\[\#111111\]  { background-color: var(--bg-card) !important; }
-.light .bg-\[\#111417\]  { background-color: var(--bg-card) !important; }
-.light .bg-\[\#0A0A0A\]  { background-color: var(--bg-raised) !important; }
-.light .bg-\[\#0a0d0f\]  { background-color: var(--bg) !important; }
-.light .bg-\[\#1A1A2E\]\/90 { background-color: rgba(242, 245, 247, 0.92) !important; }
-
-.light .text-white      { color: var(--fg) !important; }
-.light .text-white\/80,
-.light .text-white\/75,
-.light .text-white\/70  { color: #3a4253 !important; }
-.light .text-white\/60,
-.light .text-white\/55,
+.light .bg-\[\#1A1A2E\] { background-color: var(--bg-sidebar) !important; }
+.light .bg-\[\#16213E\] { background-color: var(--bg-card) !important; }
+.light .bg-\[\#1A1A2E\]\/90 { background-color: rgba(255,255,255,0.95) !important; }
+.light .text-white { color: var(--text-base) !important; }
 .light .text-white\/50,
-.light .text-white\/45,
-.light .text-white\/40  { color: var(--fg-muted) !important; }
-.light .text-white\/35,
-.light .text-white\/30,
-.light .text-white\/25  { color: var(--fg-subtle) !important; }
-
-.light .border-white\/\[0\.04\],
-.light .border-white\/\[0\.05\],
-.light .border-white\/\[0\.06\],
-.light .border-white\/\[0\.07\],
-.light .border-white\/\[0\.08\],
-.light .border-white\/\[0\.09\],
-.light .border-white\/\[0\.1\],
-.light .border-white\/\[0\.12\],
+.light .text-white\/40,
+.light .text-white\/30 { color: var(--text-muted) !important; }
 .light .border-white\/5,
-.light .border-white\/10 { border-color: var(--border) !important; }
+.light .border-white\/\[0\.07\] { border-color: var(--border) !important; }
 
-.light .border-\[\#1E1E1E\],
-.light .border-\[\#1A1A1A\],
-.light .border-\[\#2A2A2A\] { border-color: var(--border) !important; }
+/* ════════════════════════════════════════════════════════════════════
+   ARCTIC EXECUTIVE THEME
+   ════════════════════════════════════════════════════════════════════ */
 
-.light .bg-white\/\[0\.02\],
-.light .bg-white\/\[0\.03\],
-.light .bg-white\/\[0\.04\] { background-color: rgba(0,0,0,0.025) !important; }
-.light .bg-white\/\[0\.05\],
-.light .bg-white\/\[0\.06\],
-.light .bg-white\/\[0\.07\],
-.light .bg-white\/\[0\.08\] { background-color: rgba(0,0,0,0.05) !important; }
+/* ── Design tokens ─────────────────────────────────────────────────── */
+[data-theme="arctic-executive"] {
+  /* Backgrounds */
+  --bg-root:      #F0F2F5;
+  --bg-surface:   #FFFFFF;
+  --bg-elevated:  #F7F8FA;
+  --bg-sunken:    #E8EBF0;
+  --bg-overlay:   rgba(255,255,255,0.85);
 
-/* Sidebar / topbar in light */
-.light aside { background-color: var(--bg-sidebar) !important; border-right-color: var(--border) !important; }
-.light header { background-color: rgba(248, 250, 252, 0.92) !important; border-bottom-color: var(--border) !important; }
+  /* App CSS vars */
+  --bg-page:    #F0F2F5;
+  --bg-sidebar: #FFFFFF;
+  --bg-card:    #FFFFFF;
+  --text-base:  #0D1117;
+  --text-muted: #6B7589;
+  --border:     rgba(0,0,0,0.11);
+
+  /* Gradients */
+  --gradient-hero:     linear-gradient(135deg, #FFFFFF 0%, #EEF1F7 50%, #E8EBF2 100%);
+  --gradient-card:     linear-gradient(160deg, #FFFFFF 0%, #F5F7FB 100%);
+  --gradient-accent:   linear-gradient(135deg, #1A2744 0%, #243459 50%, #1E2E50 100%);
+  --gradient-platinum: linear-gradient(135deg, #8A95A3 0%, #C4CBD4 40%, #9DAAB6 100%);
+
+  /* Accent — executive navy */
+  --accent-primary:   #1A2744;
+  --accent-secondary: #2C4A8A;
+  --accent-tertiary:  #4B6CB7;
+
+  /* Gold (platinum finish) */
+  --accent-gold:       #B8960C;
+  --accent-gold-light: #F5E6A3;
+
+  /* Status */
+  --accent-success: #0F6B3A;
+  --accent-warning: #A0620A;
+  --accent-danger:  #B02020;
+  --accent-neutral: #5A6478;
+
+  /* Typography */
+  --text-primary:   #0D1117;
+  --text-secondary: #3A4253;
+  --text-tertiary:  #6B7589;
+  --text-muted-ae:  #9BA5B8;
+  --text-inverse:   #FFFFFF;
+
+  /* Borders */
+  --border-subtle:  rgba(0,0,0,0.06);
+  --border-default: rgba(0,0,0,0.11);
+  --border-strong:  rgba(0,0,0,0.20);
+  --border-accent:  #1A2744;
+
+  /* Shadows */
+  --shadow-xs:     0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm:     0 2px 8px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:     0 4px 16px rgba(0,0,0,0.09), 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-lg:     0 8px 32px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
+  --shadow-accent: 0 4px 20px rgba(26,39,68,0.25);
+
+  /* Sidebar */
+  --sidebar-bg:              #FFFFFF;
+  --sidebar-border:          rgba(0,0,0,0.08);
+  --sidebar-item-hover:      rgba(26,39,68,0.06);
+  --sidebar-item-active-bg:  rgba(26,39,68,0.10);
+  --sidebar-item-active-bar: #1A2744;
+
+  /* Topbar */
+  --topbar-bg:     rgba(255,255,255,0.92);
+  --topbar-blur:   blur(12px);
+  --topbar-border: rgba(0,0,0,0.08);
+
+  /* Override Tailwind primary color */
+  --color-primary:   #1A2744;
+  --color-secondary: #2C4A8A;
+
+  color-scheme: light;
+}
+
+/* ── Body ──────────────────────────────────────────────────────────── */
+[data-theme="arctic-executive"] body {
+  background-color: #F0F2F5;
+  color: #0D1117;
+}
+
+[data-theme="arctic-executive"] ::selection {
+  background: rgba(26,39,68,0.18);
+  color: #0D1117;
+}
+
+[data-theme="arctic-executive"] * {
+  scrollbar-color: rgba(0,0,0,0.15) transparent;
+  scrollbar-width: thin;
+}
+
+/* ── Background overrides ──────────────────────────────────────────── */
+[data-theme="arctic-executive"] .bg-\[\#0F0F1A\]    { background-color: #FFFFFF !important; }
+[data-theme="arctic-executive"] .bg-\[\#1A1A2E\]    { background-color: #F0F2F5 !important; }
+[data-theme="arctic-executive"] .bg-\[\#16213E\]    { background-color: #FFFFFF !important; }
+[data-theme="arctic-executive"] .bg-\[\#1E2A45\]    { background-color: #F7F8FA !important; }
+[data-theme="arctic-executive"] .bg-\[\#0F0F1A\]\/80 { background-color: rgba(255,255,255,0.80) !important; }
+[data-theme="arctic-executive"] .bg-\[\#0F0F1A\]\/90 { background-color: rgba(255,255,255,0.90) !important; }
+[data-theme="arctic-executive"] .bg-\[\#1A1A2E\]\/90 { background-color: rgba(240,242,245,0.92) !important; }
+[data-theme="arctic-executive"] .bg-\[\#0F0F1A\]\/95 { background-color: rgba(255,255,255,0.95) !important; }
+
+/* Semi-transparent white → near-transparent dark */
+[data-theme="arctic-executive"] .bg-white\/\[0\.02\] { background-color: rgba(26,39,68,0.02) !important; }
+[data-theme="arctic-executive"] .bg-white\/\[0\.03\] { background-color: rgba(26,39,68,0.02) !important; }
+[data-theme="arctic-executive"] .bg-white\/\[0\.04\] { background-color: rgba(26,39,68,0.03) !important; }
+[data-theme="arctic-executive"] .bg-white\/\[0\.05\] { background-color: rgba(26,39,68,0.04) !important; }
+[data-theme="arctic-executive"] .bg-white\/\[0\.06\] { background-color: rgba(26,39,68,0.05) !important; }
+[data-theme="arctic-executive"] .bg-white\/\[0\.07\] { background-color: rgba(26,39,68,0.05) !important; }
+[data-theme="arctic-executive"] .bg-white\/\[0\.08\] { background-color: rgba(26,39,68,0.06) !important; }
+[data-theme="arctic-executive"] .bg-white\/\[0\.09\] { background-color: rgba(26,39,68,0.06) !important; }
+
+/* ── Text overrides ────────────────────────────────────────────────── */
+[data-theme="arctic-executive"] .text-white         { color: #0D1117 !important; }
+[data-theme="arctic-executive"] .text-white\/80      { color: #3A4253 !important; }
+[data-theme="arctic-executive"] .text-white\/75      { color: #3A4253 !important; }
+[data-theme="arctic-executive"] .text-white\/70      { color: #3A4253 !important; }
+[data-theme="arctic-executive"] .text-white\/65      { color: #3A4253 !important; }
+[data-theme="arctic-executive"] .text-white\/60      { color: #3A4253 !important; }
+[data-theme="arctic-executive"] .text-white\/55      { color: #6B7589 !important; }
+[data-theme="arctic-executive"] .text-white\/50      { color: #6B7589 !important; }
+[data-theme="arctic-executive"] .text-white\/45      { color: #6B7589 !important; }
+[data-theme="arctic-executive"] .text-white\/40      { color: #6B7589 !important; }
+[data-theme="arctic-executive"] .text-white\/35      { color: #9BA5B8 !important; }
+[data-theme="arctic-executive"] .text-white\/30      { color: #9BA5B8 !important; }
+[data-theme="arctic-executive"] .text-white\/25      { color: #9BA5B8 !important; }
+[data-theme="arctic-executive"] .text-white\/20      { color: #B8C0CE !important; }
+
+/* ── Border overrides ──────────────────────────────────────────────── */
+[data-theme="arctic-executive"] .border-white\/\[0\.04\] { border-color: rgba(0,0,0,0.05) !important; }
+[data-theme="arctic-executive"] .border-white\/\[0\.05\] { border-color: rgba(0,0,0,0.06) !important; }
+[data-theme="arctic-executive"] .border-white\/\[0\.06\] { border-color: rgba(0,0,0,0.07) !important; }
+[data-theme="arctic-executive"] .border-white\/\[0\.07\] { border-color: rgba(0,0,0,0.08) !important; }
+[data-theme="arctic-executive"] .border-white\/\[0\.08\] { border-color: rgba(0,0,0,0.09) !important; }
+[data-theme="arctic-executive"] .border-white\/\[0\.09\] { border-color: rgba(0,0,0,0.10) !important; }
+[data-theme="arctic-executive"] .border-white\/\[0\.1\]  { border-color: rgba(0,0,0,0.11) !important; }
+[data-theme="arctic-executive"] .border-white\/\[0\.12\] { border-color: rgba(0,0,0,0.12) !important; }
+[data-theme="arctic-executive"] .border-white\/\[0\.15\] { border-color: rgba(0,0,0,0.15) !important; }
+[data-theme="arctic-executive"] .border-white\/5    { border-color: rgba(0,0,0,0.06) !important; }
+[data-theme="arctic-executive"] .border-white\/10   { border-color: rgba(0,0,0,0.10) !important; }
+
+/* Ring (focus) */
+[data-theme="arctic-executive"] .ring-\[\#1A1A2E\]  { --tw-ring-color: #1A2744 !important; }
+
+/* ── Sidebar ───────────────────────────────────────────────────────── */
+[data-theme="arctic-executive"] aside {
+  background-color: #FFFFFF !important;
+  border-right-color: rgba(0,0,0,0.08) !important;
+}
+
+/* Active nav item */
+[data-theme="arctic-executive"] .nav-active {
+  background-color: rgba(26,39,68,0.08) !important;
+  color: #1A2744 !important;
+}
+[data-theme="arctic-executive"] .nav-active::before {
+  background: #1A2744 !important;
+}
+[data-theme="arctic-executive"] .nav-active svg {
+  color: #1A2744 !important;
+}
+
+/* Nav item hover */
+[data-theme="arctic-executive"] a:not(.nav-active):hover {
+  color: #0D1117 !important;
+}
+
+/* Section dividers in collapsed sidebar */
+[data-theme="arctic-executive"] .mx-auto.w-4.h-px {
+  background-color: rgba(0,0,0,0.10) !important;
+}
+
+/* ── Topbar ────────────────────────────────────────────────────────── */
+[data-theme="arctic-executive"] header {
+  background-color: rgba(255,255,255,0.92) !important;
+  border-bottom-color: rgba(0,0,0,0.08) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+/* Topbar search bar */
+[data-theme="arctic-executive"] header button.hidden.md\:flex {
+  background-color: rgba(26,39,68,0.04) !important;
+  border-color: rgba(0,0,0,0.10) !important;
+}
+
+/* ── Inputs / Textareas ────────────────────────────────────────────── */
+[data-theme="arctic-executive"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+[data-theme="arctic-executive"] textarea,
+[data-theme="arctic-executive"] select {
+  background-color: #F0F2F5 !important;
+  color: #0D1117 !important;
+  border-color: rgba(0,0,0,0.11) !important;
+}
+[data-theme="arctic-executive"] input::placeholder,
+[data-theme="arctic-executive"] textarea::placeholder {
+  color: #9BA5B8 !important;
+}
+[data-theme="arctic-executive"] input:focus,
+[data-theme="arctic-executive"] textarea:focus {
+  border-color: #1A2744 !important;
+  box-shadow: 0 0 0 3px rgba(26,39,68,0.10) !important;
+}
+
+/* ── Primary / accent buttons ─────────────────────────────────────── */
+/* CTA buttons that use indigo → navy in arctic */
+[data-theme="arctic-executive"] .bg-\[\#6366f1\] {
+  background: linear-gradient(135deg, #1A2744 0%, #243459 100%) !important;
+  box-shadow: 0 4px 20px rgba(26,39,68,0.25) !important;
+}
+[data-theme="arctic-executive"] .hover\:bg-\[\#5254cc\]:hover {
+  background: linear-gradient(135deg, #243459 0%, #1E2E50 100%) !important;
+  transform: translateY(-1px);
+}
+[data-theme="arctic-executive"] .bg-gradient-to-r.from-\[\#6366f1\].to-\[\#8b5cf6\] {
+  background: linear-gradient(135deg, #1A2744 0%, #243459 100%) !important;
+}
+[data-theme="arctic-executive"] .from-\[\#6366f1\] { --tw-gradient-from: #1A2744 !important; }
+[data-theme="arctic-executive"] .to-\[\#8b5cf6\]   { --tw-gradient-to: #2C4A8A !important; }
+
+/* Indigo text accents → navy */
+[data-theme="arctic-executive"] .text-\[\#6366f1\]        { color: #1A2744 !important; }
+[data-theme="arctic-executive"] .text-\[\#a5b4fc\]        { color: #2C4A8A !important; }
+[data-theme="arctic-executive"] .text-\[\#6366f1\]\/60    { color: rgba(26,39,68,0.60) !important; }
+[data-theme="arctic-executive"] .text-\[\#6366f1\]\/70    { color: rgba(26,39,68,0.70) !important; }
+
+/* Indigo backgrounds → navy tints */
+[data-theme="arctic-executive"] .bg-\[\#6366f1\]\/10  { background-color: rgba(26,39,68,0.07) !important; }
+[data-theme="arctic-executive"] .bg-\[\#6366f1\]\/12  { background-color: rgba(26,39,68,0.08) !important; }
+[data-theme="arctic-executive"] .bg-\[\#6366f1\]\/15  { background-color: rgba(26,39,68,0.10) !important; }
+[data-theme="arctic-executive"] .bg-\[\#6366f1\]\/20  { background-color: rgba(26,39,68,0.12) !important; }
+[data-theme="arctic-executive"] .bg-\[\#6366f1\]\/25  { background-color: rgba(26,39,68,0.15) !important; }
+[data-theme="arctic-executive"] .bg-\[\#6366f1\]\/5   { background-color: rgba(26,39,68,0.04) !important; }
+
+/* Indigo borders → navy tints */
+[data-theme="arctic-executive"] .border-\[\#6366f1\]\/20 { border-color: rgba(26,39,68,0.18) !important; }
+[data-theme="arctic-executive"] .border-\[\#6366f1\]\/25 { border-color: rgba(26,39,68,0.20) !important; }
+[data-theme="arctic-executive"] .border-\[\#6366f1\]\/30 { border-color: rgba(26,39,68,0.22) !important; }
+[data-theme="arctic-executive"] .border-\[\#6366f1\]\/35 { border-color: rgba(26,39,68,0.25) !important; }
+[data-theme="arctic-executive"] .border-\[\#6366f1\]\/40 { border-color: rgba(26,39,68,0.28) !important; }
+[data-theme="arctic-executive"] .border-\[\#6366f1\]\/60 { border-color: rgba(26,39,68,0.40) !important; }
+
+/* ── Dropdowns / Modals (dark popups → white in arctic) ───────────── */
+[data-theme="arctic-executive"] .shadow-2xl.shadow-black\/50,
+[data-theme="arctic-executive"] .shadow-2xl.shadow-black\/60 {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06) !important;
+}
+
+/* Avatar dropdown */
+[data-theme="arctic-executive"] .absolute.right-0.top-full.mt-2.bg-\[\#0F0F1A\] {
+  background-color: #FFFFFF !important;
+  border-color: rgba(0,0,0,0.10) !important;
+}
+
+/* ── Cards — elevated style ────────────────────────────────────────── */
+[data-theme="arctic-executive"] .rounded-\[14px\].bg-\[\#16213E\],
+[data-theme="arctic-executive"] .rounded-\[16px\].bg-\[\#16213E\],
+[data-theme="arctic-executive"] .rounded-\[12px\].bg-\[\#16213E\] {
+  background: linear-gradient(160deg, #FFFFFF 0%, #F5F7FB 100%) !important;
+  border-color: rgba(0,0,0,0.07) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04) !important;
+}
+
+/* ── Pipeline Kanban badges ────────────────────────────────────────── */
+/* HOT badge stays red — already correct color in arctic spec */
+/* WARM stays amber */
+/* COLD badge: text-blue → indigo mapping */
+[data-theme="arctic-executive"] .text-\[\#a5b4fc\] { color: #4B6CB7 !important; }
+
+/* ── Progress bars (goal line) ─────────────────────────────────────── */
+[data-theme="arctic-executive"] .bg-\[\#6366f1\].rounded-full {
+  background: linear-gradient(90deg, #1A2744 0%, #2C4A8A 100%) !important;
+}
+
+/* ── Nav active — override color-primary reference ─────────────────── */
+[data-theme="arctic-executive"] .nav-active.bg-primary\/12 {
+  background-color: rgba(26,39,68,0.08) !important;
+}
+[data-theme="arctic-executive"] .text-primary { color: #1A2744 !important; }
+[data-theme="arctic-executive"] .bg-primary\/12 { background-color: rgba(26,39,68,0.08) !important; }
+[data-theme="arctic-executive"] .bg-primary\/15 { background-color: rgba(26,39,68,0.10) !important; }
+
+/* ── Company Brain — platinum DNA bar ─────────────────────────────── */
+[data-theme="arctic-executive"] .bg-\[\#6366f1\].h-full.rounded-full {
+  background: linear-gradient(90deg, #8A95A3 0%, #C4CBD4 50%, #9DAAB6 100%) !important;
+}
+
+/* ── Violet / purple accents (repurpose tab etc.) ─────────────────── */
+[data-theme="arctic-executive"] .text-violet-400    { color: #4B6CB7 !important; }
+[data-theme="arctic-executive"] .border-violet-500\/35 { border-color: rgba(75,108,183,0.30) !important; }
+[data-theme="arctic-executive"] .bg-violet-500\/10  { background-color: rgba(75,108,183,0.07) !important; }
+
+/* ── Glass card (dark default → light overlay) ─────────────────────── */
+[data-theme="arctic-executive"] .glass {
+  background: rgba(255,255,255,0.7) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+/* ── Sidebar collapse button ───────────────────────────────────────── */
+[data-theme="arctic-executive"] .-right-3.top-\[72px\] {
+  background-color: #FFFFFF !important;
+  border-color: rgba(0,0,0,0.12) !important;
+  color: #6B7589 !important;
+}
+
+/* ── Topbar bell notification dot ─────────────────────────────────── */
+[data-theme="arctic-executive"] .ring-2.ring-\[\#1A1A2E\] {
+  --tw-ring-color: #FFFFFF !important;
+}
+
+/* ── Footer watermark ─────────────────────────────────────────────── */
+[data-theme="arctic-executive"] .text-white\/20 a {
+  color: rgba(26,39,68,0.55) !important;
+}
+
+/* ── Table rows hover ─────────────────────────────────────────────── */
+[data-theme="arctic-executive"] tr:hover td {
+  background-color: rgba(26,39,68,0.03) !important;
+}
+
+/* ── Green success / red danger stays unchanged in arctic ─────────── */
+/* These are semantic colors and work fine on light bg */
+
+/* ── Kbd shortcut chips ───────────────────────────────────────────── */
+[data-theme="arctic-executive"] kbd {
+  background-color: rgba(26,39,68,0.06) !important;
+  border-color: rgba(26,39,68,0.12) !important;
+  color: #6B7589 !important;
+}
+
+/* ── Tooltip (collapsed sidebar) ─────────────────────────────────── */
+[data-theme="arctic-executive"] .bg-\[\#1E2A45\].border.border-white\/10 {
+  background-color: #0D1117 !important;
+  border-color: rgba(0,0,0,0.15) !important;
+  color: #FFFFFF !important;
+}
+
+/* ── Brand theme switcher dropdown ───────────────────────────────── */
+[data-theme="arctic-executive"] .bg-\[\#0F0F1A\].border.border-white\/10.rounded-\[14px\] {
+  background-color: #FFFFFF !important;
+  border-color: rgba(0,0,0,0.10) !important;
+}
+[data-theme="arctic-executive"] .bg-\[\#0F0F1A\].border.border-white\/10.rounded-\[14px\] p,
+[data-theme="arctic-executive"] .bg-\[\#0F0F1A\].border.border-white\/10.rounded-\[14px\] span {
+  color: #0D1117 !important;
+}
+
+/* ── Offer status badges in arctic ───────────────────────────────── */
+[data-theme="arctic-executive"] .bg-amber-500\/15 { background-color: #FEF3C7 !important; }
+[data-theme="arctic-executive"] .text-amber-400   { color: #A0620A !important; }
+[data-theme="arctic-executive"] .bg-green-500\/15 { background-color: #DCFCE7 !important; }
+[data-theme="arctic-executive"] .text-green-400   { color: #0F6B3A !important; }
+
+/* ── Finance goal line (platinum gold) ───────────────────────────── */
+[data-theme="arctic-executive"] .stroke-\[\#E8A838\] { stroke: #B8960C !important; }
+[data-theme="arctic-executive"] .text-\[\#E8A838\]   { color: #B8960C !important; }
