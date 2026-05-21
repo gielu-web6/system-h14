@@ -1,15 +1,25 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import {
   Send, Loader2, Copy, Check, Edit3, Save, X,
   Globe, Zap, Star, TrendingUp, AlertCircle, ChevronDown, ChevronUp,
-  Brain,
+  Brain, Users, Search,
 } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { createClient } from '@/lib/supabase/client'
 import { isDemoMode } from '@/lib/userStore'
+
+interface LeadOption {
+  id: string
+  company: string
+  first_name: string
+  last_name: string
+  position: string | null
+  company_website: string | null
+  app_status: string | null
+}
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -210,6 +220,145 @@ function ExpertCard({
   )
 }
 
+// ─── Lead Picker ───────────────────────────────────────────────────────────────
+
+function LeadPicker({ onSelect }: { onSelect: (lead: LeadOption) => void }) {
+  const [query, setQuery]       = useState('')
+  const [leads, setLeads]       = useState<LeadOption[]>([])
+  const [loading, setLoading]   = useState(false)
+  const [open, setOpen]         = useState(false)
+  const [selected, setSelected] = useState<LeadOption | null>(null)
+  const containerRef            = useRef<HTMLDivElement>(null)
+
+  const fetchLeads = useCallback(async (q: string) => {
+    setLoading(true)
+    try {
+      const supabase = createClient()
+      let qb = supabase
+        .from('leads')
+        .select('id, company, first_name, last_name, position, company_website, app_status')
+        .order('last_contact', { ascending: false })
+        .limit(50)
+      if (q.trim()) {
+        qb = qb.ilike('company', `%${q.trim()}%`)
+      }
+      const { data } = await qb
+      setLeads(data ?? [])
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (open) fetchLeads(query)
+  }, [open, query, fetchLeads])
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const handleSelect = (lead: LeadOption) => {
+    setSelected(lead)
+    setOpen(false)
+    setQuery('')
+    onSelect(lead)
+  }
+
+  const statusColor: Record<string, string> = {
+    nowy:    '#60a5fa',
+    kontakt: '#E8A838',
+    negocjacje: '#a78bfa',
+    klient:  '#4ade80',
+    odrzucony: '#f87171',
+  }
+
+  return (
+    <div ref={containerRef} className="relative">
+      <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">
+        <Users size={10} className="inline mr-1 mb-0.5" />
+        Wybierz lead z bazy
+      </label>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-left transition-all hover:border-[#E8A838]/40 focus:outline-none focus:border-[#E8A838]/50"
+      >
+        <span className={`text-[13px] ${selected ? 'text-white' : 'text-white/25'}`}>
+          {selected
+            ? `${selected.company}${selected.first_name ? ` · ${selected.first_name} ${selected.last_name}` : ''}`
+            : 'Wyszukaj firmę lub decydenta…'
+          }
+        </span>
+        <ChevronDown size={14} className={`text-white/30 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute z-50 left-0 right-0 mt-1.5 rounded-[12px] bg-[#1A1A1F] border border-white/[0.1] shadow-2xl overflow-hidden">
+          <div className="p-2 border-b border-white/[0.06]">
+            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-[8px] bg-white/[0.04] border border-white/[0.06]">
+              <Search size={12} className="text-white/30 flex-shrink-0" />
+              <input
+                autoFocus
+                type="text"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Szukaj po nazwie firmy…"
+                className="flex-1 bg-transparent text-[12px] text-white placeholder:text-white/25 focus:outline-none"
+              />
+              {loading && <Loader2 size={11} className="animate-spin text-white/30" />}
+            </div>
+          </div>
+          <div className="max-h-[280px] overflow-y-auto">
+            {leads.length === 0 && !loading && (
+              <p className="text-[12px] text-white/30 text-center py-6">Brak leadów</p>
+            )}
+            {leads.map(lead => (
+              <button
+                key={lead.id}
+                type="button"
+                onClick={() => handleSelect(lead)}
+                className="w-full flex items-start gap-3 px-4 py-3 hover:bg-white/[0.05] transition-colors text-left border-b border-white/[0.04] last:border-0"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-semibold text-white truncate">{lead.company}</p>
+                  {(lead.first_name || lead.position) && (
+                    <p className="text-[11px] text-white/40 mt-0.5 truncate">
+                      {[lead.first_name, lead.last_name].filter(Boolean).join(' ')}
+                      {lead.position && <span className="text-white/25"> · {lead.position}</span>}
+                    </p>
+                  )}
+                  {lead.company_website && (
+                    <p className="text-[10px] text-white/25 mt-0.5 truncate">{lead.company_website}</p>
+                  )}
+                </div>
+                {lead.app_status && (
+                  <span
+                    className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 mt-0.5"
+                    style={{
+                      background: `${statusColor[lead.app_status] ?? '#6b7280'}18`,
+                      color: statusColor[lead.app_status] ?? '#6b7280',
+                    }}
+                  >
+                    {lead.app_status}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
 export default function OutreachGeneratorPage() {
@@ -231,6 +380,15 @@ export default function OutreachGeneratorPage() {
   const urlInputRef = useRef<HTMLInputElement>(null)
 
   const canGenerate = companyName.trim().length >= 2 && !generating
+
+  // ── Lead Picker ──────────────────────────────────────────────────────────────
+
+  const handleLeadSelect = (lead: LeadOption) => {
+    setCompanyName(lead.company ?? '')
+    setDecisionMakerName([lead.first_name, lead.last_name].filter(Boolean).join(' '))
+    setDecisionMakerRole(lead.position ?? '')
+    setWebsiteUrl(lead.company_website ?? '')
+  }
 
   // ── Quick Fill ───────────────────────────────────────────────────────────────
 
@@ -407,6 +565,11 @@ export default function OutreachGeneratorPage() {
 
       {/* Form */}
       <div className="bg-card border border-border rounded-[16px] p-6 space-y-5">
+
+        {/* Lead Picker */}
+        <LeadPicker onSelect={handleLeadSelect} />
+
+        <div className="border-t border-white/[0.06]" />
 
         {/* Row 1: Company + Decision Maker */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
