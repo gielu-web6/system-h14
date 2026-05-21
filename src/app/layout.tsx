@@ -37,7 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* FOWT prevention — reads localStorage before React hydration */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('h14-theme');var r=document.documentElement;if(t==='arctic-executive'){r.setAttribute('data-theme','arctic-executive');r.classList.add('light');r.classList.remove('dark');}else{r.classList.add('dark');}}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('h14-theme');if(t==='arctic-executive'){document.documentElement.setAttribute('data-theme','arctic-executive');}}catch(e){}})();`,
           }}
         />
       </head>

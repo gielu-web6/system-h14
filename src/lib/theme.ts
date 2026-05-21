@@ -12,13 +12,6 @@ export function getStoredTheme(): UITheme {
 export function applyTheme(theme: UITheme) {
   const root = document.documentElement
   root.setAttribute('data-theme', theme)
-  if (theme === 'arctic-executive') {
-    root.classList.add('light')
-    root.classList.remove('dark')
-  } else {
-    root.classList.remove('light')
-    root.classList.add('dark')
-  }
   localStorage.setItem(STORAGE_KEY, theme)
 }
 
