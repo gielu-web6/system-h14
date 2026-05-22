@@ -1,9 +1,21 @@
 import { BASE_RULES, containsBannedPhrases } from './prompts/base'
 import { CHANNEL_RULES, type Channel } from './prompts/channels'
-import { MESSAGE_TYPE_PROMPTS, MESSAGE_TYPE_META, type MessageType } from './prompts/messageTypes'
+import {
+  MESSAGE_TYPE_PROMPTS,
+  MESSAGE_TYPE_META,
+  buildDm1TypePrompt,
+  buildFollowUpTypePrompt,
+  getVariantBanks,
+  getFollowUpVariantLabel,
+  FOLLOW_UP_TYPES,
+  type MessageType,
+  type FollowUpVariantCombo,
+} from './prompts/messageTypes'
+import { pickDm1Combinations, getDm1VariantLabel, type Dm1VariantCombo } from './prompts/dm1Variants'
 
 export type { Channel, MessageType }
-export { MESSAGE_TYPE_META, containsBannedPhrases }
+export { MESSAGE_TYPE_META, containsBannedPhrases, getDm1VariantLabel, getFollowUpVariantLabel }
+export type { Dm1VariantCombo, FollowUpVariantCombo }
 
 export interface OutreachInput {
   messageType: MessageType
@@ -29,14 +41,55 @@ export interface OutreachError {
   error: string
 }
 
+export interface ComposeResult {
+  systemPrompt: string
+  dm1Combos?: Dm1VariantCombo[]
+  followUpCombos?: FollowUpVariantCombo[]
+}
+
+function pickFollowUpCombinations(typ: MessageType, count: number): FollowUpVariantCombo[] {
+  const banks = getVariantBanks(typ)
+
+  const shuffle = <T>(arr: T[]): T[] => {
+    const a = [...arr]
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[a[i], a[j]] = [a[j], a[i]]
+    }
+    return a
+  }
+
+  const openings = shuffle(banks.OPENING_VARIANTS)
+  const closings = shuffle(banks.CLOSING_VARIANTS)
+
+  return Array.from({ length: count }, (_, i) => ({
+    opening_id: openings[i % openings.length].id,
+    body_id: banks.BODY_VARIANTS[i % banks.BODY_VARIANTS.length].id,
+    closing_id: closings[i % closings.length].id,
+  }))
+}
+
 export function composeSystemPrompt(
   input: OutreachInput,
   brainCtx: string,
-): string {
+): ComposeResult {
   const channelRules = CHANNEL_RULES[input.channel]
-  const typePrompt = MESSAGE_TYPE_PROMPTS[input.messageType]
   const meta = MESSAGE_TYPE_META[input.messageType]
   const count = input.variantCount ?? 3
+
+  let typePrompt: string
+  let dm1Combos: Dm1VariantCombo[] | undefined
+  let followUpCombos: FollowUpVariantCombo[] | undefined
+
+  if (input.messageType === 'dm1') {
+    dm1Combos = pickDm1Combinations(count)
+    typePrompt = buildDm1TypePrompt(dm1Combos)
+  } else if (FOLLOW_UP_TYPES.includes(input.messageType)) {
+    followUpCombos = pickFollowUpCombinations(input.messageType, count)
+    typePrompt = buildFollowUpTypePrompt(input.messageType, followUpCombos)
+  } else {
+    typePrompt = MESSAGE_TYPE_PROMPTS[input.messageType]
+  }
 
   const parts: string[] = []
 
@@ -89,7 +142,7 @@ Domyślny kąt: ${meta.angle}`)
   ]
 }`)
 
-  return parts.join('\n')
+  return { systemPrompt: parts.join('\n'), dm1Combos, followUpCombos }
 }
 
 export function validateVariant(

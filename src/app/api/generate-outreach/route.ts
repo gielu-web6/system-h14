@@ -4,6 +4,8 @@ import { buildContext } from '@/lib/company-brain/context-builder'
 import {
   composeSystemPrompt,
   validateVariant,
+  getDm1VariantLabel,
+  getFollowUpVariantLabel,
   MESSAGE_TYPE_META,
   type OutreachInput,
   type OutreachVariant,
@@ -145,7 +147,7 @@ export async function POST(req: NextRequest) {
     const brainString = brainCtx?.contextString ?? ''
 
     const openai = getOpenAI()
-    const systemPrompt = composeSystemPrompt(input, brainString)
+    const { systemPrompt, dm1Combos, followUpCombos } = composeSystemPrompt(input, brainString)
 
     const userPrompt = `Wygeneruj 3 zróżnicowane warianty wiadomości dla:
 Firma: ${input.companyName}
@@ -175,6 +177,28 @@ Typ: ${MESSAGE_TYPE_META[input.messageType].label}`
     const { warianty, _warned } = variantsResult.status === 'fulfilled'
       ? variantsResult.value
       : { warianty: [], _warned: true }
+
+    if (input.messageType === 'dm1' && dm1Combos && warianty.length > 0) {
+      warianty.forEach((v, i) => {
+        const combo = dm1Combos[i]
+        if (combo) {
+          const labels = getDm1VariantLabel(combo)
+          v.katAtaku = labels.katAtaku
+          v.notatkaHandlowca = labels.notatkaHandlowca
+        }
+      })
+    }
+
+    if (followUpCombos && warianty.length > 0) {
+      warianty.forEach((v, i) => {
+        const combo = followUpCombos[i]
+        if (combo) {
+          const labels = getFollowUpVariantLabel(input.messageType, combo)
+          v.katAtaku = labels.katAtaku
+          v.notatkaHandlowca = labels.notatkaHandlowca
+        }
+      })
+    }
 
     let icpAnalysis: { score: number; fit: string; reason: string; pain_point: string } | null = null
     if (icpRes.status === 'fulfilled') {

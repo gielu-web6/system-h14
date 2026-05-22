@@ -1,3 +1,67 @@
+import {
+  OPENING_VARIANTS,
+  EASY_OUT_VARIANTS,
+  MIDDLE_TONE_VARIANTS,
+  type Dm1VariantCombo,
+} from './dm1Variants'
+import * as fu1 from './fu1Variants'
+import * as fu2 from './fu2Variants'
+import * as fu3 from './fu3Variants'
+import * as fu4 from './fu4Variants'
+import * as fu5 from './fu5Variants'
+import * as poOfercie from './poOfercieVariants'
+import * as reengagement from './reengagementVariants'
+
+export function buildDm1TypePrompt(combos: Dm1VariantCombo[]): string {
+  const variantSpecs = combos.map((combo, i) => {
+    const opening = OPENING_VARIANTS.find(v => v.id === combo.opening_id)!
+    const easyOut = EASY_OUT_VARIANTS.find(v => v.id === combo.easy_out_id)!
+    const tone = MIDDLE_TONE_VARIANTS.find(v => v.id === combo.middle_tone_id)!
+    return `WARIANT ${i + 1}:
+  Otwarcie (użyj słowo w słowo): "${opening.template}"
+  Ton środka: ${tone.instruction}
+  Zakończenie (użyj słowo w słowo): "${easyOut.template}"`
+  }).join('\n\n')
+
+  return `TYP WIADOMOŚCI: DM #1 — Icebreaker (Dzień 1)
+
+OBOWIĄZKOWA STRUKTURA dla każdego wariantu (ta kolejność):
+1. POWITANIE: "Cześć {imie},"
+2. PATTERN INTERRUPT: otwarcie przypisane do wariantu (po powitaniu, osobna linijka)
+3. KONTEKST FIRMY (1 zdanie): odniesienie do branży lub obserwacji
+4. OPIS PRODUKTU + COMPANY BRAIN (2-3 zdania): system operacyjny dla agencji,
+   zastępuje HubSpot/Make/DocSend/Excel, czas pracy z godzin do minut.
+   Następnie OBOWIĄZKOWO zdanie z "Company Brain" — nasze AI, które uczy się
+   Waszej firmy z plików o Was i pisze maile oraz oferty jak pracownik z dwuletnim
+   stażem, nie jak generyczny ChatGPT. Dostosuj ton do przypisanego stylu.
+5. SCARCITY + RISK REVERSAL (1-2 zdania): wczesna cena dla pierwszych klientów
+   (znacząco niższa, na stałe) + bezpośredni kontakt do mnie, nie do supportu.
+6. EASY OUT: zakończenie przypisane do wariantu (osobna linijka)
+7. PODPIS: {wysylajacy}
+
+PRZYPISANIE OTWARĆ, TONÓW I ZAKOŃCZEŃ DO WARIANTÓW:
+
+${variantSpecs}
+
+WAŻNE:
+- Użyj DOKŁADNIE przypisanego otwarcia i zakończenia dla każdego wariantu (słowo w słowo)
+- Dostosuj TON ŚRODKA (punkty 3-5) do stylu opisanego dla danego wariantu
+- "Company Brain" MUSI być w każdym wariancie (kapitalizacja, bez tłumaczeń)
+- NIE WSTAWIAJ ŻADNYCH LINKÓW`
+}
+
+export interface FollowUpVariantCombo {
+  opening_id: string
+  body_id: string
+  closing_id: string
+}
+
+export interface FollowUpVariantBanks {
+  OPENING_VARIANTS: Array<{ id: string; template: string; psychology: string }>
+  BODY_VARIANTS: Array<{ id: string; instruction: string }>
+  CLOSING_VARIANTS: Array<{ id: string; template: string; psychology: string }>
+}
+
 export type MessageType =
   | 'dm1'
   | 'fu1'
@@ -197,4 +261,61 @@ STRUKTURA:
 ZASADA: Wracasz TYLKO Z KONKRETEM. Jeśli pole kontekst jest puste,
 zwróć odpowiedź z samym komunikatem:
 {"error": "Brak kontekstu reaktywacji — uzupełnij pole Kontekst przed generowaniem re-engagement."}`,
+}
+
+export const FOLLOW_UP_TYPES: MessageType[] = ['fu1', 'fu2', 'fu3', 'fu4', 'fu5', 'po_ofercie', 'reengagement']
+
+export function getVariantBanks(typ: MessageType): FollowUpVariantBanks {
+  switch (typ) {
+    case 'fu1': return { OPENING_VARIANTS: fu1.FU1_OPENING_VARIANTS, BODY_VARIANTS: fu1.FU1_BODY_VARIANTS, CLOSING_VARIANTS: fu1.FU1_CLOSING_VARIANTS }
+    case 'fu2': return { OPENING_VARIANTS: fu2.FU2_OPENING_VARIANTS, BODY_VARIANTS: fu2.FU2_BODY_VARIANTS, CLOSING_VARIANTS: fu2.FU2_CLOSING_VARIANTS }
+    case 'fu3': return { OPENING_VARIANTS: fu3.FU3_OPENING_VARIANTS, BODY_VARIANTS: fu3.FU3_BODY_VARIANTS, CLOSING_VARIANTS: fu3.FU3_CLOSING_VARIANTS }
+    case 'fu4': return { OPENING_VARIANTS: fu4.FU4_OPENING_VARIANTS, BODY_VARIANTS: fu4.FU4_BODY_VARIANTS, CLOSING_VARIANTS: fu4.FU4_CLOSING_VARIANTS }
+    case 'fu5': return { OPENING_VARIANTS: fu5.FU5_OPENING_VARIANTS, BODY_VARIANTS: fu5.FU5_BODY_VARIANTS, CLOSING_VARIANTS: fu5.FU5_CLOSING_VARIANTS }
+    case 'po_ofercie': return { OPENING_VARIANTS: poOfercie.PO_OFERCIE_OPENING_VARIANTS, BODY_VARIANTS: poOfercie.PO_OFERCIE_BODY_VARIANTS, CLOSING_VARIANTS: poOfercie.PO_OFERCIE_CLOSING_VARIANTS }
+    case 'reengagement': return { OPENING_VARIANTS: reengagement.REENGAGEMENT_OPENING_VARIANTS, BODY_VARIANTS: reengagement.REENGAGEMENT_BODY_VARIANTS, CLOSING_VARIANTS: reengagement.REENGAGEMENT_CLOSING_VARIANTS }
+    default: throw new Error(`Nieznany typ wiadomości dla banków wariantów: ${typ}`)
+  }
+}
+
+export function buildFollowUpTypePrompt(typ: MessageType, combos: FollowUpVariantCombo[]): string {
+  const banks = getVariantBanks(typ)
+  const meta = MESSAGE_TYPE_META[typ]
+
+  const variantSpecs = combos.map((combo, i) => {
+    const opening = banks.OPENING_VARIANTS.find(v => v.id === combo.opening_id)!
+    const body = banks.BODY_VARIANTS.find(v => v.id === combo.body_id)!
+    const closing = banks.CLOSING_VARIANTS.find(v => v.id === combo.closing_id)!
+    return `WARIANT ${i + 1}:
+  Otwarcie (użyj słowo w słowo, podstawiając {decydent_imie}/{branza}/{nazwa_firmy}/{nowy_haczyk} z DANYCH LEADA):
+  "${opening.template}"
+  Styl korpusu: ${body.instruction}
+  Zamknięcie (użyj słowo w słowo, podstawiając zmienne):
+  "${closing.template}"`
+  }).join('\n\n')
+
+  return `TYP WIADOMOŚCI: ${meta.label} (${meta.day})
+
+KĄT STRATEGICZNY (zachowany dla wszystkich wariantów): ${meta.angle}
+
+OBOWIĄZKOWA STRUKTURA dla każdego wariantu (ta kolejność):
+1. OTWARCIE: przypisane do wariantu (podstaw zmienne z DANYCH LEADA)
+2. KORPUS: wg instrukcji stylu przypisanego do wariantu
+3. ZAMKNIĘCIE: przypisane do wariantu (podstaw zmienne)
+4. PODPIS: wartość z pola "Podpisuje się"
+
+PRZYPISANIE OTWARĆ, STYLÓW KORPUSU I ZAMKNIĘĆ DO WARIANTÓW:
+
+${variantSpecs}`
+}
+
+export function getFollowUpVariantLabel(typ: MessageType, combo: FollowUpVariantCombo): { katAtaku: string; notatkaHandlowca: string } {
+  const banks = getVariantBanks(typ)
+  const opening = banks.OPENING_VARIANTS.find(v => v.id === combo.opening_id)
+  const body = banks.BODY_VARIANTS.find(v => v.id === combo.body_id)
+  const closing = banks.CLOSING_VARIANTS.find(v => v.id === combo.closing_id)
+  return {
+    katAtaku: `${combo.opening_id} + ${combo.body_id} + ${combo.closing_id}`,
+    notatkaHandlowca: `Profil: ${opening?.psychology ?? ''}. Styl: ${body?.id ?? ''}. Zakończenie: ${closing?.psychology ?? ''}.`,
+  }
 }
