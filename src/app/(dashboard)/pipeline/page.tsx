@@ -584,6 +584,28 @@ export default function PipelinePage() {
     setDeals(prev => prev.map(d => d.id === id ? { ...d, stage } : d))
     setSelectedDeal(prev => prev?.id === id ? { ...prev, stage } : prev)
 
+    // Auto-create income entry when deal is won
+    if (stage === 'wygrana' && deal?.value) {
+      const net = deal.value
+      const vatRate = 23
+      const vatAmount = Math.round(net * vatRate / 100 * 100) / 100
+      const grossAmount = Math.round((net + vatAmount) * 100) / 100
+      supabase.from('app_income').upsert({
+        deal_id: id,
+        client: deal.title,
+        project: deal.title,
+        amount: net,
+        vat_rate: vatRate,
+        vat_amount: vatAmount,
+        gross_amount: grossAmount,
+        net_profit: net,
+        type: 'faktura',
+        status: 'oczekująca',
+        date: new Date().toISOString().slice(0, 10),
+        from_invoice: false,
+      }, { onConflict: 'deal_id', ignoreDuplicates: true }).then()
+    }
+
     // Fire Telegram alerts (fire-and-forget)
     if (deal) {
       if (stage === 'wygrana') {

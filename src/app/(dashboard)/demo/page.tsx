@@ -192,13 +192,13 @@ export default function DashboardPage() {
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
 
       try {
-        const [leadsRes, dealsRes, incomeRes] = await Promise.all([
+        const [leadsRes, dealsRes, wonRes] = await Promise.all([
           supabase.from('leads').select('id', { count: 'exact', head: true }).gte('created_at', monthStart),
           supabase.from('deals').select('id', { count: 'exact', head: true }).not('stage', 'in', '("wygrana","przegrana","nie_teraz")'),
-          supabase.from('income').select('paid_amount').eq('status', 'oplacona').gte('paid_date', monthStart.slice(0, 10)),
+          supabase.from('deals').select('value').eq('stage', 'wygrana').gte('won_at', monthStart),
         ])
-        const revenue = (incomeRes.data ?? []).reduce(
-          (sum: number, row: { paid_amount: number | null }) => sum + (row.paid_amount ?? 0), 0
+        const revenue = (wonRes.data ?? []).reduce(
+          (sum: number, row: { value: number | null }) => sum + (row.value ?? 0), 0
         )
         setKpi({ leadsThisMonth: leadsRes.count ?? 0, activeDeals: dealsRes.count ?? 0, revenueThisMonth: revenue })
       } catch {
@@ -237,7 +237,7 @@ export default function DashboardPage() {
     { label: 'Leady / miesiąc',   value: kpiLoading ? '…' : String(kpi.leadsThisMonth),      icon: Users,         color: '#60a5fa', href: '/leads',    sub: 'dodane w tym miesiącu' },
     { label: 'Aktywne deale',     value: kpiLoading ? '…' : String(kpi.activeDeals),          icon: TrendingUp,    color: '#30c060', href: '/pipeline', sub: 'w toku (bez zakończonych)' },
     { label: 'Reply rate',        value: replyRateValue,                                       icon: MessageSquare, color: '#f0a040', href: '/outreach', sub: isDemo ? 'ze wszystkich wiadomości' : 'wkrótce dostępne' },
-    { label: 'Przychód miesiąc',  value: kpiLoading ? '…' : formatPLN(kpi.revenueThisMonth), icon: DollarSign,    color: '#00c8be', href: '/finance',  sub: 'opłacone faktury' },
+    { label: 'Przychód miesiąc',  value: kpiLoading ? '…' : formatPLN(kpi.revenueThisMonth), icon: DollarSign,    color: '#00c8be', href: '/finance',  sub: 'wygrane deale (ten miesiąc)' },
   ]
 
   const goalRevenue = isDemo ? DEMO_KPI.monthlyGoal : 0
@@ -364,7 +364,7 @@ export default function DashboardPage() {
         </div>
         <div className="flex items-center justify-between mt-2">
           <span className="text-[11px] text-subtle">
-            {isDemo ? `${formatPLN(kpi.revenueThisMonth)} z ${formatPLN(goalRevenue)} celu` : 'Dodaj przychód w zakładce Finanse'}
+            {isDemo ? `${formatPLN(kpi.revenueThisMonth)} z ${formatPLN(goalRevenue)} celu` : 'Wygrane deale — pipeline'}
           </span>
           <Link href="/finance" className="text-[11px] text-accent/60 hover:text-accent transition-colors">Przejdź →</Link>
         </div>
