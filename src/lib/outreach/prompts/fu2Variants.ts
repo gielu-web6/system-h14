@@ -1,42 +1,52 @@
 export const FU2_OPENING_VARIANTS = [
   {
-    id: 'nic_nie_chce',
-    template: 'Cześć {decydent_imie},\n\nDziś nic od Ciebie nie chcę — chcę tylko podzielić się obserwacją, którą widzę u 9 na 10 agencji {branza}.',
-    psychology: 'Najmocniejszy pattern interrupt w sekwencji. Klient czyta, bo nikt nigdy nie pisze że nic nie chce.',
+    id: 'pytanie_diagnostyczne',
+    szkola: 'PYTANIE',
+    template: 'Cześć {decydent_imie},\n\nCzy zauważyłeś, że w {branza} prawie wszystkie firmy mają ten sam problem — ale prawie żadna go nie nazywa głośno?',
+    psychology: 'Pytanie + sugestia że dotykasz tabu. Klient musi przeczytać dalej.',
   },
   {
-    id: 'bez_pytania',
-    template: 'Cześć {decydent_imie},\n\nDziś bez pytania — tylko jedna myśl, która może Ci się przydać niezależnie czy będziemy pracować razem.',
-    psychology: 'Wyraźnie sygnalizuje brak presji. Słowo "myśl" obniża próg.',
+    id: 'teza_o_branzy',
+    szkola: 'TEZA',
+    template: 'Cześć {decydent_imie},\n\nWiększość firm w {branza} myli "brak klientów" z "brak czasu na klientów" — i to drugie kosztuje znacznie więcej.',
+    psychology: 'Mocna teza prowokacyjna. Klient testuje na własnej firmie.',
   },
   {
-    id: 'dziele_sie',
-    template: 'Cześć {decydent_imie},\n\nDziś nie sprzedaję — dzielę się rzeczą, którą widzę u 9 na 10 agencji {branza}.',
-    psychology: 'Otwarte przyznanie "nie sprzedaję" rozbraja czujność.',
+    id: 'fakt_9_na_10',
+    szkola: 'LICZBA',
+    template: 'Cześć {decydent_imie},\n\n9 na 10 firm w {branza} z którymi rozmawiam ma ten sam problem — i prawie żadna nie nazywa go po imieniu.',
+    psychology: 'Konkretna proporcja. CEO sprawdza czy jest jednym z 9 czy 10-tym.',
   },
   {
-    id: 'obietnica_zero_pytania',
-    template: 'Cześć {decydent_imie},\n\nObiecuję — dziś żadnego pytania na końcu. Tylko obserwacja, która może Ci się przydać.',
-    psychology: 'Lekki humor i zaskoczenie (kto obiecuje brak pytania?). Wyróżnia się.',
+    id: 'u_was_obserwacja',
+    szkola: 'SYTUACJA',
+    template: 'Cześć {decydent_imie},\n\nU firm wielkości {nazwa_firmy} widzę często jedną rzecz, której nikt nie chce powiedzieć głośno.',
+    psychology: 'Personalizacja + intryga. Klient czyta żeby się dowiedzieć "co".',
+  },
+  {
+    id: 'dzis_bez_pytania',
+    szkola: 'OBSERWACJA',
+    template: 'Cześć {decydent_imie},\n\nDziś nic od Ciebie nie chcę — chcę tylko podzielić się obserwacją, którą widzę u 9 na 10 firm w {branza}.',
+    psychology: 'Mocny pattern interrupt przez deklarację "nic nie chcę". Klasyk Godina.',
   },
 ]
 
 export const FU2_BODY_VARIANTS = [
   {
-    id: 'tempo_odpowiedzi',
-    instruction: 'Insight o tempie odpowiedzi: agencje myślą że problem to brak leadów, a problem to tempo (lead pisze w środę, handlowiec odpisuje w piątek, lead idzie do konkurencji). Zakończ zdaniem "To nie problem liczby leadów. To problem tempa odpowiedzi."',
+    id: 'tempo_vs_liczba',
+    instruction: 'Insight o tempie odpowiedzi vs liczbie leadów. Firmy myślą że problem to za mało leadów, a problem to TEMPO ich obsługi (lead pisze w środę, odpisują w piątek, lead już rozmawia z konkurencją). Zakończ zdaniem "To nie problem liczby. To problem tempa." NIE WSPOMINAJ o produkcie ani rozwiązaniu — to wiadomość czysto edukacyjna.',
   },
   {
     id: 'wlasciciel_blokuje',
-    instruction: 'Insight o właścicielu jako wąskim gardle (bez używania słów "wąskie gardło"!): agencje próbują skalować, ale wszystko musi przejść przez głowę właściciela. Każda decyzja, każda oferta, każdy mail. Zakończ zdaniem "Firma rośnie tylko tak szybko, jak szybko Ty zdążysz wszystko ogarnąć."',
+    instruction: 'Insight o tym że firma rośnie tylko tak szybko jak właściciel zdąży wszystko ogarnąć. Każda decyzja, każda oferta, każdy ważniejszy mail przechodzi przez jego głowę. To powolnia rozwój. NIE WSPOMINAJ produktu — to obserwacja branżowa, nie sprzedaż.',
   },
   {
     id: 'oferty_template',
-    instruction: 'Insight o ofertach: większość agencji wysyła oferty które wyglądają jak template, bo nie ma czasu na personalizację. Klient czyta i myśli "to samo dostałem od 5 innych firm". Zakończ zdaniem "Generyczna oferta to drogi sposób, żeby przegrać z tańszą konkurencją."',
+    instruction: 'Insight o ofertach które wyglądają jak template — klient czyta "to samo dostał od 5 innych firm" i wybiera po cenie. Generyczna oferta to droga przegrana. NIE WSPOMINAJ produktu — to insight o branży.',
   },
 ]
 
-// KRYTYCZNE: żadne z tych zakończeń NIE może być pytaniem ani CTA.
+// KRYTYCZNE: żadne z tych zakończeń NIE może zawierać znaku zapytania ani CTA.
 export const FU2_CLOSING_VARIANTS = [
   {
     id: 'bez_pretensji',
@@ -44,18 +54,23 @@ export const FU2_CLOSING_VARIANTS = [
     psychology: 'Klasyk Godina. Daje wartość bez prośby. Klient czuje że nie sprzedajesz.',
   },
   {
-    id: 'po_prostu_warto',
+    id: 'warto_powiedziec',
     template: 'Po prostu warto było to powiedzieć — dla Was lub przeciw Wam.',
-    psychology: 'Lekko żartobliwie. Pokazuje że jesteś po stronie klienta, niezależnie od deala.',
+    psychology: 'Lekko żartobliwie. Pokazuje że jesteś po stronie klienta niezależnie od deala.',
   },
   {
-    id: 'na_przyszlosc',
+    id: 'wrzucam_jako',
     template: 'Wrzucam to jako rzecz do przemyślenia. Nic nie musisz z tym robić.',
     psychology: 'Najbardziej luźne zakończenie. Zero presji, czysta wartość.',
   },
   {
     id: 'zostawiam_z_tym',
     template: 'Zostawiam Cię z tą myślą. Jeśli coś z tego wynika — wiesz gdzie mnie znaleźć.',
-    psychology: 'Daje subtelne "drzwi otwarte" bez nachalności.',
+    psychology: 'Subtelne "drzwi otwarte" bez nachalności.',
+  },
+  {
+    id: 'spoko_jesli',
+    template: 'Spoko jeśli to dla Was oczywiste — chciałem mieć pewność że o tym wiesz.',
+    psychology: 'Pochlebia klientowi (zakłada że może już to wie). Niski próg ego.',
   },
 ]

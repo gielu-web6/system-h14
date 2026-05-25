@@ -1,7 +1,6 @@
 import { BASE_RULES, containsBannedPhrases } from './prompts/base'
 import { CHANNEL_RULES, type Channel } from './prompts/channels'
 import {
-  MESSAGE_TYPE_PROMPTS,
   MESSAGE_TYPE_META,
   buildDm1TypePrompt,
   buildFollowUpTypePrompt,
@@ -28,6 +27,9 @@ export interface OutreachInput {
   context?: string
   wysylajacy?: string
   variantCount?: number
+  productName?: string   // wyciągany z Company Brain (dna.company_name)
+  assetCta?: string      // co wysyłamy jako asset (wideo/PDF/demo)
+  scarcity?: string      // scarcity lub oferta specjalna
 }
 
 export interface OutreachVariant {
@@ -35,6 +37,7 @@ export interface OutreachVariant {
   tresc: string
   katAtaku: string
   notatkaHandlowca?: string
+  szkola_otwarcia?: string
 }
 
 export interface OutreachError {
@@ -47,6 +50,7 @@ export interface ComposeResult {
   followUpCombos?: FollowUpVariantCombo[]
 }
 
+// Wybiera count kombinacji gwarantując RÓŻNE szkoły narracyjne dla każdego wariantu
 function pickFollowUpCombinations(typ: MessageType, count: number): FollowUpVariantCombo[] {
   const banks = getVariantBanks(typ)
 
@@ -59,12 +63,30 @@ function pickFollowUpCombinations(typ: MessageType, count: number): FollowUpVari
     return a
   }
 
-  const openings = shuffle(banks.OPENING_VARIANTS)
-  const closings = shuffle(banks.CLOSING_VARIANTS)
+  // Grupuj otwarcia po szkołach narracyjnych
+  const openingsByShkola = new Map<string, typeof banks.OPENING_VARIANTS>()
+  banks.OPENING_VARIANTS.forEach(v => {
+    const key = v.szkola ?? 'INNE'
+    if (!openingsByShkola.has(key)) openingsByShkola.set(key, [])
+    openingsByShkola.get(key)!.push(v)
+  })
+
+  // Wybierz count RÓŻNYCH szkół (jeśli jest mniej szkół niż count — recykling)
+  const allSzkoly = shuffle(Array.from(openingsByShkola.keys()))
+  const selectedSzkoly = Array.from({ length: count }, (_, i) => allSzkoly[i % allSzkoly.length])
+
+  // Z każdej wybranej szkoły losuj jedno otwarcie
+  const openings = selectedSzkoly.map(szkola => {
+    const pool = openingsByShkola.get(szkola)!
+    return pool[Math.floor(Math.random() * pool.length)]
+  })
+
+  const closings = shuffle(banks.CLOSING_VARIANTS).slice(0, count)
+  const bodiesShuffled = shuffle(banks.BODY_VARIANTS)
 
   return Array.from({ length: count }, (_, i) => ({
-    opening_id: openings[i % openings.length].id,
-    body_id: banks.BODY_VARIANTS[i % banks.BODY_VARIANTS.length].id,
+    opening_id: openings[i].id,
+    body_id: bodiesShuffled[i % bodiesShuffled.length].id,
     closing_id: closings[i % closings.length].id,
   }))
 }
@@ -76,6 +98,9 @@ export function composeSystemPrompt(
   const channelRules = CHANNEL_RULES[input.channel]
   const meta = MESSAGE_TYPE_META[input.messageType]
   const count = input.variantCount ?? 3
+  const productName = input.productName || 'nasz produkt'
+  const assetCta = input.assetCta || 'krótki materiał informacyjny'
+  const scarcity = input.scarcity || ''
 
   let typePrompt: string
   let dm1Combos: Dm1VariantCombo[] | undefined
@@ -83,12 +108,12 @@ export function composeSystemPrompt(
 
   if (input.messageType === 'dm1') {
     dm1Combos = pickDm1Combinations(count)
-    typePrompt = buildDm1TypePrompt(dm1Combos)
+    typePrompt = buildDm1TypePrompt(dm1Combos, productName)
   } else if (FOLLOW_UP_TYPES.includes(input.messageType)) {
     followUpCombos = pickFollowUpCombinations(input.messageType, count)
-    typePrompt = buildFollowUpTypePrompt(input.messageType, followUpCombos)
+    typePrompt = buildFollowUpTypePrompt(input.messageType, followUpCombos, productName, assetCta, scarcity)
   } else {
-    typePrompt = MESSAGE_TYPE_PROMPTS[input.messageType]
+    typePrompt = ''
   }
 
   const parts: string[] = []
@@ -110,23 +135,23 @@ export function composeSystemPrompt(
 - Firma: ${input.companyName}
 - Imię decydenta: ${input.decisionMakerName || 'nieznane'}
 - Stanowisko: ${input.decisionMakerRole || 'nieznane'}
-- Branża: ${input.industry || 'agencja marketingowa'}
+- Branża: ${input.industry || 'nieznana'}
 - Obserwacje: ${input.observations || '(brak — wygeneruj na podstawie branży)'}
 - Kontekst dodatkowy: ${input.context || '(brak)'}
 - Podpisuje się: ${input.wysylajacy || 'Maciek'}`)
   parts.push('')
   parts.push(`ZADANIE: Wygeneruj dokładnie ${count} ZRÓŻNICOWANE warianty tej wiadomości.
-Każdy wariant musi mieć INNY KĄT ATAKU (np. ból finansowy / mechanizm techniczny / ryzyko / okazja),
-ale WSZYSTKIE warianty muszą się trzymać struktury opisanej powyżej dla tego typu wiadomości.
+Każdy wariant musi mieć INNĄ SZKOŁĘ NARRACYJNĄ otwarcia i INNY styl zaangażowania.
+Trzymaj się struktury przypisanej do każdego wariantu.
 
 Typ wiadomości: ${meta.label} (${meta.day})
-Domyślny kąt: ${meta.angle}`)
+Kąt strategiczny: ${meta.angle}`)
 
   if (meta.noCta) {
     parts.push('KRYTYCZNE: Ta wiadomość NIE MA CTA. Żadnego pytania, żadnego linku, żadnej prośby na końcu. To jest celowe.')
   }
   if (meta.threeOptions) {
-    parts.push('KRYTYCZNE: Ta wiadomość MUSI mieć dokładnie 3 opcje na końcu w formacie numerowanym.')
+    parts.push('KRYTYCZNE: Ta wiadomość MUSI mieć dokładnie 3 opcje na końcu w formacie numerowanym lub jako punkty.')
   }
 
   parts.push('')
@@ -156,9 +181,13 @@ export function validateVariant(
     issues.push('zawiera zakazane frazy')
   }
 
-  const requiresBrainMention = ['dm1', 'fu1', 'fu3', 'fu4', 'fu5', 'reengagement'].includes(input.messageType)
-  if (requiresBrainMention && !text.includes('Company Brain')) {
-    issues.push('brak "Company Brain"')
+  // Sprawdź że nazwa produktu pojawia się w treści (poza FU#2 który jest czysto edukacyjny)
+  const productName = input.productName
+  const requiresProductMention = ['dm1', 'fu1', 'fu3', 'fu4', 'fu5', 'reengagement'].includes(input.messageType)
+  if (requiresProductMention && productName && productName !== 'nasz produkt') {
+    if (!text.includes(productName)) {
+      issues.push(`brak nazwy produktu "${productName}"`)
+    }
   }
 
   if (input.messageType === 'fu2' && /\?/.test(text.split('\n').slice(-3).join('\n'))) {
@@ -166,8 +195,15 @@ export function validateVariant(
   }
 
   if (input.messageType === 'fu4') {
-    const optionCount = (text.match(/^\s*[123]\./gm) || []).length
+    const optionCount = (text.match(/^\s*[123]\.|^\s*[•→]/gm) || []).length
     if (optionCount < 3) issues.push('FU#4 musi mieć dokładnie 3 opcje')
+  }
+
+  if (input.messageType === 'fu5') {
+    const scarcyFrazy = ['ostatnia szansa', 'kończy się', 'wracam za miesiąc']
+    scarcyFrazy.forEach(f => {
+      if (text.toLowerCase().includes(f)) issues.push(`FU#5 zawiera scarcity: "${f}"`)
+    })
   }
 
   if (input.messageType === 'dm1' && /https?:\/\//.test(text)) {

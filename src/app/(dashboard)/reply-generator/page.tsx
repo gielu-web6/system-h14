@@ -315,7 +315,7 @@ export default function ReplyGeneratorPage() {
           {result._demo && (
             <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-[10px] bg-amber-500/8 border border-amber-500/20 text-amber-400 text-[12px]">
               <AlertCircle size={13} className="flex-shrink-0" />
-              <span>Tryb demo — repliki są przykładowe. Dodaj <code className="bg-white/10 px-1 py-0.5 rounded text-[11px]">ANTHROPIC_API_KEY</code> aby generować spersonalizowane odpowiedzi.</span>
+              <span>Tryb demo — repliki są przykładowe. Dodaj <code className="bg-white/10 px-1 py-0.5 rounded text-[11px]">OPENAI_API_KEY</code> aby generować spersonalizowane odpowiedzi.</span>
             </div>
           )}
 
