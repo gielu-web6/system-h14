@@ -30,5 +30,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "amcreatorsystem"]
+  "exclude": ["node_modules", "amcreatorsystem", "src/**/__tests__/**"]
 }

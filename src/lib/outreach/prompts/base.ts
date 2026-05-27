@@ -55,6 +55,12 @@ ZASADY KTÓRYCH NIE ŁAMIESZ:
 10. PODPIS: tylko imię osoby wysyłającej. Bez tytułów, bez stopki firmowej.`
 
 export const BANNED_PHRASES = [
+  // FU#2 v1 problem phrases — removed from variant banks in v2 hotfix, but
+  // keeping here as a hard stop in case they somehow surface in LLM output
+  'Dziś nic od Ciebie nie chcę',
+  'u 9 na 10',
+  '9 na 10 firm',
+  'dziewięciu na dziesięć',
   'Pozwól, że się przedstawię',
   'Kompleksowe rozwiązanie',
   'Mam nadzieję, że',

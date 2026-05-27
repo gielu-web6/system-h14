@@ -5,13 +5,12 @@ import Link from 'next/link'
 import {
   Users, TrendingUp, MessageSquare, DollarSign, Target,
   ArrowUpRight, PlusCircle, MessageCircle, ReceiptText,
-  ChevronRight, Clock, Zap, BookOpen, CheckSquare,
-  Square, Plus, X, Share2, Trash2, Check, Brain, Timer,
+  ChevronRight, Clock, Zap, BookOpen, Brain, Timer,
 } from 'lucide-react'
 import { useAppUser } from '@/contexts/UserContext'
 import { createClient } from '@/lib/supabase/client'
-import { useTasks } from '@/hooks/useTasks'
 import { isDemoMode } from '@/lib/userStore'
+import { TasksWidget } from '@/components/dashboard/TasksWidget'
 import { DEMO_KPI, DEMO_PNL } from '@/lib/demo-data'
 
 interface KpiData {
@@ -30,138 +29,6 @@ interface RoiData {
 function formatPLN(value: number): string {
   if (value >= 1000) return (value / 1000).toFixed(0) + ' tys. PLN'
   return value + ' PLN'
-}
-
-// ─── Tasks Widget ─────────────────────────────────────────────────────────────
-
-function TasksWidget() {
-  const { tasks, loading, create, toggle, remove } = useTasks()
-  const [newTitle, setNewTitle] = useState('')
-  const [shareWithMaciek, setShareWithMaciek] = useState(false)
-  const [adding, setAdding] = useState(false)
-
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newTitle.trim()) return
-    setAdding(true)
-    await create({
-      title: newTitle.trim(),
-      assigned_to: shareWithMaciek ? 'maciek' : undefined,
-      due_date: new Date().toISOString().slice(0, 10),
-    })
-    setNewTitle('')
-    setShareWithMaciek(false)
-    setAdding(false)
-  }
-
-  const pending = tasks.filter(t => !t.completed)
-  const done    = tasks.filter(t => t.completed)
-
-  return (
-    <div className="bg-card border border-border rounded-[12px] p-5 flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        <CheckSquare size={14} className="text-accent" />
-        <p className="text-[13.5px] font-semibold text-fg">Zadania na dziś</p>
-        {pending.length > 0 && (
-          <span className="px-1.5 py-0.5 rounded-full bg-accent/10 text-accent text-[10px] font-bold num">
-            {pending.length}
-          </span>
-        )}
-      </div>
-
-      <form onSubmit={handleAdd} className="space-y-2">
-        <div className="flex items-center gap-2">
-          <input
-            value={newTitle}
-            onChange={e => setNewTitle(e.target.value)}
-            placeholder="+ Dodaj zadanie na dziś…"
-            className="flex-1 px-3 py-2 rounded-[8px] bg-raised border border-border text-fg text-[12.5px]
-              placeholder:text-subtle focus:outline-none focus:border-accent/50 transition-colors"
-          />
-          <button
-            type="submit"
-            disabled={adding || !newTitle.trim()}
-            className="flex-shrink-0 px-3 py-2 rounded-[8px] bg-accent text-bg text-[12px] font-bold
-              disabled:opacity-30 hover:opacity-90 transition-opacity"
-          >
-            {adding ? '…' : <Plus size={15} />}
-          </button>
-        </div>
-        {newTitle.trim() && (
-          <label className="flex items-center gap-2 cursor-pointer px-1">
-            <button
-              type="button"
-              onClick={() => setShareWithMaciek(v => !v)}
-              className={`w-4 h-4 rounded-[4px] border flex items-center justify-center flex-shrink-0 transition-all
-                ${shareWithMaciek ? 'bg-info border-info' : 'bg-raised border-border'}`}
-            >
-              {shareWithMaciek && <Check size={9} className="text-bg" />}
-            </button>
-            <span className="flex items-center gap-1 text-[11.5px] text-muted">
-              <Share2 size={10} className="text-info" />
-              Udostępnij Maćkowi
-            </span>
-          </label>
-        )}
-      </form>
-
-      {loading ? (
-        <div className="py-4 text-center text-[12px] text-subtle">Ładowanie…</div>
-      ) : tasks.length === 0 ? (
-        <p className="text-center text-[12px] text-subtle py-2">Brak zadań — wpisz coś powyżej</p>
-      ) : (
-        <div className="space-y-1 max-h-[340px] overflow-y-auto">
-          {pending.map(task => (
-            <div key={task.id}
-              className="flex items-start gap-2.5 p-2.5 rounded-[8px] bg-raised hover:bg-raised/80 group transition-colors">
-              <button
-                onClick={() => void toggle(task.id)}
-                className="flex-shrink-0 mt-0.5 text-subtle hover:text-accent transition-colors"
-              >
-                <Square size={14} />
-              </button>
-              <div className="flex-1 min-w-0">
-                <p className="text-[12.5px] text-fg leading-tight">{task.title}</p>
-                {task.assigned_to === 'maciek' && (
-                  <span className="inline-flex items-center gap-1 mt-1 text-[10px] text-info/70">
-                    <Share2 size={9} /> Udostępnione Maćkowi
-                  </span>
-                )}
-              </div>
-              <button
-                onClick={() => void remove(task.id)}
-                className="flex-shrink-0 opacity-0 group-hover:opacity-100 text-subtle hover:text-danger transition-all p-0.5"
-              >
-                <X size={12} />
-              </button>
-            </div>
-          ))}
-          {done.length > 0 && (
-            <div className="pt-1 mt-1 border-t border-border">
-              <p className="section-label px-1 mb-1.5">Ukończone ({done.length})</p>
-              {done.map(task => (
-                <div key={task.id} className="flex items-start gap-2.5 p-2 rounded-[8px] group">
-                  <button
-                    onClick={() => void toggle(task.id)}
-                    className="flex-shrink-0 mt-0.5 text-accent/40 hover:text-accent transition-colors"
-                  >
-                    <CheckSquare size={14} />
-                  </button>
-                  <p className="flex-1 text-[12px] text-subtle line-through leading-tight">{task.title}</p>
-                  <button
-                    onClick={() => void remove(task.id)}
-                    className="flex-shrink-0 opacity-0 group-hover:opacity-100 text-subtle hover:text-danger transition-all p-0.5"
-                  >
-                    <Trash2 size={11} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  )
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────

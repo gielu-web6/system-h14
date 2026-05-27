@@ -170,6 +170,92 @@ Kąt strategiczny: ${meta.angle}`)
   return { systemPrompt: parts.join('\n'), dm1Combos, followUpCombos }
 }
 
+// ─── FU #2 Sequential Generation Helpers ─────────────────────────────────────
+
+export const FU2_ROUTING = [
+  { szkola: 'PYTANIE', body_id: 'tempo_vs_liczba',   closing_idx: 0 },
+  { szkola: 'TEZA',    body_id: 'wlasciciel_blokuje', closing_idx: 1 },
+  { szkola: 'LICZBA',  body_id: 'oferty_template',    closing_idx: 2 },
+] as const
+
+export function extractFirstWords(tresc: string, n: number): string[] {
+  const linie = tresc.split('\n').filter(l => l.trim() && !l.toLowerCase().startsWith('cześć'))
+  if (!linie.length) return []
+  return linie[0]
+    .toLowerCase()
+    .replace(/[^\w\sąćęłńóśźż]/g, '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, n)
+}
+
+export function buildFU2PromptStrict(params: {
+  input: OutreachInput
+  productName: string
+  opening: { szkola: string; template: string; psychology: string }
+  body: { id: string; instruction: string; zakazane_zwroty_dla_llm: string[] }
+  closing: { template: string; psychology: string }
+  blacklistaPierwszychSlow: string[]
+  numerWariantu: number
+}): string {
+  const { input, productName, opening, body, closing, blacklistaPierwszychSlow, numerWariantu } = params
+  const name    = input.decisionMakerName || 'tam'
+  const firma   = input.companyName
+  const branza  = input.industry || 'Twoja branża'
+
+  const substitute = (t: string) => t
+    .replace(/{decydent_imie}/g, name)
+    .replace(/{nazwa_firmy}/g, firma)
+    .replace(/{branza}/g, branza)
+    .replace(/{nazwa_produktu_klienta}/g, productName)
+
+  // Extract only the opening sentence (skip "Cześć X,\n\n" prefix)
+  const openingLine = substitute(opening.template).split('\n').filter(Boolean).slice(-1)[0]
+  const closingLine = substitute(closing.template)
+  const bodyInstruction = body.instruction.replace(/{nazwa_produktu_klienta}/g, productName)
+
+  const blacklistaSection = blacklistaPierwszychSlow.length > 0
+    ? `\n⛔ ZABRONIONE PIERWSZE SŁOWA (użyte w poprzednich wariantach — absolutnie niedopuszczalne):\n${blacklistaPierwszychSlow.join(', ')}\n\nTwoja pierwsza linia treści (po "Cześć ${name},") MUSI zaczynać się KOMPLETNIE INNYM słowem.\n`
+    : ''
+
+  return `Jesteś copywriterem sprzedaży B2B. Generujesz wariant ${numerWariantu} z 3 dla follow-up FU #2.
+
+DANE LEADA:
+- Imię: ${name}
+- Firma: ${firma}
+- Branża: ${branza}
+- Obserwacje: ${input.observations || 'brak'}
+
+SZKOŁA NARRACYJNA TEGO WARIANTU: ${opening.szkola}
+
+OBOWIĄZKOWA STRUKTURA:
+
+1. POWITANIE:
+"Cześć ${name},"
+
+2. OTWARCIE (użyj DOKŁADNIE tej linii):
+"${openingLine}"
+
+3. KORPUS:
+${bodyInstruction}
+
+⛔ ZAKAZANE ZWROTY W KORPUSIE (wiadomość zostanie odrzucona jeśli ich użyjesz):
+${body.zakazane_zwroty_dla_llm.join(', ')}
+
+4. ZAMKNIĘCIE (użyj DOKŁADNIE tej linii):
+"${closingLine}"
+
+5. PODPIS:
+"${input.wysylajacy || 'Maciek'}"
+${blacklistaSection}
+⛔ KRYTYCZNE ZASADY:
+- BEZ ŻADNEGO CTA. BEZ pytania na końcu. BEZ "daj znać", "odpisz", "umówmy".
+- Długość: 5-6 zdań w głównej treści.
+- NIE używaj fraz: "9 na 10", "większość firm", "Dziś nic od Ciebie", "u 9 na 10".
+
+Wygeneruj wiadomość teraz.`
+}
+
 export function validateVariant(
   variant: OutreachVariant,
   input: OutreachInput,

@@ -7,9 +7,17 @@ import {
   getDm1VariantLabel,
   getFollowUpVariantLabel,
   MESSAGE_TYPE_META,
+  extractFirstWords,
+  buildFU2PromptStrict,
+  FU2_ROUTING,
   type OutreachInput,
   type OutreachVariant,
 } from '@/lib/outreach/promptComposer'
+import {
+  FU2_OPENING_VARIANTS,
+  FU2_BODY_VARIANTS,
+  FU2_CLOSING_VARIANTS,
+} from '@/lib/outreach/prompts/fu2Variants'
 import { ICP_ANALYSIS_PROMPT } from '@/lib/ai/experts'
 
 // ─── Extract structured fields from Company Brain DNA ────────────────────────
@@ -58,8 +66,8 @@ function getDemoVariants(input: OutreachInput) {
     },
     {
       temat: input.channel === 'email' ? `${firm} — obserwacja z branży` : undefined,
-      tresc: `Cześć ${name},\n\nDziś nic od Ciebie nie chcę — chcę tylko podzielić się obserwacją, którą widzę u 9 na 10 firm w tej branży.\n\nWiększość firm myli "brak klientów" z "brak czasu na klientów". Leady przychodzą, ale giną zanim ktoś je obsłuży — bo zespół tonie w administracji.\n\nTo nie problem liczby. To problem tempa.\n\nPomyślałem że Ci się to może przydać — niezależnie czy będziemy kiedyś razem pracować, czy nie.\n\nMaciek`,
-      katAtaku: 'Czysta wartość — obserwacja branżowa (FU#2 style)',
+      tresc: `Cześć ${name},\n\nPo setce rozmów z firmami z tej branży zauważyłem rzecz, której prawie nikt nie nazywa głośno.\n\nFirmy myślą że problem to za mało leadów. Realny problem to tempo ich obsługi — lead pisze w środę, firma odpisuje w piątek, lead już rozmawia z konkurencją.\n\nTo nie problem liczby. To problem tempa.\n\nPomyślałem że Ci się to może przydać — niezależnie od tego, czy kiedykolwiek będziemy pracować razem.\n\nMaciek`,
+      katAtaku: 'Szkoła: LICZBA → korpus: tempo_vs_liczba',
       notatkaHandlowca: 'Tryb demo — wygeneruj po dodaniu OPENAI_API_KEY',
     },
   ]
@@ -70,6 +78,63 @@ function getDemoVariants(input: OutreachInput) {
     typLabel: meta.label,
     _demo: true,
   }
+}
+
+// ─── FU #2 Sequential Generation (v2 hotfix) ─────────────────────────────────
+// Generuje 3 warianty FU#2 jeden po drugim z hard-coded routing i dynamiczną
+// blacklistą pierwszych słów. Gwarantuje brak klonów strukturalnie, nie prośbą.
+
+async function generateFU2Sequentially(
+  openai: ReturnType<typeof getOpenAI>,
+  input: OutreachInput,
+  productName: string,
+): Promise<{ warianty: OutreachVariant[]; _warned?: boolean }> {
+  const warianty: OutreachVariant[] = []
+  const blacklistaPierwszychSlow: string[] = []
+
+  for (let i = 0; i < FU2_ROUTING.length; i++) {
+    const { szkola, body_id, closing_idx } = FU2_ROUTING[i]
+
+    const opening = FU2_OPENING_VARIANTS.find(v => v.szkola === szkola)
+    if (!opening) throw new Error(`Brak otwarcia dla szkoły ${szkola}`)
+
+    const body = FU2_BODY_VARIANTS.find(v => v.id === body_id)
+    if (!body) throw new Error(`Brak korpusu ${body_id}`)
+
+    const closing = FU2_CLOSING_VARIANTS[closing_idx]
+
+    const prompt = buildFU2PromptStrict({
+      input,
+      productName,
+      opening,
+      body,
+      closing,
+      blacklistaPierwszychSlow,
+      numerWariantu: i + 1,
+    })
+
+    const res = await openai.chat.completions.create({
+      model: OPENAI_MODEL,
+      max_tokens: 500,
+      messages: [
+        { role: 'system', content: prompt },
+        { role: 'user', content: 'Wygeneruj wiadomość.' },
+      ],
+    })
+
+    const tresc = res.choices[0]?.message?.content?.trim() ?? ''
+
+    blacklistaPierwszychSlow.push(...extractFirstWords(tresc, 5))
+
+    warianty.push({
+      tresc,
+      katAtaku: `Szkoła: ${szkola} → korpus: ${body_id}`,
+      notatkaHandlowca: `Otwarcie: ${szkola} (${opening.psychology}). Zakończenie: ${closing.psychology}`,
+      szkola_otwarcia: szkola,
+    })
+  }
+
+  return { warianty }
 }
 
 // ─── Generate with quality check ─────────────────────────────────────────────
@@ -177,9 +242,21 @@ export async function POST(req: NextRequest) {
     }
 
     const openai = getOpenAI()
-    const { systemPrompt, dm1Combos, followUpCombos } = composeSystemPrompt(input, brainString)
 
-    const userPrompt = `Wygeneruj 3 zróżnicowane warianty wiadomości dla:
+    // SPECJALNA OBSŁUGA FU #2 — sekwencyjne generowanie z blacklistą
+    // Dla wszystkich innych typów — standardowa równoległa ścieżka.
+    let variantsPromise: Promise<{ warianty: OutreachVariant[]; _warned?: boolean }>
+    let dm1Combos: ReturnType<typeof composeSystemPrompt>['dm1Combos']
+    let followUpCombos: ReturnType<typeof composeSystemPrompt>['followUpCombos']
+
+    if (input.messageType === 'fu2') {
+      variantsPromise = generateFU2Sequentially(openai, input, productName)
+    } else {
+      const composed = composeSystemPrompt(input, brainString)
+      dm1Combos = composed.dm1Combos
+      followUpCombos = composed.followUpCombos
+
+      const userPrompt = `Wygeneruj 3 zróżnicowane warianty wiadomości dla:
 Firma: ${input.companyName}
 Decydent: ${input.decisionMakerName || 'nieznany'}${input.decisionMakerRole ? ` (${input.decisionMakerRole})` : ''}
 Branża: ${input.industry || 'nieznana'}
@@ -188,8 +265,11 @@ Kontekst: ${input.context || '(brak)'}
 Kanał: ${input.channel}
 Typ: ${MESSAGE_TYPE_META[input.messageType].label}`
 
+      variantsPromise = generateVariants(openai, composed.systemPrompt, userPrompt, input)
+    }
+
     const [variantsResult, icpRes] = await Promise.allSettled([
-      generateVariants(openai, systemPrompt, userPrompt, input),
+      variantsPromise,
       openai.chat.completions.create({
         model: OPENAI_MODEL,
         max_tokens: 200,

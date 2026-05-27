@@ -8,7 +8,7 @@ export interface Task {
   id: string
   title: string
   description?: string
-  due_date?: string
+  due_date: string
   priority: 'low' | 'medium' | 'high'
   assigned_to?: string
   completed: boolean
@@ -16,27 +16,37 @@ export interface Task {
   created_at: string
 }
 
-export function useTasks(filterToday = false) {
+// Returns today's date as YYYY-MM-DD in Europe/Warsaw timezone
+export function getTodayWarsaw(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Warsaw' }).format(new Date())
+}
+
+// "wczoraj" / "3 dni temu" / "12 listopada" for dates in the past
+export function formatTaskDate(dateStr: string): string {
+  const today = getTodayWarsaw()
+  const todayMs = new Date(today).getTime()
+  const taskMs  = new Date(dateStr).getTime()
+  const diffDays = Math.round((todayMs - taskMs) / 86_400_000)
+
+  if (diffDays === 1) return 'wczoraj'
+  if (diffDays < 7)  return `${diffDays} dni temu`
+  return new Date(dateStr).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' })
+}
+
+export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
-    let query = supabase
+    const { data } = await supabase
       .from('tasks')
       .select('*')
       .order('created_at', { ascending: false })
-
-    if (filterToday) {
-      const today = new Date().toISOString().slice(0, 10)
-      query = query.or(`due_date.eq.${today},due_date.is.null`)
-    }
-
-    const { data } = await query
     setTasks((data ?? []) as Task[])
     setLoading(false)
-  }, [filterToday])
+  }, [])
 
   useEffect(() => { load() }, [load])
 
@@ -48,9 +58,16 @@ export function useTasks(filterToday = false) {
     due_date?: string
   }): Promise<Task | null> => {
     const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
     const { data, error } = await supabase
       .from('tasks')
-      .insert({ ...payload, completed: false, priority: payload.priority ?? 'medium' })
+      .insert({
+        ...payload,
+        user_id: user?.id,
+        completed: false,
+        priority: payload.priority ?? 'medium',
+        due_date: payload.due_date ?? getTodayWarsaw(),
+      })
       .select()
       .single()
     if (error) { toast.error('Błąd dodawania zadania'); return null }
@@ -60,6 +77,7 @@ export function useTasks(filterToday = false) {
     return task
   }, [])
 
+  // Two-way toggle — used in today's view (can undo completed)
   const toggle = useCallback(async (id: string): Promise<void> => {
     const task = tasks.find(t => t.id === id)
     if (!task) return
@@ -72,6 +90,25 @@ export function useTasks(filterToday = false) {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, ...update } : t))
   }, [tasks])
 
+  // One-way complete — used for overdue tasks (no undo), with optimistic update
+  const complete = useCallback(async (id: string): Promise<void> => {
+    const snapshot = tasks
+    const now = new Date().toISOString()
+    // Optimistic update
+    setTasks(prev => prev.map(t =>
+      t.id === id ? { ...t, completed: true, completed_at: now } : t
+    ))
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('tasks')
+      .update({ completed: true, completed_at: now })
+      .eq('id', id)
+    if (error) {
+      setTasks(snapshot) // rollback
+      toast.error('Błąd — zadanie nie zostało zapisane')
+    }
+  }, [tasks])
+
   const remove = useCallback(async (id: string): Promise<void> => {
     const supabase = createClient()
     const { error } = await supabase.from('tasks').delete().eq('id', id)
@@ -80,5 +117,5 @@ export function useTasks(filterToday = false) {
     toast.success('Zadanie usunięte')
   }, [])
 
-  return { tasks, loading, load, create, toggle, remove }
+  return { tasks, loading, load, create, toggle, complete, remove }
 }

@@ -228,29 +228,35 @@ function SidebarContent({ collapsed, onNavClick, showCloseButton, onClose }: Sid
       </div>
 
       {/* ── Nav ── */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-3">
-        {navSections.map((section) => (
-          <div key={section.id}>
-            {!collapsed && section.section && (
-              <p className="px-3 mb-1 section-label select-none">{section.section}</p>
-            )}
-            {collapsed && section.section && (
-              <div className="mx-auto w-5 h-px bg-border mb-2" />
-            )}
-            <div className="space-y-px">
-              {section.items.map((item) => (
-                <NavItem
-                  key={item.href}
-                  href={item.href}
-                  label={item.label}
-                  icon={item.icon}
-                  collapsed={collapsed}
-                  onClick={onNavClick}
-                />
-              ))}
+      <nav className="flex-1 overflow-y-auto py-3 px-2">
+        {/* justify-between distributes free vertical space between section groups.
+            gap-4 is the minimum gap so sections never touch on short screens.
+            min-h-full ensures the flex container fills the nav viewport height
+            so justify-between has space to distribute on tall screens. */}
+        <div className="flex flex-col justify-between gap-4 min-h-full">
+          {navSections.map((section) => (
+            <div key={section.id}>
+              {!collapsed && section.section && (
+                <p className="px-3 mb-1 section-label select-none">{section.section}</p>
+              )}
+              {collapsed && section.section && (
+                <div className="mx-auto w-5 h-px bg-border mb-2" />
+              )}
+              <div className="space-y-px">
+                {section.items.map((item) => (
+                  <NavItem
+                    key={item.href}
+                    href={item.href}
+                    label={item.label}
+                    icon={item.icon}
+                    collapsed={collapsed}
+                    onClick={onNavClick}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </nav>
 
       {/* ── Bottom ── */}
