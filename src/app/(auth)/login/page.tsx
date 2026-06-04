@@ -16,7 +16,8 @@ export default function LoginPage() {
   const [selectedUser, setSelectedUser] = useState<string>('')
   const [password, setPassword]         = useState('')
   const [showPass, setShowPass]         = useState(false)
-  const [loading, setLoading]           = useState(false)
+  const [loadingLogin, setLoadingLogin] = useState(false)
+  const [loadingDemo, setLoadingDemo]   = useState(false)
   const [error, setError]               = useState('')
   const passwordRef = useRef<HTMLInputElement>(null)
 
@@ -35,14 +36,14 @@ export default function LoginPage() {
       return
     }
 
-    setLoading(true)
+    setLoadingLogin(true)
     await new Promise(r => setTimeout(r, 600))
     switchUser(selectedUser)
     router.push('/demo')
   }
 
   const handleDemoLogin = async () => {
-    setLoading(true)
+    setLoadingDemo(true)
     await new Promise(r => setTimeout(r, 500))
     switchUser('demo')
     router.push('/demo')
@@ -93,10 +94,10 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={handleDemoLogin}
-              disabled={loading}
+              disabled={loadingDemo || loadingLogin}
               className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-[#22c55e]/90 hover:bg-[#22c55e] disabled:opacity-60 text-white text-[13px] font-semibold transition-all shadow-lg shadow-green-500/20"
             >
-              {loading ? (
+              {loadingDemo ? (
                 <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Ładowanie...</>
               ) : (
                 <><Play size={13} fill="white" /> Wejdź do Demo</>
@@ -189,10 +190,10 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loadingLogin || loadingDemo}
                 className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] mt-1 bg-[#6366f1] hover:bg-[#5254cc] disabled:opacity-60 text-white text-[14px] font-semibold transition-all shadow-lg shadow-indigo-500/25"
               >
-                {loading ? (
+                {loadingLogin ? (
                   <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Logowanie...</>
                 ) : (
                   <>Wejdź do platformy <ArrowRight size={15} /></>
