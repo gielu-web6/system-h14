@@ -210,13 +210,14 @@ export function NotificationsDropdown({
 
       {/* Footer */}
       <div className="px-4 py-2.5 border-t border-white/[0.07]">
-        <button
+        <Link
+          href="/notifications"
           onClick={onClose}
           className="w-full flex items-center justify-center gap-1.5 text-[12px] text-white/35 hover:text-white/60 transition-colors"
         >
-          Zamknij
+          Zobacz wszystkie
           <ArrowRight size={11} />
-        </button>
+        </Link>
       </div>
     </div>
   )
