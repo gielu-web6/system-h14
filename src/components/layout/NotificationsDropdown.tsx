@@ -168,7 +168,7 @@ export function NotificationsDropdown({
         ) : (
           notifications.slice(0, 15).map((n) => {
             const { Icon, color, bg } = notifStyle(n.type)
-            const href = n.deal_id ? `/sales/${n.deal_id}` : n.lead_id ? `/sales/leads` : '/notifications'
+            const href = n.deal_id ? `/pipeline` : n.lead_id ? `/leads` : '#'
             return (
               <Link
                 key={n.id}
@@ -210,14 +210,13 @@ export function NotificationsDropdown({
 
       {/* Footer */}
       <div className="px-4 py-2.5 border-t border-white/[0.07]">
-        <Link
-          href="/notifications"
+        <button
           onClick={onClose}
           className="w-full flex items-center justify-center gap-1.5 text-[12px] text-white/35 hover:text-white/60 transition-colors"
         >
-          Zobacz wszystkie
+          Zamknij
           <ArrowRight size={11} />
-        </Link>
+        </button>
       </div>
     </div>
   )
