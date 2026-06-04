@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useServices } from '@/hooks/useServices'
 import { isDemoMode, isSalesUser, getCurrentUser } from '@/lib/userStore'
 import { DEMO_DEALS } from '@/lib/demo-data'
+import toast from 'react-hot-toast'
 
 // ─── Stage config (keys match DB values) ─────────────────────────────────────
 
@@ -112,17 +113,34 @@ function DealCard({ deal, onClick }: { deal: Deal; onClick: () => void }) {
 
 // ─── Deal Detail Modal ────────────────────────────────────────────────────────
 
+type EditForm = {
+  contact_name: string
+  title: string
+  contact_position: string
+  stage: DealStage
+  ai_score_label: 'hot' | 'warm' | 'cold'
+  ai_score_num: number
+  value: number
+  contact_email: string
+  contact_phone: string
+  contact_segment: string
+  project_scope: string
+  next_step: string
+  last_contact_date: string
+}
+
 function DealModal({
   deal: initialDeal,
   onClose,
   onStageChange,
+  onUpdate,
 }: {
   deal: Deal
   onClose: () => void
   onStageChange: (id: string, stage: DealStage) => Promise<void>
+  onUpdate: (id: string, updates: Partial<Deal>) => Promise<void>
 }) {
   const [deal, setDeal] = useState(initialDeal)
-  const stage = STAGE_CONFIG[deal.stage]
   const displayName = deal.contact_name || deal.title
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
   const [saving, setSaving] = useState(false)
@@ -132,6 +150,104 @@ function DealModal({
   const [dmCopied, setDmCopied] = useState<number | null>(null)
   const router = useRouter()
   const { services: allServices } = useServices()
+
+  // ── Edit mode ──────────────────────────────────────────────────────────────
+  const [editMode, setEditMode] = useState(false)
+  const [form, setForm] = useState<EditForm>({
+    contact_name: initialDeal.contact_name ?? '',
+    title: initialDeal.title,
+    contact_position: initialDeal.contact_position ?? '',
+    stage: initialDeal.stage,
+    ai_score_label: initialDeal.ai_score_label,
+    ai_score_num: initialDeal.ai_score_num ?? 50,
+    value: initialDeal.value ?? 0,
+    contact_email: initialDeal.contact_email ?? '',
+    contact_phone: initialDeal.contact_phone ?? '',
+    contact_segment: initialDeal.contact_segment ?? '',
+    project_scope: initialDeal.project_scope ?? '',
+    next_step: initialDeal.next_step ?? '',
+    last_contact_date: initialDeal.last_contact_date ?? '',
+  })
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false)
+
+  const sf = (k: keyof EditForm) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+      setForm(f => ({ ...f, [k]: e.target.value }))
+
+  const sfNum = (k: keyof EditForm) =>
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      setForm(f => ({ ...f, [k]: Number(e.target.value) || 0 }))
+
+  const startEdit = () => {
+    setForm({
+      contact_name: deal.contact_name ?? '',
+      title: deal.title,
+      contact_position: deal.contact_position ?? '',
+      stage: deal.stage,
+      ai_score_label: deal.ai_score_label,
+      ai_score_num: deal.ai_score_num ?? 50,
+      value: deal.value ?? 0,
+      contact_email: deal.contact_email ?? '',
+      contact_phone: deal.contact_phone ?? '',
+      contact_segment: deal.contact_segment ?? '',
+      project_scope: deal.project_scope ?? '',
+      next_step: deal.next_step ?? '',
+      last_contact_date: deal.last_contact_date ?? '',
+    })
+    setErrors({})
+    setEditMode(true)
+  }
+
+  const cancelEdit = () => {
+    setErrors({})
+    setEditMode(false)
+  }
+
+  const handleClose = () => {
+    if (editMode) { setShowCloseConfirm(true) } else { onClose() }
+  }
+
+  const validate = (): boolean => {
+    const errs: Record<string, string> = {}
+    if (!form.contact_name.trim()) errs.contact_name = 'Wymagane'
+    const email = form.contact_email.trim()
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.contact_email = 'Nieprawidłowy email'
+    if (form.value < 0) errs.value = 'Min 0'
+    if (form.ai_score_num < 0 || form.ai_score_num > 100) errs.ai_score_num = 'Zakres 0–100'
+    setErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
+  const handleSave = async () => {
+    if (!validate()) return
+    setSaving(true)
+    try {
+      const updates: Partial<Deal> = {
+        contact_name:      form.contact_name.trim() || null,
+        title:             form.title.trim() || deal.title,
+        contact_position:  form.contact_position.trim() || null,
+        stage:             form.stage,
+        ai_score_label:    form.ai_score_label,
+        ai_score_num:      form.ai_score_num,
+        value:             form.value,
+        contact_email:     form.contact_email.trim() || null,
+        contact_phone:     form.contact_phone.trim() || null,
+        contact_segment:   form.contact_segment.trim() || null,
+        project_scope:     form.project_scope.trim() || null,
+        next_step:         form.next_step.trim() || null,
+        last_contact_date: form.last_contact_date || deal.last_contact_date,
+      }
+      if (form.stage !== deal.stage) {
+        await onStageChange(deal.id, form.stage)
+      }
+      await onUpdate(deal.id, updates)
+      setDeal(d => ({ ...d, ...updates } as Deal))
+      setEditMode(false)
+    } catch { /* toast shown by onUpdate */ } finally {
+      setSaving(false)
+    }
+  }
 
   const toggleDealService = async (serviceId: string) => {
     const current = deal.service_ids ?? []
@@ -184,10 +300,35 @@ function DealModal({
     setTimeout(() => setDmCopied(null), 2000)
   }
 
+  const inputCls = (err?: string) =>
+    `w-full px-3 py-2 rounded-[8px] bg-bg border text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all ${err ? 'border-red-500/50' : 'border-white/[0.1]'}`
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-end">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
       <div className="relative z-10 w-full sm:max-w-[480px] h-full bg-sidebar sm:border-l border-white/[0.08] overflow-y-auto shadow-2xl">
+
+        {/* Confirm close with unsaved changes */}
+        {showCloseConfirm && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <div className="bg-sidebar border border-white/[0.1] rounded-[16px] p-6 max-w-[280px] w-full">
+              <p className="text-[14px] font-semibold text-white mb-2">Niezapisane zmiany</p>
+              <p className="text-[12px] text-white/50 mb-4">Masz niezapisane zmiany. Zamknąć bez zapisu?</p>
+              <div className="flex gap-2">
+                <button onClick={() => setShowCloseConfirm(false)}
+                  className="flex-1 py-2 rounded-[8px] bg-white/[0.06] text-white/70 text-[12px] font-medium hover:bg-white/[0.1] transition-all">
+                  Wróć
+                </button>
+                <button onClick={onClose}
+                  className="flex-1 py-2 rounded-[8px] bg-red-500/20 border border-red-500/30 text-red-400 text-[12px] font-medium hover:bg-red-500/30 transition-all">
+                  Zamknij
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Header */}
         <div className="sticky top-0 bg-sidebar/95 backdrop-blur border-b border-white/[0.07] p-5 flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-[12px] bg-accent/20 flex items-center justify-center text-[14px] font-bold text-accent">
@@ -198,154 +339,272 @@ function DealModal({
               <p className="text-[12px] text-white/40">{deal.title} · {deal.contact_position || '—'}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-[8px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all">
-            <X size={16} />
-          </button>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {!editMode && (
+              <button onClick={startEdit}
+                className="px-2.5 py-1 rounded-[7px] bg-accent/10 border border-accent/25 text-accent text-[11px] font-medium hover:bg-accent/20 transition-all">
+                Edytuj
+              </button>
+            )}
+            <button onClick={handleClose} className="p-1.5 rounded-[8px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all">
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         <div className="p-5 space-y-5">
-          {/* Stage change */}
-          <div>
-            <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Etap pipeline</p>
-            <div className="flex items-center gap-2">
-              <select
-                value={deal.stage}
-                onChange={handleStageChange}
-                disabled={saving}
-                className="flex-1 px-3 py-2 rounded-[8px] bg-bg border border-white/[0.1] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all disabled:opacity-60"
-              >
-                {STAGE_ORDER.map(s => (
-                  <option key={s} value={s}>{STAGE_CONFIG[s].label}</option>
-                ))}
-              </select>
-              {saving && <Loader2 size={15} className="text-accent animate-spin flex-shrink-0" />}
-            </div>
-          </div>
-
-          {/* Score + value */}
-          <div className="flex items-center gap-2">
-            <ScoreBadge score={deal.ai_score_label} />
-            <span className="text-[11px] text-white/40">Score: {deal.ai_score_num}/100</span>
-          </div>
-
-          <div className="flex items-center gap-2 p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.06]">
-            <DollarSign size={15} className="text-accent" />
-            <div>
-              <p className="text-[10px] text-white/40">Wartość projektu</p>
-              <p className="text-[16px] font-bold text-white">{formatPLN(deal.value)}</p>
-            </div>
-          </div>
-
-          {/* Contact info */}
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide">Dane kontaktowe</p>
-            <div className="grid grid-cols-1 gap-2">
-              {[
-                { icon: User,     label: deal.contact_position || '—' },
-                { icon: Building2,label: deal.title },
-                { icon: Mail,     label: deal.contact_email || '—' },
-                { icon: Phone,    label: deal.contact_phone || '—' },
-                { icon: Tag,      label: deal.contact_segment || '—' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-2 text-[12px]">
-                  <item.icon size={13} className="text-white/30 flex-shrink-0" />
-                  <span className="text-white/60">{item.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Scope */}
-          {deal.project_scope && (
-            <div className="p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.06]">
-              <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1">Zakres projektu</p>
-              <p className="text-[13px] text-white/75">{deal.project_scope}</p>
-            </div>
-          )}
-
-          {/* Next step */}
-          {deal.next_step && (
-            <div className="p-3 rounded-[10px] bg-[#6366f1]/[0.08] border border-accent/20">
-              <p className="text-[10px] font-semibold text-accent/70 uppercase tracking-wide mb-1">Następny krok</p>
-              <p className="text-[13px] text-white/80">{deal.next_step}</p>
-            </div>
-          )}
-
-          {/* Last contact */}
-          <div className="flex items-center gap-2 text-[12px] text-white/40">
-            <Calendar size={13} />
-            Ostatni kontakt: {new Date(deal.last_contact_date).toLocaleDateString('pl-PL')}
-          </div>
-
-          {/* Notes */}
-          {deal.notes && (
-            <div className="p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.05]">
-              <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1">Notatki</p>
-              <p className="text-[12px] text-white/65 whitespace-pre-wrap">{deal.notes}</p>
-            </div>
-          )}
-
-          {/* Services */}
-          {allServices.length > 0 && (
-            <div>
-              <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-2">Przypisane usługi</p>
-              <div className="flex flex-wrap gap-1.5">
-                {allServices.map(s => {
-                  const assigned = (deal.service_ids ?? []).includes(s.id)
-                  return (
-                    <button key={s.id} onClick={() => void toggleDealService(s.id)}
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all ${
-                        assigned
-                          ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
-                          : 'bg-white/[0.04] border-white/[0.08] text-white/35 hover:border-white/20 hover:text-white/60'
-                      }`}>
-                      {assigned && <Check size={9} className="inline mr-1" />}{s.name}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="grid grid-cols-2 gap-2 pt-2">
-            <button onClick={() => { setShowDM(v => !v); if (!showDM) generateDM() }}
-              className="flex items-center justify-center gap-1.5 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.07] text-white/60 text-[12px] font-medium hover:bg-white/[0.08] hover:text-white transition-all">
-              <MessageSquare size={13} /> Generuj DM
-            </button>
-            <button onClick={() => router.push('/offer-generator')}
-              className="flex items-center justify-center gap-1.5 py-2 rounded-[8px] bg-accent/15 border border-accent/30 text-accent text-[12px] font-medium hover:bg-accent/25 transition-all">
-              <FileText size={13} /> Generuj ofertę <ExternalLink size={10} />
-            </button>
-          </div>
-
-          {/* Inline DM panel */}
-          {showDM && (
-            <div className="rounded-[12px] bg-white/[0.03] border border-white/[0.07] p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-[12px] font-semibold text-white">2 warianty DM</p>
-                {dmLoading && <Loader2 size={13} className="animate-spin text-accent" />}
-              </div>
-              {dmVariants.map((v, idx) => v && (
-                <div key={idx} className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-accent uppercase">Wariant {idx === 0 ? 'A' : 'B'}</span>
-                    <button onClick={() => copyDM(idx)}
-                      className="flex items-center gap-1 px-2 py-0.5 rounded-[6px] bg-white/[0.05] text-white/50 text-[10px] hover:text-white transition-all">
-                      {dmCopied === idx ? <><CheckCircle2 size={10} className="text-green-400" /> Skopiowano</> : <><Send size={10} /> Kopiuj</>}
-                    </button>
+          {editMode ? (
+            /* ─── EDIT MODE ─────────────────────────────────────────────────── */
+            <>
+              {/* Contact */}
+              <div>
+                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Kontakt</p>
+                <div className="space-y-2">
+                  <div>
+                    <input value={form.contact_name} onChange={sf('contact_name')}
+                      placeholder="Imię i nazwisko *"
+                      className={inputCls(errors.contact_name)} />
+                    {errors.contact_name && <p className="text-[10px] text-red-400 mt-1">{errors.contact_name}</p>}
                   </div>
-                  <div className="p-3 rounded-[8px] bg-[#6366f1]/[0.07] border border-[#6366f1]/15">
-                    <pre className="text-[12px] text-white/75 whitespace-pre-wrap font-sans leading-relaxed">{v.message}</pre>
+                  <input value={form.title} onChange={sf('title')} placeholder="Firma / projekt"
+                    className={inputCls()} />
+                  <input value={form.contact_position} onChange={sf('contact_position')} placeholder="Rola / stanowisko"
+                    className={inputCls()} />
+                </div>
+              </div>
+
+              {/* Stage */}
+              <div>
+                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Etap pipeline</p>
+                <select value={form.stage} onChange={sf('stage')}
+                  className="w-full px-3 py-2 rounded-[8px] bg-bg border border-white/[0.1] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all">
+                  {STAGE_ORDER.map(s => <option key={s} value={s}>{STAGE_CONFIG[s].label}</option>)}
+                </select>
+              </div>
+
+              {/* Score + value */}
+              <div>
+                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Score i wartość</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <select value={form.ai_score_label} onChange={sf('ai_score_label')}
+                    className="px-3 py-2 rounded-[8px] bg-bg border border-white/[0.1] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all">
+                    <option value="hot">🔥 Hot</option>
+                    <option value="warm">🌡 Warm</option>
+                    <option value="cold">❄️ Cold</option>
+                  </select>
+                  <div>
+                    <input type="number" value={form.ai_score_num} onChange={sfNum('ai_score_num')} min={0} max={100}
+                      placeholder="0–100" className={inputCls(errors.ai_score_num)} />
+                    {errors.ai_score_num && <p className="text-[10px] text-red-400 mt-1">{errors.ai_score_num}</p>}
+                  </div>
+                  <div>
+                    <input type="number" value={form.value} onChange={sfNum('value')} min={0}
+                      placeholder="PLN" className={inputCls(errors.value)} />
+                    {errors.value && <p className="text-[10px] text-red-400 mt-1">{errors.value}</p>}
                   </div>
                 </div>
-              ))}
-              {!dmLoading && dmVariants.every(v => v === null) && (
-                <button onClick={generateDM} className="w-full py-2 rounded-[8px] bg-accent text-white text-[12px] font-bold hover:opacity-90 transition-all">
-                  Generuj ponownie
+              </div>
+
+              {/* Contact info */}
+              <div>
+                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Dane kontaktowe</p>
+                <div className="space-y-2">
+                  <div>
+                    <input type="email" value={form.contact_email} onChange={sf('contact_email')} placeholder="Email"
+                      className={inputCls(errors.contact_email)} />
+                    {errors.contact_email && <p className="text-[10px] text-red-400 mt-1">{errors.contact_email}</p>}
+                  </div>
+                  <input type="tel" value={form.contact_phone} onChange={sf('contact_phone')} placeholder="Telefon"
+                    className={inputCls()} />
+                  <select value={form.contact_segment} onChange={sf('contact_segment')}
+                    className="w-full px-3 py-2 rounded-[8px] bg-bg border border-white/[0.1] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all">
+                    <option value="">— segment —</option>
+                    {SEGMENTS.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* Project scope */}
+              <div>
+                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Zakres projektu</p>
+                <textarea value={form.project_scope} onChange={sf('project_scope')} rows={3}
+                  placeholder="Opisz zakres projektu…"
+                  className="w-full px-3 py-2 rounded-[8px] bg-bg border border-white/[0.1] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all resize-none" />
+              </div>
+
+              {/* Next step */}
+              <div>
+                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Następny krok</p>
+                <input value={form.next_step} onChange={sf('next_step')} placeholder="Co dalej?"
+                  className={inputCls()} />
+              </div>
+
+              {/* Last contact */}
+              <div>
+                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Ostatni kontakt</p>
+                <input type="date" value={form.last_contact_date} onChange={sf('last_contact_date')}
+                  className={inputCls()} />
+              </div>
+
+              {/* Save / Cancel */}
+              <div className="flex gap-2 pt-2">
+                <button type="button" onClick={cancelEdit} disabled={saving}
+                  className="flex-1 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white/50 text-[13px] font-medium hover:bg-white/[0.08] hover:text-white transition-all disabled:opacity-50">
+                  Anuluj
                 </button>
+                <button type="button" onClick={handleSave} disabled={saving}
+                  className="flex-1 py-2.5 rounded-[10px] bg-accent text-white text-[13px] font-bold hover:opacity-90 disabled:opacity-60 transition-all shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2">
+                  {saving ? <><Loader2 size={13} className="animate-spin" /> Zapisuję...</> : 'Zapisz zmiany'}
+                </button>
+              </div>
+            </>
+          ) : (
+            /* ─── VIEW MODE ─────────────────────────────────────────────────── */
+            <>
+              {/* Stage change */}
+              <div>
+                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Etap pipeline</p>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={deal.stage}
+                    onChange={handleStageChange}
+                    disabled={saving}
+                    className="flex-1 px-3 py-2 rounded-[8px] bg-bg border border-white/[0.1] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all disabled:opacity-60"
+                  >
+                    {STAGE_ORDER.map(s => (
+                      <option key={s} value={s}>{STAGE_CONFIG[s].label}</option>
+                    ))}
+                  </select>
+                  {saving && <Loader2 size={15} className="text-accent animate-spin flex-shrink-0" />}
+                </div>
+              </div>
+
+              {/* Score + value */}
+              <div className="flex items-center gap-2">
+                <ScoreBadge score={deal.ai_score_label} />
+                <span className="text-[11px] text-white/40">Score: {deal.ai_score_num}/100</span>
+              </div>
+
+              <div className="flex items-center gap-2 p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.06]">
+                <DollarSign size={15} className="text-accent" />
+                <div>
+                  <p className="text-[10px] text-white/40">Wartość projektu</p>
+                  <p className="text-[16px] font-bold text-white">{formatPLN(deal.value)}</p>
+                </div>
+              </div>
+
+              {/* Contact info */}
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide">Dane kontaktowe</p>
+                <div className="grid grid-cols-1 gap-2">
+                  {[
+                    { icon: User,      label: deal.contact_position || '—' },
+                    { icon: Building2, label: deal.title },
+                    { icon: Mail,      label: deal.contact_email || '—' },
+                    { icon: Phone,     label: deal.contact_phone || '—' },
+                    { icon: Tag,       label: deal.contact_segment || '—' },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-2 text-[12px]">
+                      <item.icon size={13} className="text-white/30 flex-shrink-0" />
+                      <span className="text-white/60">{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Scope */}
+              {deal.project_scope && (
+                <div className="p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.06]">
+                  <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1">Zakres projektu</p>
+                  <p className="text-[13px] text-white/75">{deal.project_scope}</p>
+                </div>
               )}
-            </div>
+
+              {/* Next step */}
+              {deal.next_step && (
+                <div className="p-3 rounded-[10px] bg-[#6366f1]/[0.08] border border-accent/20">
+                  <p className="text-[10px] font-semibold text-accent/70 uppercase tracking-wide mb-1">Następny krok</p>
+                  <p className="text-[13px] text-white/80">{deal.next_step}</p>
+                </div>
+              )}
+
+              {/* Last contact */}
+              <div className="flex items-center gap-2 text-[12px] text-white/40">
+                <Calendar size={13} />
+                Ostatni kontakt: {new Date(deal.last_contact_date).toLocaleDateString('pl-PL')}
+              </div>
+
+              {/* Notes */}
+              {deal.notes && (
+                <div className="p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.05]">
+                  <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1">Notatki</p>
+                  <p className="text-[12px] text-white/65 whitespace-pre-wrap">{deal.notes}</p>
+                </div>
+              )}
+
+              {/* Services */}
+              {allServices.length > 0 && (
+                <div>
+                  <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-2">Przypisane usługi</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {allServices.map(s => {
+                      const assigned = (deal.service_ids ?? []).includes(s.id)
+                      return (
+                        <button key={s.id} onClick={() => void toggleDealService(s.id)}
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all ${
+                            assigned
+                              ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
+                              : 'bg-white/[0.04] border-white/[0.08] text-white/35 hover:border-white/20 hover:text-white/60'
+                          }`}>
+                          {assigned && <Check size={9} className="inline mr-1" />}{s.name}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <button onClick={() => { setShowDM(v => !v); if (!showDM) generateDM() }}
+                  className="flex items-center justify-center gap-1.5 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.07] text-white/60 text-[12px] font-medium hover:bg-white/[0.08] hover:text-white transition-all">
+                  <MessageSquare size={13} /> Generuj DM
+                </button>
+                <button onClick={() => router.push('/offer-generator')}
+                  className="flex items-center justify-center gap-1.5 py-2 rounded-[8px] bg-accent/15 border border-accent/30 text-accent text-[12px] font-medium hover:bg-accent/25 transition-all">
+                  <FileText size={13} /> Generuj ofertę <ExternalLink size={10} />
+                </button>
+              </div>
+
+              {/* Inline DM panel */}
+              {showDM && (
+                <div className="rounded-[12px] bg-white/[0.03] border border-white/[0.07] p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[12px] font-semibold text-white">2 warianty DM</p>
+                    {dmLoading && <Loader2 size={13} className="animate-spin text-accent" />}
+                  </div>
+                  {dmVariants.map((v, idx) => v && (
+                    <div key={idx} className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-accent uppercase">Wariant {idx === 0 ? 'A' : 'B'}</span>
+                        <button onClick={() => copyDM(idx)}
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-[6px] bg-white/[0.05] text-white/50 text-[10px] hover:text-white transition-all">
+                          {dmCopied === idx ? <><CheckCircle2 size={10} className="text-green-400" /> Skopiowano</> : <><Send size={10} /> Kopiuj</>}
+                        </button>
+                      </div>
+                      <div className="p-3 rounded-[8px] bg-[#6366f1]/[0.07] border border-[#6366f1]/15">
+                        <pre className="text-[12px] text-white/75 whitespace-pre-wrap font-sans leading-relaxed">{v.message}</pre>
+                      </div>
+                    </div>
+                  ))}
+                  {!dmLoading && dmVariants.every(v => v === null) && (
+                    <button onClick={generateDM} className="w-full py-2 rounded-[8px] bg-accent text-white text-[12px] font-bold hover:opacity-90 transition-all">
+                      Generuj ponownie
+                    </button>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -636,6 +895,23 @@ export default function PipelinePage() {
     }
   }
 
+  // ── Update deal fields ─────────────────────────────────────────────────────
+  const handleDealUpdate = async (id: string, updates: Partial<Deal>) => {
+    setDeals(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d))
+    if (isDemoMode()) { toast.success('Zapisano zmiany'); return }
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('deals')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+    if (error) {
+      setDeals(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d))
+      toast.error('Błąd zapisu: ' + error.message)
+      throw error
+    }
+    toast.success('Zapisano zmiany')
+  }
+
   // ── Add new deal ───────────────────────────────────────────────────────────
   const handleAddDeal = (deal: Deal) => {
     setDeals(prev => [deal, ...prev])
@@ -743,6 +1019,7 @@ export default function PipelinePage() {
           deal={selectedDeal}
           onClose={() => setSelectedDeal(null)}
           onStageChange={handleStageChange}
+          onUpdate={handleDealUpdate}
         />
       )}
 

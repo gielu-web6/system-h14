@@ -24,7 +24,7 @@ function DashboardGuard({ children }: { children: React.ReactNode }) {
     }
     if (!loading && isSales) {
       const blocked = ADMIN_ONLY_PATHS.some((p) => pathname.startsWith(p))
-      if (blocked) router.replace('/demo')
+      if (blocked) router.replace('/dashboard')
     }
   }, [user, loading, router, isSales, pathname])
 

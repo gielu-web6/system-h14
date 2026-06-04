@@ -31,7 +31,7 @@ const ADMIN_NAV_SECTIONS = [
     id: 'main',
     section: '',
     items: [
-      { href: '/demo',              label: 'Dashboard',        icon: LayoutDashboard },
+      { href: '/dashboard',              label: 'Dashboard',        icon: LayoutDashboard },
     ],
   },
   {
@@ -82,7 +82,7 @@ const SALES_NAV_SECTIONS = [
     id: 'main',
     section: '',
     items: [
-      { href: '/demo',              label: 'Mój Dashboard',    icon: LayoutDashboard },
+      { href: '/dashboard',              label: 'Mój Dashboard',    icon: LayoutDashboard },
     ],
   },
   {
@@ -116,7 +116,7 @@ const SALES_NAV_SECTIONS = [
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function isItemActive(pathname: string, href: string): boolean {
-  if (href === '/demo') return pathname === '/demo'
+  if (href === '/demo') return pathname === '/dashboard'
   return pathname === href || pathname.startsWith(href + '/')
 }
 

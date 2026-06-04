@@ -39,14 +39,14 @@ export default function LoginPage() {
     setLoadingLogin(true)
     await new Promise(r => setTimeout(r, 600))
     switchUser(selectedUser)
-    router.push('/demo')
+    router.push('/dashboard')
   }
 
   const handleDemoLogin = async () => {
     setLoadingDemo(true)
     await new Promise(r => setTimeout(r, 500))
     switchUser('demo')
-    router.push('/demo')
+    router.push('/dashboard')
   }
 
   return (

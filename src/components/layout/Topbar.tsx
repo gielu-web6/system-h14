@@ -34,7 +34,7 @@ function useCompanyName() {
 
 const BREADCRUMB_MAP: Record<string, { label: string; parent?: string }> = {
   '/':                      { label: 'Dashboard' },
-  '/demo':                  { label: 'Dashboard' },
+  '/dashboard':                  { label: 'Dashboard' },
   '/knowledge-base':        { label: 'Baza Wiedzy' },
   '/pipeline':              { label: 'Pipeline',           parent: 'Sprzedaż' },
   '/leads':                 { label: 'Leady',              parent: 'Sprzedaż' },
