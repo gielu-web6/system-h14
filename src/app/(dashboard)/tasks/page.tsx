@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
   CheckSquare, Square, Plus, X, Check,
-  Clock, AlertCircle, CalendarDays, Share2, User,
+  Clock, AlertCircle, CalendarDays,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTasks, getTodayWarsaw, formatTaskDate, type Task } from '@/hooks/useTasks'
@@ -268,7 +268,7 @@ export default function TasksPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {sortedUsers.map(u => (
           <UserTaskPanel
             key={u.id}
