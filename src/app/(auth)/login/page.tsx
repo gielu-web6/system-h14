@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Zap, Eye, EyeOff, ArrowRight, Play } from 'lucide-react'
 import { USERS, DEMO_PASSWORD } from '@/lib/userStore'
@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [showPass, setShowPass]         = useState(false)
   const [loading, setLoading]           = useState(false)
   const [error, setError]               = useState('')
+  const passwordRef = useRef<HTMLInputElement>(null)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -122,7 +123,7 @@ export default function LoginPage() {
                     <button
                       key={u.id}
                       type="button"
-                      onClick={() => setSelectedUser(u.id)}
+                      onClick={() => { setSelectedUser(u.id); setTimeout(() => passwordRef.current?.focus(), 0) }}
                       className={`
                         flex flex-col items-center gap-2 p-4 rounded-[12px] border transition-all
                         ${selectedUser === u.id
@@ -162,6 +163,7 @@ export default function LoginPage() {
                 <label className="block text-[12px] font-medium text-white/50 mb-1.5">Hasło</label>
                 <div className="relative">
                   <input
+                    ref={passwordRef}
                     type={showPass ? 'text' : 'password'}
                     value={password}
                     onChange={e => { setPassword(e.target.value); setError('') }}
