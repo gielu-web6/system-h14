@@ -233,7 +233,7 @@ function SidebarContent({ collapsed, onNavClick, showCloseButton, onClose }: Sid
             gap-4 is the minimum gap so sections never touch on short screens.
             min-h-full ensures the flex container fills the nav viewport height
             so justify-between has space to distribute on tall screens. */}
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-7">
           {navSections.map((section) => (
             <div key={section.id}>
               {!collapsed && section.section && (
