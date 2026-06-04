@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  CheckSquare, Square, Plus, X, Share2, Check,
+  CheckSquare, Square, Plus, X, Check,
   ChevronDown, ChevronUp, Clock,
 } from 'lucide-react'
 import { useTasks, getTodayWarsaw, formatTaskDate } from '@/hooks/useTasks'
@@ -12,9 +12,8 @@ import { useAppUser } from '@/contexts/UserContext'
 export function TasksWidget() {
   const { user } = useAppUser()
   const { tasks, loading, create, toggle, complete, remove } = useTasks(user?.id)
-  const [newTitle, setNewTitle]         = useState('')
-  const [shareWithMaciek, setShareWithMaciek] = useState(false)
-  const [adding, setAdding]             = useState(false)
+  const [newTitle, setNewTitle] = useState('')
+  const [adding, setAdding]     = useState(false)
   const [showAll, setShowAll]           = useState(false)
   const [showCompleted, setShowCompleted] = useState(false)
 
@@ -45,11 +44,10 @@ export function TasksWidget() {
     setAdding(true)
     await create({
       title: newTitle.trim(),
-      assigned_to: shareWithMaciek ? 'maciek' : (user?.id ?? undefined),
+      assigned_to: user?.id ?? undefined,
       due_date: today,
     })
     setNewTitle('')
-    setShareWithMaciek(false)
     setAdding(false)
   }
 
@@ -86,22 +84,6 @@ export function TasksWidget() {
             {adding ? '…' : <Plus size={15} />}
           </button>
         </div>
-        {newTitle.trim() && (
-          <label className="flex items-center gap-2 cursor-pointer px-1">
-            <button
-              type="button"
-              onClick={() => setShareWithMaciek(v => !v)}
-              className={`w-4 h-4 rounded-[4px] border flex items-center justify-center flex-shrink-0 transition-all
-                ${shareWithMaciek ? 'bg-info border-info' : 'bg-raised border-border'}`}
-            >
-              {shareWithMaciek && <Check size={9} className="text-bg" />}
-            </button>
-            <span className="flex items-center gap-1 text-[11.5px] text-muted">
-              <Share2 size={10} className="text-info" />
-              Udostępnij Maćkowi
-            </span>
-          </label>
-        )}
       </form>
 
       {/* ── Today's task list ──────────────────────────────────────────────── */}
@@ -123,11 +105,6 @@ export function TasksWidget() {
               </button>
               <div className="flex-1 min-w-0">
                 <p className="text-[12.5px] text-fg leading-tight">{task.title}</p>
-                {task.assigned_to === 'maciek' && (
-                  <span className="inline-flex items-center gap-1 mt-1 text-[10px] text-info/70">
-                    <Share2 size={9} /> Udostępnione Maćkowi
-                  </span>
-                )}
               </div>
               <button
                 onClick={() => void remove(task.id)}
