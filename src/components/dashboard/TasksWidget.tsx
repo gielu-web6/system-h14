@@ -7,9 +7,11 @@ import {
   ChevronDown, ChevronUp, Clock,
 } from 'lucide-react'
 import { useTasks, getTodayWarsaw, formatTaskDate } from '@/hooks/useTasks'
+import { useAppUser } from '@/contexts/UserContext'
 
 export function TasksWidget() {
-  const { tasks, loading, create, toggle, complete, remove } = useTasks()
+  const { user } = useAppUser()
+  const { tasks, loading, create, toggle, complete, remove } = useTasks(user?.id)
   const [newTitle, setNewTitle]         = useState('')
   const [shareWithMaciek, setShareWithMaciek] = useState(false)
   const [adding, setAdding]             = useState(false)
@@ -43,7 +45,7 @@ export function TasksWidget() {
     setAdding(true)
     await create({
       title: newTitle.trim(),
-      assigned_to: shareWithMaciek ? 'maciek' : undefined,
+      assigned_to: shareWithMaciek ? 'maciek' : (user?.id ?? undefined),
       due_date: today,
     })
     setNewTitle('')

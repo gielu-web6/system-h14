@@ -33,20 +33,26 @@ export function formatTaskDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' })
 }
 
-export function useTasks() {
+export function useTasks(userId?: string) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
-    const { data } = await supabase
+    let q = supabase
       .from('tasks')
       .select('*')
       .order('created_at', { ascending: false })
+
+    if (userId) {
+      q = q.eq('assigned_to', userId)
+    }
+
+    const { data } = await q
     setTasks((data ?? []) as Task[])
     setLoading(false)
-  }, [])
+  }, [userId])
 
   useEffect(() => { load() }, [load])
 
@@ -58,12 +64,11 @@ export function useTasks() {
     due_date?: string
   }): Promise<Task | null> => {
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
     const { data, error } = await supabase
       .from('tasks')
       .insert({
         ...payload,
-        user_id: user?.id,
+        assigned_to: payload.assigned_to ?? userId ?? null,
         completed: false,
         priority: payload.priority ?? 'medium',
         due_date: payload.due_date ?? getTodayWarsaw(),
