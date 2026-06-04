@@ -19,7 +19,7 @@ import {
   Zap,
   BrainCircuit,
   Brain,
-  Bot,
+  CheckSquare,
 } from 'lucide-react'
 import { useLayout } from './LayoutContext'
 import { useAppUser } from '@/contexts/UserContext'
@@ -72,7 +72,7 @@ const ADMIN_NAV_SECTIONS = [
     section: 'AI System',
     items: [
       { href: '/company-brain',     label: 'Company Brain',    icon: Brain },
-      { href: '/reply-generator',   label: 'Reply Generator',  icon: Bot },
+      { href: '/tasks',             label: 'Zadania',          icon: CheckSquare },
     ],
   },
 ]
@@ -101,7 +101,7 @@ const SALES_NAV_SECTIONS = [
     items: [
       { href: '/content-generator', label: 'Content AI',       icon: Sparkles },
       { href: '/knowledge-base',    label: 'Bank Obiekcji',    icon: Brain },
-      { href: '/reply-generator',   label: 'Reply Generator',  icon: Bot },
+      { href: '/tasks',             label: 'Zadania',          icon: CheckSquare },
     ],
   },
   {
@@ -233,7 +233,7 @@ function SidebarContent({ collapsed, onNavClick, showCloseButton, onClose }: Sid
             gap-4 is the minimum gap so sections never touch on short screens.
             min-h-full ensures the flex container fills the nav viewport height
             so justify-between has space to distribute on tall screens. */}
-        <div className="flex flex-col gap-7">
+        <div className="flex flex-col gap-9">
           {navSections.map((section) => (
             <div key={section.id}>
               {!collapsed && section.section && (
