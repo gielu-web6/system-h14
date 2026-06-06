@@ -78,23 +78,27 @@ function AddEventModal({
     setError(null)
     try {
       const supabase = createClient()
-      const newEvent = {
-        type,
-        title: title.trim(),
-        description: description.trim() || null,
-        date,
-        time: time || null,
-        created_by: currentUser,
-        shared,
-        color: EVENT_TYPE_CONFIG[type].color,
-      }
       const { data, error: err } = await supabase
         .from('calendar_events')
-        .insert(newEvent)
+        .insert({
+          type,
+          title: title.trim(),
+          start_date: date,
+          end_date: date,
+          user_id: currentUser,
+        })
         .select()
         .single()
       if (err) throw err
-      onAdded(data as CalendarEvent)
+      // Normalize DB row → CalendarEvent interface
+      const ev: CalendarEvent = {
+        ...(data as object),
+        date: (data as { start_date: string }).start_date,
+        created_by: (data as { user_id: string }).user_id,
+        shared: false,
+        color: EVENT_TYPE_CONFIG[type].color,
+      }
+      onAdded(ev)
       onClose()
     } catch (e: any) {
       setError(e.message || 'Błąd zapisu')
@@ -545,10 +549,20 @@ export default function ContentCalendarPage() {
       const { data } = await supabase
         .from('calendar_events')
         .select('*')
-        .order('date', { ascending: true })
-      // Show own events + shared events from others
-      const filtered = (data ?? []).filter((e: CalendarEvent) => e.created_by === currentUserId || e.shared)
-      setEvents(filtered)
+        .order('start_date', { ascending: true })
+      // Normalize DB rows → CalendarEvent interface
+      const normalized: CalendarEvent[] = (data ?? []).map((row: Record<string, unknown>) => ({
+        id: row.id as string,
+        type: (row.type as CalendarEvent['type']) ?? 'event',
+        title: row.title as string,
+        description: row.description as string | undefined,
+        date: (row.start_date ?? row.date) as string,
+        time: row.time as string | undefined,
+        created_by: (row.user_id ?? row.created_by ?? '') as string,
+        shared: (row.shared as boolean) ?? true,
+        color: (row.color as string) ?? '#6366f1',
+      }))
+      setEvents(normalized)
     } finally {
       setLoadingEvents(false)
     }

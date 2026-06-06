@@ -159,12 +159,9 @@ function SaveToCalendarBtn({
       const { error } = await supabase.from('calendar_events').insert({
         type: 'post',
         title: title || result.title || 'Post AI',
-        description,
-        date,
-        time: null,
-        created_by: user?.id ?? 'ai',
-        shared: true,
-        color: '#6366f1',
+        start_date: date,
+        end_date: date,
+        user_id: user?.id ?? 'ai',
       })
       if (error) throw error
       setSaved(true)
