@@ -40,6 +40,7 @@ export default function DashboardPage() {
   const [kpi, setKpi]           = useState<KpiData>({ leadsThisMonth: 0, activeDeals: 0, revenueThisMonth: 0 })
   const [kpiLoading, setKpiLoading] = useState(true)
   const [roi, setRoi]           = useState<RoiData | null>(null)
+  const [replyRate, setReplyRate] = useState<string>('—')
 
   useEffect(() => {
     if (isDemoMode()) {
@@ -74,6 +75,17 @@ export default function DashboardPage() {
         setKpiLoading(false)
       }
 
+      // Reply rate — best-effort
+      try {
+        const [sentRes, repliedRes] = await Promise.all([
+          supabase.from('outreach_messages').select('id', { count: 'exact', head: true }).not('sent_at', 'is', null),
+          supabase.from('outreach_messages').select('id', { count: 'exact', head: true }).not('replied_at', 'is', null),
+        ])
+        const sent    = sentRes.count ?? 0
+        const replied = repliedRes.count ?? 0
+        if (sent > 0) setReplyRate(Math.round((replied / sent) * 100) + '%')
+      } catch { /* stays '—' */ }
+
       // ROI queries are best-effort — don't block KPI display
       try {
         const [outreachRes, offersRes, aiLeadsRes, pipelineRes] = await Promise.all([
@@ -98,7 +110,7 @@ export default function DashboardPage() {
   }, [])
 
   const isDemo = isDemoMode()
-  const replyRateValue = isDemo ? DEMO_KPI.replyRate : '—'
+  const replyRateValue = isDemo ? DEMO_KPI.replyRate : replyRate
 
   const kpiCards = [
     { label: 'Leady / miesiąc',   value: kpiLoading ? '…' : String(kpi.leadsThisMonth),      icon: Users,         color: '#60a5fa', href: '/leads',    sub: 'dodane w tym miesiącu' },
