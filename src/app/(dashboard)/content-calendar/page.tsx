@@ -90,11 +90,12 @@ function AddEventModal({
         .select()
         .single()
       if (err) throw err
-      // Normalize DB row → CalendarEvent interface
       const ev: CalendarEvent = {
-        ...(data as object),
-        date: (data as { start_date: string }).start_date,
-        created_by: (data as { user_id: string }).user_id,
+        id: (data as { id: string }).id,
+        type,
+        title: title.trim(),
+        date,
+        created_by: currentUser,
         shared: false,
         color: EVENT_TYPE_CONFIG[type].color,
       }

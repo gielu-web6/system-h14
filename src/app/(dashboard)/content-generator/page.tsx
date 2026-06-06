@@ -154,8 +154,6 @@ function SaveToCalendarBtn({
     setShowPicker(false)
     try {
       const supabase = createClient()
-      const description = [result.hook, result.content_body, result.cta, result.hashtags?.join(' ')]
-        .filter(Boolean).join('\n\n').slice(0, 1000) || null
       const { error } = await supabase.from('calendar_events').insert({
         type: 'post',
         title: title || result.title || 'Post AI',
