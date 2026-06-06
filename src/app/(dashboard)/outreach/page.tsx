@@ -378,6 +378,7 @@ export default function OutreachGeneratorPage() {
   const [dmSentState, setDmSentState]             = useState<'idle' | 'sending' | 'done'>('idle')
   const [urlAnalyzing, setUrlAnalyzing]           = useState(false)
   const [showIcp, setShowIcp]                     = useState(true)
+  const [formOpen, setFormOpen]                   = useState(false)
 
   const urlInputRef = useRef<HTMLInputElement>(null)
   const typeMeta = MESSAGE_TYPE_META[messageType]
@@ -536,11 +537,41 @@ export default function OutreachGeneratorPage() {
         </p>
       </div>
 
-      {/* Form */}
-      <div className="bg-card border border-border rounded-[16px] p-6 space-y-5">
+      {/* Form — collapsible */}
+      <div className="bg-card border border-border rounded-[16px] overflow-hidden">
 
-        {/* Lead Picker */}
-        <LeadPicker onSelect={handleLeadSelect} />
+        {/* Toggle button */}
+        <button
+          type="button"
+          onClick={() => setFormOpen(v => !v)}
+          className="w-full flex items-center justify-between px-6 py-4 hover:bg-white/[0.02] transition-colors"
+        >
+          <div className="flex flex-col items-start gap-0.5">
+            <span className="text-[14px] font-bold text-white flex items-center gap-2">
+              <Zap size={14} className="text-[#E8A838]" />
+              Szkic wiadomości AI
+            </span>
+            <span className="text-[11px] text-white/35">opcjonalne — AI może pomóc napisać draft</span>
+          </div>
+          {formOpen
+            ? <ChevronUp size={16} className="text-white/30 flex-shrink-0" />
+            : <ChevronDown size={16} className="text-white/30 flex-shrink-0" />
+          }
+        </button>
+
+        {formOpen && (
+          <div className="border-t border-border p-6 space-y-5">
+
+            {/* Warning box */}
+            <div className="flex items-start gap-3 px-4 py-3 rounded-[10px] bg-amber-500/8 border border-amber-500/25">
+              <AlertCircle size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />
+              <p className="text-[12px] font-bold text-amber-300 leading-relaxed">
+                To szkic generowany przez AI — może zawierać błędy. Przejrzyj i popraw przed wysłaniem.
+              </p>
+            </div>
+
+            {/* Lead Picker */}
+            <LeadPicker onSelect={handleLeadSelect} />
 
         <div className="border-t border-white/[0.06]" />
 
@@ -679,6 +710,9 @@ export default function OutreachGeneratorPage() {
             : <><Zap size={16} /> Generuj 3 warianty</>
           }
         </button>
+
+          </div>
+        )}
       </div>
 
       {/* Skeleton */}
