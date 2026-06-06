@@ -7,6 +7,7 @@ import {
   Sparkles, Copy, Check, RefreshCw,
   Loader2, ImageIcon, Link2,
   Lightbulb, Layers, Brain, CalendarPlus,
+  ChevronLeft, ChevronRight, X,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useAppUser } from '@/contexts/UserContext'
@@ -40,7 +41,102 @@ function CopyBtn({ text, label = 'Kopiuj' }: { text: string; label?: string }) {
   )
 }
 
-// ─── Save to calendar button ──────────────────────────────────────────────────
+// ─── Date picker + save to calendar ──────────────────────────────────────────
+
+function CalendarDatePicker({
+  onSelect,
+  onClose,
+}: {
+  onSelect: (date: string) => void
+  onClose: () => void
+}) {
+  const now = new Date()
+  const [year, setYear]     = useState(now.getFullYear())
+  const [month, setMonth]   = useState(now.getMonth())
+  const [selected, setSelected] = useState<string | null>(null)
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const firstDay    = new Date(year, month, 1).getDay()
+  const offset      = firstDay === 0 ? 6 : firstDay - 1
+  const cells       = [...Array(offset).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)]
+  while (cells.length % 7 !== 0) cells.push(null)
+
+  const todayStr  = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
+  const toStr = (d: number) => `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+  const monthName = new Date(year, month).toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })
+
+  const prevMonth = () => { if (month === 0) { setYear(y => y-1); setMonth(11) } else setMonth(m => m-1) }
+  const nextMonth = () => { if (month === 11) { setYear(y => y+1); setMonth(0) } else setMonth(m => m+1) }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative z-10 w-[300px] bg-sidebar border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.07]">
+          <p className="text-[13px] font-bold text-white">Wybierz datę publikacji</p>
+          <button onClick={onClose} className="p-1 rounded-[6px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all"><X size={14} /></button>
+        </div>
+
+        <div className="p-4">
+          {/* Month nav */}
+          <div className="flex items-center justify-between mb-3">
+            <button onClick={prevMonth} className="p-1.5 rounded-[6px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all"><ChevronLeft size={13} /></button>
+            <p className="text-[12px] font-semibold text-white capitalize">{monthName}</p>
+            <button onClick={nextMonth} className="p-1.5 rounded-[6px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all"><ChevronRight size={13} /></button>
+          </div>
+
+          {/* Day headers */}
+          <div className="grid grid-cols-7 mb-1">
+            {['Pn','Wt','Śr','Cz','Pt','Sb','Nd'].map(d => (
+              <div key={d} className="text-center text-[9px] font-semibold text-white/25 py-1">{d}</div>
+            ))}
+          </div>
+
+          {/* Day cells */}
+          <div className="grid grid-cols-7 gap-0.5">
+            {cells.map((day, i) => {
+              if (!day) return <div key={`e${i}`} className="h-8" />
+              const dateStr    = toStr(day)
+              const isToday    = dateStr === todayStr
+              const isSelected = dateStr === selected
+              return (
+                <button
+                  key={day}
+                  onClick={() => setSelected(dateStr)}
+                  className={`h-8 rounded-[6px] text-[11px] font-medium transition-all ${
+                    isSelected
+                      ? 'bg-accent text-white font-bold shadow-md shadow-indigo-500/30'
+                      : isToday
+                      ? 'bg-accent/20 text-accent border border-accent/40'
+                      : 'text-white/60 hover:bg-white/[0.07] hover:text-white'
+                  }`}
+                >
+                  {day}
+                </button>
+              )
+            })}
+          </div>
+
+          {selected && (
+            <div className="mt-4 pt-3 border-t border-white/[0.07]">
+              <p className="text-[11px] text-white/40 mb-3">
+                Data: <span className="text-white font-semibold">
+                  {new Date(selected + 'T12:00:00').toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </span>
+              </p>
+              <button
+                onClick={() => onSelect(selected)}
+                className="w-full py-2.5 rounded-[10px] bg-accent text-white text-[13px] font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2"
+              >
+                <CalendarPlus size={14} /> Zapisz do kalendarza
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function SaveToCalendarBtn({
   title, result,
@@ -49,20 +145,22 @@ function SaveToCalendarBtn({
   result: GeneratedContent
 }) {
   const { user } = useAppUser()
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved]   = useState(false)
-  const handleSave = async () => {
+  const [showPicker, setShowPicker] = useState(false)
+  const [saving, setSaving]         = useState(false)
+  const [saved, setSaved]           = useState(false)
+
+  const handleSave = async (date: string) => {
     setSaving(true)
+    setShowPicker(false)
     try {
       const supabase = createClient()
-      const today = new Date().toISOString().split('T')[0]
       const description = [result.hook, result.content_body, result.cta, result.hashtags?.join(' ')]
         .filter(Boolean).join('\n\n').slice(0, 1000) || null
       const { error } = await supabase.from('calendar_events').insert({
         type: 'post',
         title: title || result.title || 'Post AI',
         description,
-        date: today,
+        date,
         time: null,
         created_by: user?.id ?? 'ai',
         shared: true,
@@ -70,28 +168,33 @@ function SaveToCalendarBtn({
       })
       if (error) throw error
       setSaved(true)
-      toast.success('Zapisano do kalendarza!')
-    } catch {
-      toast.error('Błąd zapisu')
+      const label = new Date(date + 'T12:00:00').toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' })
+      toast.success(`Zapisano na ${label}!`)
+    } catch (e: unknown) {
+      toast.error((e as Error)?.message || 'Błąd zapisu')
     } finally {
       setSaving(false)
     }
   }
+
   if (saved) return (
     <div className="flex items-center gap-2 text-[12px] text-green-400">
-      <Check size={13} /> Zapisano do kalendarza
-      <Link href="/content-calendar" className="underline underline-offset-2 hover:text-green-300">→ Przejdź</Link>
+      <Check size={13} /> Zapisano
+      <Link href="/content-calendar" className="underline underline-offset-2 hover:text-green-300">→ Kalendarz</Link>
     </div>
   )
   return (
-    <button
-      onClick={handleSave}
-      disabled={saving}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-green-500/10 border border-green-500/25 text-green-400 text-[11px] font-semibold hover:bg-green-500/20 transition-all disabled:opacity-50"
-    >
-      {saving ? <Loader2 size={11} className="animate-spin" /> : <CalendarPlus size={11} />}
-      Zapisz do kalendarza
-    </button>
+    <>
+      <button
+        onClick={() => setShowPicker(true)}
+        disabled={saving}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-green-500/10 border border-green-500/25 text-green-400 text-[11px] font-semibold hover:bg-green-500/20 transition-all disabled:opacity-50"
+      >
+        {saving ? <Loader2 size={11} className="animate-spin" /> : <CalendarPlus size={11} />}
+        Zapisz do kalendarza
+      </button>
+      {showPicker && <CalendarDatePicker onSelect={handleSave} onClose={() => setShowPicker(false)} />}
+    </>
   )
 }
 
