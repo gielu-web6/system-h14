@@ -1,11 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import toast from 'react-hot-toast'
 import {
   Sparkles, Copy, Check, RefreshCw,
   Loader2, ImageIcon, Link2,
-  Lightbulb, Layers, Brain,
+  Lightbulb, Layers, Brain, CalendarPlus,
 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 type Tab = 'instagram' | 'linkedin' | 'repurpose'
 
@@ -32,6 +35,59 @@ function CopyBtn({ text, label = 'Kopiuj' }: { text: string; label?: string }) {
       className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-white/[0.05] border border-white/[0.09] text-white/55 text-[11px] font-medium hover:bg-white/[0.09] hover:text-white transition-all"
     >
       {copied ? <><Check size={12} className="text-green-400" /> Skopiowano</> : <><Copy size={12} /> {label}</>}
+    </button>
+  )
+}
+
+// ─── Save to calendar button ──────────────────────────────────────────────────
+
+function SaveToCalendarBtn({
+  contentType, channel, title, result,
+}: {
+  contentType: 'carousel' | 'linkedin_post' | 'single_post' | 'reel_script' | 'story' | 'newsletter'
+  channel: 'instagram' | 'linkedin_company' | 'linkedin_personal' | 'newsletter'
+  title: string
+  result: GeneratedContent
+}) {
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved]   = useState(false)
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.from('content_calendar').insert({
+        status: 'draft',
+        content_type: contentType,
+        channel,
+        title,
+        content_body: result.content_body,
+        hook: result.hook || undefined,
+        cta: result.cta || undefined,
+        hashtags: result.hashtags?.length ? result.hashtags : undefined,
+      })
+      if (error) throw error
+      setSaved(true)
+      toast.success('Zapisano do kalendarza!')
+    } catch {
+      toast.error('Błąd zapisu')
+    } finally {
+      setSaving(false)
+    }
+  }
+  if (saved) return (
+    <div className="flex items-center gap-2 text-[12px] text-green-400">
+      <Check size={13} /> Zapisano do kalendarza
+      <Link href="/content-calendar" className="underline underline-offset-2 hover:text-green-300">→ Przejdź</Link>
+    </div>
+  )
+  return (
+    <button
+      onClick={handleSave}
+      disabled={saving}
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-green-500/10 border border-green-500/25 text-green-400 text-[11px] font-semibold hover:bg-green-500/20 transition-all disabled:opacity-50"
+    >
+      {saving ? <Loader2 size={11} className="animate-spin" /> : <CalendarPlus size={11} />}
+      Zapisz do kalendarza
     </button>
   )
 }
@@ -288,10 +344,13 @@ function InstagramTab() {
           )}
 
           <div className="flex items-center justify-between">
-            <CopyBtn
-              text={[result.hook, result.content_body, result.cta, result.hashtags?.join(' ')].filter(Boolean).join('\n\n')}
-              label="Kopiuj całość"
-            />
+            <div className="flex items-center gap-2">
+              <CopyBtn
+                text={[result.hook, result.content_body, result.cta, result.hashtags?.join(' ')].filter(Boolean).join('\n\n')}
+                label="Kopiuj całość"
+              />
+              <SaveToCalendarBtn contentType="carousel" channel="instagram" title={topic} result={result} />
+            </div>
             <div className="flex items-center gap-1.5">
               <Brain size={10} className="text-[#E8A838]/60" />
               <span className="text-[10px] text-white/30">Ten output powstał na bazie DNA Twojej firmy (ton, ICP, strategia)</span>
@@ -465,7 +524,10 @@ function LinkedInTab() {
             </pre>
           </div>
           <div className="flex items-center justify-between">
-            <CopyBtn text={fullText} label="Kopiuj post" />
+            <div className="flex items-center gap-2">
+              <CopyBtn text={fullText} label="Kopiuj post" />
+              <SaveToCalendarBtn contentType="linkedin_post" channel="linkedin_personal" title={topic} result={result} />
+            </div>
             <div className="flex items-center gap-1.5">
               <Brain size={10} className="text-[#E8A838]/60" />
               <span className="text-[10px] text-white/30">Ten output powstał na bazie DNA Twojej firmy (ton, ICP, strategia)</span>
@@ -574,10 +636,18 @@ function RepurposeTab() {
             </pre>
           </div>
           <div className="flex items-center justify-between">
-            <CopyBtn
-              text={[versions[activeVersion].hook, versions[activeVersion].content_body, versions[activeVersion].cta, versions[activeVersion].hashtags?.join(' ')].filter(Boolean).join('\n\n')}
-              label="Kopiuj wersję"
-            />
+            <div className="flex items-center gap-2">
+              <CopyBtn
+                text={[versions[activeVersion].hook, versions[activeVersion].content_body, versions[activeVersion].cta, versions[activeVersion].hashtags?.join(' ')].filter(Boolean).join('\n\n')}
+                label="Kopiuj wersję"
+              />
+              <SaveToCalendarBtn
+                contentType={REPURPOSE_FORMATS[activeVersion].type as 'carousel' | 'linkedin_post' | 'single_post' | 'reel_script' | 'story' | 'newsletter'}
+                channel={REPURPOSE_FORMATS[activeVersion].channel as 'instagram' | 'linkedin_company' | 'linkedin_personal' | 'newsletter'}
+                title={versions[activeVersion].title}
+                result={versions[activeVersion]}
+              />
+            </div>
             <div className="flex items-center gap-1.5">
               <Brain size={10} className="text-[#E8A838]/60" />
               <span className="text-[10px] text-white/30">Ten output powstał na bazie DNA Twojej firmy (ton, ICP, strategia)</span>
