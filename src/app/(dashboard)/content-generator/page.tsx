@@ -55,15 +55,17 @@ function SaveToCalendarBtn({
     setSaving(true)
     try {
       const supabase = createClient()
+      const today = new Date().toISOString().split('T')[0]
       const { error } = await supabase.from('content_calendar').insert({
         status: 'draft',
         content_type: contentType,
         channel,
+        scheduled_date: today,
         title,
-        content_body: result.content_body,
-        hook: result.hook || undefined,
-        cta: result.cta || undefined,
-        hashtags: result.hashtags?.length ? result.hashtags : undefined,
+        content_body: result.content_body || null,
+        hook: result.hook || null,
+        cta: result.cta || null,
+        hashtags: result.hashtags?.length ? result.hashtags : null,
       })
       if (error) throw error
       setSaved(true)
