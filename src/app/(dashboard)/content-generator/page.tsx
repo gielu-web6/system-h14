@@ -9,6 +9,7 @@ import {
   Lightbulb, Layers, Brain, CalendarPlus,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useAppUser } from '@/contexts/UserContext'
 
 type Tab = 'instagram' | 'linkedin' | 'repurpose'
 
@@ -42,13 +43,12 @@ function CopyBtn({ text, label = 'Kopiuj' }: { text: string; label?: string }) {
 // ─── Save to calendar button ──────────────────────────────────────────────────
 
 function SaveToCalendarBtn({
-  contentType, channel, title, result,
+  title, result,
 }: {
-  contentType: 'carousel' | 'linkedin_post' | 'single_post' | 'reel_script' | 'story' | 'newsletter'
-  channel: 'instagram' | 'linkedin_company' | 'linkedin_personal' | 'newsletter'
   title: string
   result: GeneratedContent
 }) {
+  const { user } = useAppUser()
   const [saving, setSaving] = useState(false)
   const [saved, setSaved]   = useState(false)
   const handleSave = async () => {
@@ -56,16 +56,17 @@ function SaveToCalendarBtn({
     try {
       const supabase = createClient()
       const today = new Date().toISOString().split('T')[0]
-      const { error } = await supabase.from('content_calendar').insert({
-        status: 'draft',
-        content_type: contentType,
-        channel,
-        scheduled_date: today,
-        title,
-        content_body: result.content_body || null,
-        hook: result.hook || null,
-        cta: result.cta || null,
-        hashtags: result.hashtags?.length ? result.hashtags : null,
+      const description = [result.hook, result.content_body, result.cta, result.hashtags?.join(' ')]
+        .filter(Boolean).join('\n\n').slice(0, 1000) || null
+      const { error } = await supabase.from('calendar_events').insert({
+        type: 'post',
+        title: title || result.title || 'Post AI',
+        description,
+        date: today,
+        time: null,
+        created_by: user?.id ?? 'ai',
+        shared: true,
+        color: '#6366f1',
       })
       if (error) throw error
       setSaved(true)
@@ -351,7 +352,7 @@ function InstagramTab() {
                 text={[result.hook, result.content_body, result.cta, result.hashtags?.join(' ')].filter(Boolean).join('\n\n')}
                 label="Kopiuj całość"
               />
-              <SaveToCalendarBtn contentType="carousel" channel="instagram" title={topic} result={result} />
+              <SaveToCalendarBtn title={topic} result={result} />
             </div>
             <div className="flex items-center gap-1.5">
               <Brain size={10} className="text-[#E8A838]/60" />
@@ -528,7 +529,7 @@ function LinkedInTab() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <CopyBtn text={fullText} label="Kopiuj post" />
-              <SaveToCalendarBtn contentType="linkedin_post" channel="linkedin_personal" title={topic} result={result} />
+              <SaveToCalendarBtn title={topic} result={result} />
             </div>
             <div className="flex items-center gap-1.5">
               <Brain size={10} className="text-[#E8A838]/60" />
@@ -643,12 +644,7 @@ function RepurposeTab() {
                 text={[versions[activeVersion].hook, versions[activeVersion].content_body, versions[activeVersion].cta, versions[activeVersion].hashtags?.join(' ')].filter(Boolean).join('\n\n')}
                 label="Kopiuj wersję"
               />
-              <SaveToCalendarBtn
-                contentType={REPURPOSE_FORMATS[activeVersion].type as 'carousel' | 'linkedin_post' | 'single_post' | 'reel_script' | 'story' | 'newsletter'}
-                channel={REPURPOSE_FORMATS[activeVersion].channel as 'instagram' | 'linkedin_company' | 'linkedin_personal' | 'newsletter'}
-                title={versions[activeVersion].title}
-                result={versions[activeVersion]}
-              />
+              <SaveToCalendarBtn title={versions[activeVersion].title} result={versions[activeVersion]} />
             </div>
             <div className="flex items-center gap-1.5">
               <Brain size={10} className="text-[#E8A838]/60" />
