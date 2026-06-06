@@ -91,7 +91,8 @@ function AddEventModal({
         .single()
       if (err) throw err
       const ev: CalendarEvent = {
-        id: (data as { id: string }).id,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        id: (data as any)?.id ?? '',
         type,
         title: title.trim(),
         date,
