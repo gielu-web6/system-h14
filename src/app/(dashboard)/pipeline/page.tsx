@@ -223,7 +223,7 @@ function DealModal({
     if (!validate()) return
     setSaving(true)
     try {
-      const updates: Partial<Deal> = {
+      const safeUpdates: Partial<Deal> = {
         title:             form.title.trim() || deal.title,
         stage:             form.stage,
         value:             form.value,
@@ -236,12 +236,7 @@ function DealModal({
         next_step:         form.next_step.trim() || null,
         last_contact_date: form.last_contact_date || deal.last_contact_date,
       }
-      // Columns that exist in DB right now; contact_* added via migration 008
-      const VALID_COLS = new Set(['title', 'stage', 'value', 'notes', 'assigned_to',
-        'service_ids', 'heat_score', 'is_hot'])
-      const safeUpdates = Object.fromEntries(
-        Object.entries(updates).filter(([k]) => VALID_COLS.has(k))
-      ) as Partial<Deal>
+      const updates = safeUpdates
       if (form.stage !== deal.stage) {
         await onStageChange(deal.id, form.stage)
       }
@@ -643,21 +638,26 @@ function NewDealModal({
     setSaving(true)
     setError('')
 
-    const supabase = createClient()
     const salesUser = isSalesUser() ? getCurrentUser() : null
-    const { data, error: err } = await supabase
-      .from('deals')
-      .insert({
+    const res = await fetch('/api/deals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         title: form.company || 'Nowa Firma',
+        contact_name: form.contactName || null,
+        contact_email: form.email || null,
+        contact_phone: form.phone || null,
+        contact_position: form.position || null,
+        contact_segment: form.segment || null,
         value: parseInt(form.value) || 10000,
         stage: form.stage,
         ...(salesUser ? { assigned_to: salesUser.id } : {}),
-      })
-      .select()
-      .single()
+      }),
+    })
+    const data = await res.json()
 
     setSaving(false)
-    if (err) { setError(err.message); return }
+    if (!res.ok) { setError(data.error ?? 'Błąd zapisu'); return }
     onAdd(data as Deal)
 
     // Alert 9 — big deal >= 15 000 PLN
@@ -753,7 +753,7 @@ function NewDealModal({
                 <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Etap pipeline</label>
                 <select value={form.stage} onChange={set('stage')}
                   className="w-full px-3 py-2 rounded-[8px] bg-bg border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all">
-                  {STAGE_ORDER.filter(s => !['przegrana', 'nie_teraz'].includes(s)).map(s => (
+                  {STAGE_ORDER.filter(s => s !== 'przegrana').map(s => (
                     <option key={s} value={s}>{STAGE_CONFIG[s].label}</option>
                   ))}
                 </select>
@@ -893,15 +893,15 @@ export default function PipelinePage() {
   const handleDealUpdate = async (id: string, updates: Partial<Deal>) => {
     setDeals(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d))
     if (isDemoMode()) { toast.success('Zapisano zmiany'); return }
-    const supabase = createClient()
-    const { error } = await supabase
-      .from('deals')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', id)
-    if (error) {
-      setDeals(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d))
-      toast.error('Błąd zapisu: ' + error.message)
-      throw error
+    const res = await fetch('/api/deals', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ...updates }),
+    })
+    if (!res.ok) {
+      const err = await res.json()
+      toast.error('Błąd zapisu: ' + (err.error ?? ''))
+      throw new Error(err.error)
     }
     toast.success('Zapisano zmiany')
   }
