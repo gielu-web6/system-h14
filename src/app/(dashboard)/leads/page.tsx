@@ -1,14 +1,15 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import {
   Search, X, Flame, Thermometer, Snowflake,
   Phone, Mail, Globe, Calendar, Check,
   MessageSquare, TrendingUp, SlidersHorizontal, CheckCircle2,
-  Download, Link2, Share2, Brain, Plus, Loader2,
+  Download, Upload, Link2, Share2, Brain, Plus, Loader2,
   Send, StickyNote, ChevronDown, Pencil, Trash2, ArrowUpDown,
   AlertCircle,
 } from 'lucide-react'
+import Papa from 'papaparse'
 import toast from 'react-hot-toast'
 import { createClient } from '@/lib/supabase/client'
 import { useServices } from '@/hooks/useServices'
@@ -153,6 +154,19 @@ function saveSegment(key: string, label: string) {
 }
 
 // ─── CSV Export ───────────────────────────────────────────────────────────────
+
+// ─── CSV column map (Polish export headers → DB column names) ─────────────────
+
+const CSV_COL_MAP: Record<string, string> = {
+  'ID': 'id', 'Imię': 'first_name', 'Nazwisko': 'last_name', 'Firma': 'company',
+  'Stanowisko': 'position', 'Email': 'email', 'Telefon': 'phone', 'Miasto': 'city',
+  'Segment': 'segment', 'AI Score': 'ai_score_num', 'Etykieta AI': 'ai_score_label',
+  'Status': 'app_status', 'Ostatni kontakt': 'last_contact',
+  'LinkedIn': 'linkedin_url', 'Instagram': 'instagram_url', 'Strona www': 'company_website',
+  'Problem': 'ai_problem', 'Icebreaker': 'ai_icebreaker', 'Notatki': 'notes',
+}
+const CSV_JSON_COLS = new Set(['scan_data', 'outreach_history', 'service_ids', 'tags'])
+const CSV_NUM_COLS  = new Set(['ai_score_num', 'ai_icp_score', 'ai_signals_score', 'ai_activity_score', 'ai_potential_score'])
 
 function exportCSV(leads: Lead[]) {
   const headers = ['ID', 'Imię', 'Nazwisko', 'Firma', 'Stanowisko', 'Email', 'Telefon', 'Miasto',
@@ -1270,6 +1284,75 @@ export default function LeadsPage() {
   const [selectedLead, setSelected] = useState<Lead | null>(null)
   const [showFilters, setShowFilters] = useState(false)
   const [showNewLead, setShowNewLead] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const importRef = useRef<HTMLInputElement>(null)
+
+  const handleImportFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    setImporting(true)
+    toast.loading('Importuję CSV…', { id: 'csv-import' })
+
+    Papa.parse<Record<string, string>>(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        const rows = results.data
+        let imported = 0, skipped = 0
+        const toInsert: Record<string, unknown>[] = []
+
+        for (const row of rows) {
+          try {
+            const dbRow: Record<string, unknown> = {}
+            for (const [csvKey, value] of Object.entries(row)) {
+              const dbKey = CSV_COL_MAP[csvKey] ?? csvKey // accept DB column names directly
+              const v = (value ?? '').trim()
+              if (v === '') continue
+              if (CSV_JSON_COLS.has(dbKey)) {
+                try { dbRow[dbKey] = JSON.parse(v) } catch { dbRow[dbKey] = v }
+              } else if (CSV_NUM_COLS.has(dbKey)) {
+                const n = Number(v); if (!isNaN(n)) dbRow[dbKey] = n
+              } else {
+                dbRow[dbKey] = v
+              }
+            }
+            if (!dbRow.first_name && !dbRow.company) { skipped++; continue }
+            if (!dbRow.id) delete dbRow.id
+            toInsert.push(dbRow)
+          } catch { skipped++ }
+        }
+
+        if (toInsert.length === 0) {
+          toast.error('Brak prawidłowych wierszy do importu', { id: 'csv-import' })
+          setImporting(false)
+          return
+        }
+
+        const supabase = createClient()
+        for (let i = 0; i < toInsert.length; i += 50) {
+          const chunk = toInsert.slice(i, i + 50)
+          const { error } = await supabase.from('leads').upsert(chunk, { onConflict: 'id' })
+          if (error) { console.error('import chunk error:', error); skipped += chunk.length }
+          else imported += chunk.length
+        }
+
+        // refresh list
+        const { data } = await supabase.from('leads').select('*').order('last_contact', { ascending: false })
+        if (data) setLeads(data.map(r => dbToLead(r as Record<string, unknown>)))
+
+        toast.success(
+          `Zaimportowano ${imported} leadów${skipped ? `, pominięto ${skipped}` : ''}`,
+          { id: 'csv-import', duration: 5000 },
+        )
+        setImporting(false)
+      },
+      error: () => {
+        toast.error('Błąd parsowania CSV', { id: 'csv-import' })
+        setImporting(false)
+      },
+    })
+  }, [])
 
   useEffect(() => {
     if (isDemoMode()) {
@@ -1366,6 +1449,14 @@ export default function LeadsPage() {
           <p className="text-[12px] text-white/40 mt-0.5">{filtered.length} z {leads.length} leadów</p>
         </div>
         <div className="flex items-center gap-2">
+          <input ref={importRef} type="file" accept=".csv" className="hidden" onChange={handleImportFile} />
+          <button
+            onClick={() => importRef.current?.click()}
+            disabled={importing}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-white/[0.05] border border-white/[0.09] text-white/50 text-[12px] font-medium hover:bg-white/[0.09] hover:text-white disabled:opacity-40 transition-all"
+          >
+            {importing ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />} Import CSV
+          </button>
           <button
             onClick={() => exportCSV(filtered)}
             disabled={filtered.length === 0}
