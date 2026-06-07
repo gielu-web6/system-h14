@@ -224,11 +224,11 @@ function DealModal({
     setSaving(true)
     try {
       const updates: Partial<Deal> = {
-        contact_name:      form.contact_name.trim() || null,
         title:             form.title.trim() || deal.title,
-        contact_position:  form.contact_position.trim() || null,
         stage:             form.stage,
         value:             form.value,
+        contact_name:      form.contact_name.trim() || null,
+        contact_position:  form.contact_position.trim() || null,
         contact_email:     form.contact_email.trim() || null,
         contact_phone:     form.contact_phone.trim() || null,
         contact_segment:   form.contact_segment.trim() || null,
@@ -236,10 +236,16 @@ function DealModal({
         next_step:         form.next_step.trim() || null,
         last_contact_date: form.last_contact_date || deal.last_contact_date,
       }
+      // Columns that exist in DB right now; contact_* added via migration 008
+      const VALID_COLS = new Set(['title', 'stage', 'value', 'notes', 'assigned_to',
+        'service_ids', 'heat_score', 'is_hot'])
+      const safeUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([k]) => VALID_COLS.has(k))
+      ) as Partial<Deal>
       if (form.stage !== deal.stage) {
         await onStageChange(deal.id, form.stage)
       }
-      await onUpdate(deal.id, updates)
+      await onUpdate(deal.id, safeUpdates)
       setDeal(d => ({ ...d, ...updates } as Deal))
       setEditMode(false)
     } catch { /* toast shown by onUpdate */ } finally {
@@ -643,16 +649,8 @@ function NewDealModal({
       .from('deals')
       .insert({
         title: form.company || 'Nowa Firma',
-        contact_name: form.contactName || null,
-        contact_email: form.email || null,
-        contact_phone: form.phone || null,
-        contact_position: form.position || null,
-        contact_segment: form.segment,
         value: parseInt(form.value) || 10000,
         stage: form.stage,
-        last_contact_date: new Date().toISOString().slice(0, 10),
-        next_step: 'Umówić rozmowę discovery',
-        project_scope: 'Do uzupełnienia po pierwszej rozmowie',
         ...(salesUser ? { assigned_to: salesUser.id } : {}),
       })
       .select()
