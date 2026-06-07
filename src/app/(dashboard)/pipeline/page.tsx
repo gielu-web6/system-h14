@@ -63,18 +63,22 @@ export interface Deal {
 
 // ─── Badge helpers ────────────────────────────────────────────────────────────
 
-function ScoreBadge({ score }: { score: 'hot' | 'warm' | 'cold' }) {
+function ScoreBadge({ score }: { score?: 'hot' | 'warm' | 'cold' | null }) {
   if (score === 'hot')  return <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 text-[9px] font-bold uppercase tracking-wide"><Flame size={8}/>Hot</span>
   if (score === 'warm') return <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-orange-500/15 text-orange-400 text-[9px] font-bold uppercase tracking-wide"><Thermometer size={8}/>Warm</span>
-  return <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400 text-[9px] font-bold uppercase tracking-wide"><Snowflake size={8}/>Cold</span>
+  if (score === 'cold') return <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400 text-[9px] font-bold uppercase tracking-wide"><Snowflake size={8}/>Cold</span>
+  return null
 }
 
 function formatPLN(v: number) {
   return v.toLocaleString('pl-PL') + ' PLN'
 }
 
-function relativeDate(iso: string) {
-  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000)
+function relativeDate(iso: string | null | undefined) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return '—'
+  const days = Math.floor((Date.now() - d.getTime()) / 86400000)
   if (days === 0) return 'dziś'
   if (days === 1) return 'wczoraj'
   return `${days} dni temu`
@@ -83,8 +87,11 @@ function relativeDate(iso: string) {
 // ─── Deal Card ────────────────────────────────────────────────────────────────
 
 function DealCard({ deal, onClick }: { deal: Deal; onClick: () => void }) {
-  const displayName = deal.contact_name || deal.title
+  const personName = deal.contact_name || null
+  const companyName = deal.title
+  const displayName = personName || companyName
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+  const dateStr = relativeDate((deal as Record<string, unknown>).last_contact_date as string ?? (deal as Record<string, unknown>).created_at as string)
 
   return (
     <button
@@ -98,14 +105,14 @@ function DealCard({ deal, onClick }: { deal: Deal; onClick: () => void }) {
           </div>
           <div className="min-w-0">
             <p className="text-[12px] font-semibold text-white truncate leading-tight">{displayName}</p>
-            <p className="text-[10px] text-white/40 truncate">{deal.title}</p>
+            {personName && <p className="text-[10px] text-white/40 truncate">{companyName}</p>}
           </div>
         </div>
         <ScoreBadge score={deal.ai_score_label} />
       </div>
       <div className="flex items-center justify-between mt-2">
         <span className="text-[11px] font-semibold text-accent">{formatPLN(deal.value)}</span>
-        <span className="text-[10px] text-white/30">{relativeDate(deal.last_contact_date)}</span>
+        <span className="text-[10px] text-white/30">{dateStr}</span>
       </div>
     </button>
   )
