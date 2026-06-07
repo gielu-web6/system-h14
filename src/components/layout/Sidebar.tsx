@@ -32,6 +32,7 @@ const ADMIN_NAV_SECTIONS = [
     section: '',
     items: [
       { href: '/dashboard',              label: 'Dashboard',        icon: LayoutDashboard },
+      { href: '/tasks',                  label: 'Zadania',          icon: CheckSquare },
     ],
   },
   {
@@ -72,7 +73,6 @@ const ADMIN_NAV_SECTIONS = [
     section: 'AI System',
     items: [
       { href: '/company-brain',     label: 'Company Brain',    icon: Brain },
-      { href: '/tasks',             label: 'Zadania',          icon: CheckSquare },
     ],
   },
 ]
@@ -83,6 +83,7 @@ const SALES_NAV_SECTIONS = [
     section: '',
     items: [
       { href: '/dashboard',              label: 'Mój Dashboard',    icon: LayoutDashboard },
+      { href: '/tasks',                  label: 'Zadania',          icon: CheckSquare },
     ],
   },
   {
@@ -101,7 +102,6 @@ const SALES_NAV_SECTIONS = [
     items: [
       { href: '/content-generator', label: 'Content AI',       icon: Sparkles },
       { href: '/knowledge-base',    label: 'Bank Obiekcji',    icon: Brain },
-      { href: '/tasks',             label: 'Zadania',          icon: CheckSquare },
     ],
   },
   {
