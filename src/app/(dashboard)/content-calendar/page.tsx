@@ -547,7 +547,7 @@ export default function ContentCalendarPage() {
         type: (row.type as CalendarEvent['type']) ?? 'event',
         title: row.title as string,
         description: row.description as string | undefined,
-        date: (row.start_date ?? row.date) as string,
+        date: ((row.start_date ?? row.date) as string).slice(0, 10),
         time: row.time as string | undefined,
         created_by: (row.user_id ?? row.created_by ?? '') as string,
         shared: true,
