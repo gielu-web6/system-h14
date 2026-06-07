@@ -548,10 +548,13 @@ export default function ContentCalendarPage() {
     setLoadingEvents(true)
     try {
       const supabase = createClient()
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('calendar_events')
         .select('*')
         .order('start_date', { ascending: true })
+      if (error) {
+        console.error('[calendar] loadEvents error:', error)
+      }
       // Normalize DB rows → CalendarEvent interface
       const normalized: CalendarEvent[] = (data ?? []).map((row: Record<string, unknown>) => ({
         id: row.id as string,
@@ -561,9 +564,10 @@ export default function ContentCalendarPage() {
         date: (row.start_date ?? row.date) as string,
         time: row.time as string | undefined,
         created_by: (row.user_id ?? row.created_by ?? '') as string,
-        shared: (row.shared as boolean) ?? true,
+        shared: true,
         color: (row.color as string) ?? '#6366f1',
       }))
+      console.log('[calendar] loaded events:', normalized.length, normalized)
       setEvents(normalized)
     } finally {
       setLoadingEvents(false)
