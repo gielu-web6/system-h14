@@ -159,6 +159,12 @@ function SaveToCalendarBtn({
         body: JSON.stringify({
           type: 'post',
           title: title || result.title || 'Post AI',
+          description: [
+            result.hook && `🪝 Hook:\n${result.hook}`,
+            result.content_body && `📝 Treść:\n${result.content_body}`,
+            result.cta && `🎯 CTA:\n${result.cta}`,
+            result.hashtags?.length && `🏷️ ${result.hashtags.join(' ')}`,
+          ].filter(Boolean).join('\n\n'),
           start_date: date,
           end_date: date,
           user_id: user?.id ?? 'ai',

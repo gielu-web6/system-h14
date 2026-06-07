@@ -237,8 +237,7 @@ function EventDetailModal({
   const handleDelete = async () => {
     setDeleting(true)
     try {
-      const supabase = createClient()
-      await supabase.from('calendar_events').delete().eq('id', event.id)
+      await fetch(`/api/calendar/events?id=${event.id}`, { method: 'DELETE' })
       onDelete(event.id)
       onClose()
     } finally {
@@ -274,7 +273,7 @@ function EventDetailModal({
         </div>
         <div className="p-5">
           {event.description && (
-            <p className="text-[13px] text-white/60 leading-relaxed mb-4">{event.description}</p>
+            <p className="text-[12px] text-white/60 leading-relaxed mb-4 whitespace-pre-wrap">{event.description}</p>
           )}
           <p className="text-[10px] text-white/25">Dodane przez: {event.created_by}</p>
           {event.created_by === currentUser && (
