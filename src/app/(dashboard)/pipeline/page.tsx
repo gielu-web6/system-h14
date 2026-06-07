@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   Flame, Thermometer, Snowflake, X, Phone, Mail, Calendar,
   FileText, MessageSquare, DollarSign, User, Building2, Tag, CheckCircle2,
-  Loader2, AlertCircle, Send, ExternalLink, Check,
+  Loader2, AlertCircle, Send, ExternalLink, Check, Trash2,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -134,16 +134,20 @@ function DealModal({
   onClose,
   onStageChange,
   onUpdate,
+  onDelete,
 }: {
   deal: Deal
   onClose: () => void
   onStageChange: (id: string, stage: DealStage) => Promise<void>
   onUpdate: (id: string, updates: Partial<Deal>) => Promise<void>
+  onDelete: (id: string) => Promise<void>
 }) {
   const [deal, setDeal] = useState(initialDeal)
   const displayName = deal.contact_name || deal.title
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [showDM, setShowDM] = useState(false)
   const [dmLoading, setDmLoading] = useState(false)
   const [dmVariants, setDmVariants] = useState<Array<{ message: string } | null>>([null, null])
@@ -206,6 +210,12 @@ function DealModal({
 
   const handleClose = () => {
     if (editMode) { setShowCloseConfirm(true) } else { onClose() }
+  }
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    await onDelete(deal.id)
+    onClose()
   }
 
   const validate = (): boolean => {
@@ -575,6 +585,26 @@ function DealModal({
                 </button>
               </div>
 
+              {/* Delete */}
+              {!confirmDelete ? (
+                <button onClick={() => setConfirmDelete(true)}
+                  className="flex items-center justify-center gap-1.5 w-full py-2 rounded-[8px] border border-red-500/20 text-red-400/60 text-[11px] font-medium hover:border-red-500/50 hover:text-red-400 hover:bg-red-500/5 transition-all">
+                  <Trash2 size={12} /> Usuń deal
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setConfirmDelete(false)}
+                    className="flex-1 py-2 rounded-[8px] border border-white/10 text-white/40 text-[11px] hover:bg-white/[0.04] transition-all">
+                    Anuluj
+                  </button>
+                  <button onClick={handleDelete} disabled={deleting}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[8px] bg-red-500/15 border border-red-500/40 text-red-400 text-[11px] font-semibold hover:bg-red-500/25 transition-all disabled:opacity-50">
+                    {deleting ? <Loader2 size={11} className="animate-spin" /> : <Trash2 size={11} />}
+                    Potwierdź usunięcie
+                  </button>
+                </div>
+              )}
+
               {/* Inline DM panel */}
               {showDM && (
                 <div className="rounded-[12px] bg-white/[0.03] border border-white/[0.07] p-4 space-y-3">
@@ -906,6 +936,17 @@ export default function PipelinePage() {
     toast.success('Zapisano zmiany')
   }
 
+  // ── Delete deal ────────────────────────────────────────────────────────────
+  const handleDealDelete = async (id: string) => {
+    setDeals(prev => prev.filter(d => d.id !== id))
+    setSelectedDeal(null)
+    if (isDemoMode()) { toast.success('Deal usunięty'); return }
+    const supabase = createClient()
+    const { error } = await supabase.from('deals').delete().eq('id', id)
+    if (error) toast.error('Błąd usuwania: ' + error.message)
+    else toast.success('Deal usunięty')
+  }
+
   // ── Add new deal ───────────────────────────────────────────────────────────
   const handleAddDeal = (deal: Deal) => {
     setDeals(prev => [deal, ...prev])
@@ -1014,6 +1055,7 @@ export default function PipelinePage() {
           onClose={() => setSelectedDeal(null)}
           onStageChange={handleStageChange}
           onUpdate={handleDealUpdate}
+          onDelete={handleDealDelete}
         />
       )}
 
