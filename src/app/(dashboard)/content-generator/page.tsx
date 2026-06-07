@@ -153,15 +153,19 @@ function SaveToCalendarBtn({
     setSaving(true)
     setShowPicker(false)
     try {
-      const supabase = createClient()
-      const { error } = await supabase.from('calendar_events').insert({
-        type: 'post',
-        title: title || result.title || 'Post AI',
-        start_date: date,
-        end_date: date,
-        user_id: user?.id ?? 'ai',
+      const res = await fetch('/api/calendar/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'post',
+          title: title || result.title || 'Post AI',
+          start_date: date,
+          end_date: date,
+          user_id: user?.id ?? 'ai',
+        }),
       })
-      if (error) throw error
+      const payload = await res.json()
+      if (!res.ok) throw new Error(payload.error || 'Błąd zapisu')
       setSaved(true)
       const label = new Date(date + 'T12:00:00').toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' })
       toast.success(`Zapisano na ${label}!`)

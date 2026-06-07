@@ -77,22 +77,15 @@ function AddEventModal({
     setSaving(true)
     setError(null)
     try {
-      const supabase = createClient()
-      const { data, error: err } = await supabase
-        .from('calendar_events')
-        .insert({
-          type,
-          title: title.trim(),
-          start_date: date,
-          end_date: date,
-          user_id: currentUser,
-        })
-        .select()
-        .single()
-      if (err) throw err
+      const res = await fetch('/api/calendar/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, title: title.trim(), start_date: date, end_date: date, user_id: currentUser }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Błąd zapisu')
       const ev: CalendarEvent = {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        id: (data as any)?.id ?? '',
+        id: data?.id ?? '',
         type,
         title: title.trim(),
         date,
@@ -547,16 +540,9 @@ export default function ContentCalendarPage() {
   const loadEvents = useCallback(async () => {
     setLoadingEvents(true)
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from('calendar_events')
-        .select('*')
-        .order('start_date', { ascending: true })
-      if (error) {
-        console.error('[calendar] loadEvents error:', error)
-      }
-      // Normalize DB rows → CalendarEvent interface
-      const normalized: CalendarEvent[] = (data ?? []).map((row: Record<string, unknown>) => ({
+      const res = await fetch('/api/calendar/events')
+      const rows: Record<string, unknown>[] = res.ok ? await res.json() : []
+      const normalized: CalendarEvent[] = rows.map((row) => ({
         id: row.id as string,
         type: (row.type as CalendarEvent['type']) ?? 'event',
         title: row.title as string,
@@ -567,7 +553,6 @@ export default function ContentCalendarPage() {
         shared: true,
         color: (row.color as string) ?? '#6366f1',
       }))
-      console.log('[calendar] loaded events:', normalized.length, normalized)
       setEvents(normalized)
     } finally {
       setLoadingEvents(false)
