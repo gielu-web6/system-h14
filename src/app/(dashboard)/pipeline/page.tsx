@@ -61,6 +61,53 @@ export interface Deal {
   service_ids?: string[]
 }
 
+// ─── Contact info stored in notes JSON ───────────────────────────────────────
+// Until DB migration runs, contact fields live in the notes column as JSON.
+
+interface ContactData {
+  contact_name?: string
+  contact_email?: string
+  contact_phone?: string
+  contact_position?: string
+  contact_segment?: string
+  ai_score_label?: 'hot' | 'warm' | 'cold'
+  ai_score_num?: number
+  last_contact_date?: string
+  next_step?: string
+  project_scope?: string
+  user_notes?: string
+}
+
+function parseContact(notes: string | null | undefined): ContactData {
+  if (!notes) return {}
+  try {
+    const parsed = JSON.parse(notes)
+    if (parsed && typeof parsed === 'object' && '__c' in parsed) return parsed.__c as ContactData
+  } catch { /* not JSON */ }
+  return {}
+}
+
+function buildNotes(contact: ContactData, userNotes: string): string {
+  return JSON.stringify({ __c: contact, _n: userNotes })
+}
+
+function getDealContact(deal: Deal): ContactData {
+  // Try real DB columns first (if migration has been run), then fall back to notes JSON
+  const fromNotes = parseContact((deal as Record<string, unknown>).notes as string)
+  return {
+    contact_name:     deal.contact_name     || fromNotes.contact_name,
+    contact_email:    deal.contact_email    || fromNotes.contact_email,
+    contact_phone:    deal.contact_phone    || fromNotes.contact_phone,
+    contact_position: deal.contact_position || fromNotes.contact_position,
+    contact_segment:  deal.contact_segment  || fromNotes.contact_segment,
+    ai_score_label:   deal.ai_score_label   || fromNotes.ai_score_label,
+    ai_score_num:     deal.ai_score_num     ?? fromNotes.ai_score_num,
+    last_contact_date: deal.last_contact_date || fromNotes.last_contact_date,
+    next_step:        deal.next_step        || fromNotes.next_step,
+    project_scope:    deal.project_scope    || fromNotes.project_scope,
+  }
+}
+
 // ─── Badge helpers ────────────────────────────────────────────────────────────
 
 function ScoreBadge({ score }: { score?: 'hot' | 'warm' | 'cold' | null }) {
@@ -87,11 +134,12 @@ function relativeDate(iso: string | null | undefined) {
 // ─── Deal Card ────────────────────────────────────────────────────────────────
 
 function DealCard({ deal, onClick }: { deal: Deal; onClick: () => void }) {
-  const personName = deal.contact_name || null
+  const c = getDealContact(deal)
+  const personName = c.contact_name || null
   const companyName = deal.title
   const displayName = personName || companyName
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
-  const dateStr = relativeDate((deal as Record<string, unknown>).last_contact_date as string ?? (deal as Record<string, unknown>).created_at as string)
+  const dateStr = relativeDate(c.last_contact_date ?? (deal as Record<string, unknown>).created_at as string)
 
   return (
     <button
@@ -108,7 +156,7 @@ function DealCard({ deal, onClick }: { deal: Deal; onClick: () => void }) {
             {personName && <p className="text-[10px] text-white/40 truncate">{companyName}</p>}
           </div>
         </div>
-        <ScoreBadge score={deal.ai_score_label} />
+        <ScoreBadge score={c.ai_score_label} />
       </div>
       <div className="flex items-center justify-between mt-2">
         <span className="text-[11px] font-semibold text-accent">{formatPLN(deal.value)}</span>
@@ -150,7 +198,8 @@ function DealModal({
   onDelete: (id: string) => Promise<void>
 }) {
   const [deal, setDeal] = useState(initialDeal)
-  const displayName = deal.contact_name || deal.title
+  const dc = getDealContact(deal)
+  const displayName = dc.contact_name || deal.title
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -164,20 +213,21 @@ function DealModal({
 
   // ── Edit mode ──────────────────────────────────────────────────────────────
   const [editMode, setEditMode] = useState(false)
+  const ic = getDealContact(initialDeal)
   const [form, setForm] = useState<EditForm>({
-    contact_name: initialDeal.contact_name ?? '',
+    contact_name: ic.contact_name ?? '',
     title: initialDeal.title,
-    contact_position: initialDeal.contact_position ?? '',
+    contact_position: ic.contact_position ?? '',
     stage: initialDeal.stage,
-    ai_score_label: initialDeal.ai_score_label,
-    ai_score_num: initialDeal.ai_score_num ?? 50,
+    ai_score_label: ic.ai_score_label ?? 'warm',
+    ai_score_num: ic.ai_score_num ?? 50,
     value: initialDeal.value ?? 0,
-    contact_email: initialDeal.contact_email ?? '',
-    contact_phone: initialDeal.contact_phone ?? '',
-    contact_segment: initialDeal.contact_segment ?? '',
-    project_scope: initialDeal.project_scope ?? '',
-    next_step: initialDeal.next_step ?? '',
-    last_contact_date: initialDeal.last_contact_date ?? '',
+    contact_email: ic.contact_email ?? '',
+    contact_phone: ic.contact_phone ?? '',
+    contact_segment: ic.contact_segment ?? '',
+    project_scope: ic.project_scope ?? '',
+    next_step: ic.next_step ?? '',
+    last_contact_date: ic.last_contact_date ?? '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [showCloseConfirm, setShowCloseConfirm] = useState(false)
@@ -191,19 +241,20 @@ function DealModal({
       setForm(f => ({ ...f, [k]: Number(e.target.value) || 0 }))
 
   const startEdit = () => {
+    const ec = getDealContact(deal)
     setForm({
-      contact_name: deal.contact_name ?? '',
+      contact_name: ec.contact_name ?? '',
       title: deal.title,
-      contact_position: deal.contact_position ?? '',
+      contact_position: ec.contact_position ?? '',
       stage: deal.stage,
-      ai_score_label: deal.ai_score_label,
-      ai_score_num: deal.ai_score_num ?? 50,
+      ai_score_label: ec.ai_score_label ?? 'warm',
+      ai_score_num: ec.ai_score_num ?? 50,
       value: deal.value ?? 0,
-      contact_email: deal.contact_email ?? '',
-      contact_phone: deal.contact_phone ?? '',
-      contact_segment: deal.contact_segment ?? '',
-      project_scope: deal.project_scope ?? '',
-      next_step: deal.next_step ?? '',
+      contact_email: ec.contact_email ?? '',
+      contact_phone: ec.contact_phone ?? '',
+      contact_segment: ec.contact_segment ?? '',
+      project_scope: ec.project_scope ?? '',
+      next_step: ec.next_step ?? '',
       last_contact_date: deal.last_contact_date ?? '',
     })
     setErrors({})
@@ -240,10 +291,28 @@ function DealModal({
     if (!validate()) return
     setSaving(true)
     try {
+      const contactData: ContactData = {
+        contact_name:     form.contact_name.trim() || undefined,
+        contact_position: form.contact_position.trim() || undefined,
+        contact_email:    form.contact_email.trim() || undefined,
+        contact_phone:    form.contact_phone.trim() || undefined,
+        contact_segment:  form.contact_segment.trim() || undefined,
+        project_scope:    form.project_scope.trim() || undefined,
+        next_step:        form.next_step.trim() || undefined,
+        last_contact_date: form.last_contact_date || undefined,
+        ai_score_label:   form.ai_score_label,
+        ai_score_num:     form.ai_score_num,
+      }
+      const existingNotes = (deal as Record<string, unknown>).notes as string ?? ''
+      let userNotes = ''
+      try { const p = JSON.parse(existingNotes); userNotes = p._n ?? '' } catch { userNotes = existingNotes.startsWith('{') ? '' : existingNotes }
+
       const safeUpdates: Partial<Deal> = {
-        title:             form.title.trim() || deal.title,
-        stage:             form.stage,
-        value:             form.value,
+        title: form.title.trim() || deal.title,
+        stage: form.stage,
+        value: form.value,
+        notes: buildNotes(contactData, userNotes),
+        // also try real columns if they exist in DB
         contact_name:      form.contact_name.trim() || null,
         contact_position:  form.contact_position.trim() || null,
         contact_email:     form.contact_email.trim() || null,
@@ -251,14 +320,13 @@ function DealModal({
         contact_segment:   form.contact_segment.trim() || null,
         project_scope:     form.project_scope.trim() || null,
         next_step:         form.next_step.trim() || null,
-        last_contact_date: form.last_contact_date || deal.last_contact_date,
+        last_contact_date: form.last_contact_date || undefined,
       }
-      const updates = safeUpdates
       if (form.stage !== deal.stage) {
         await onStageChange(deal.id, form.stage)
       }
       await onUpdate(deal.id, safeUpdates)
-      setDeal(d => ({ ...d, ...updates } as Deal))
+      setDeal(d => ({ ...d, ...safeUpdates } as Deal))
       setEditMode(false)
     } catch { /* toast shown by onUpdate */ } finally {
       setSaving(false)
@@ -288,13 +356,13 @@ function DealModal({
     const payload = {
       messageType: 'dm1_icebreaker',
       leadData: {
-        first_name: (deal.contact_name ?? deal.title).split(' ')[0] ?? deal.title,
-        last_name: (deal.contact_name ?? '').split(' ').slice(1).join(' ') || '',
+        first_name: (dc.contact_name ?? deal.title).split(' ')[0] ?? deal.title,
+        last_name: (dc.contact_name ?? '').split(' ').slice(1).join(' ') || '',
         company: deal.title,
-        position: deal.contact_position ?? '',
-        industry: deal.contact_segment ?? '',
+        position: dc.contact_position ?? '',
+        industry: dc.contact_segment ?? '',
         company_website: '',
-        buying_signal: deal.project_scope ?? '',
+        buying_signal: dc.project_scope ?? '',
       },
     }
     try {
@@ -352,7 +420,7 @@ function DealModal({
             </div>
             <div>
               <p className="text-[15px] font-bold text-white">{displayName}</p>
-              <p className="text-[12px] text-white/40">{deal.title} · {deal.contact_position || '—'}</p>
+              <p className="text-[12px] text-white/40">{deal.title} · {dc.contact_position || '—'}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -497,8 +565,8 @@ function DealModal({
 
               {/* Score + value */}
               <div className="flex items-center gap-2">
-                <ScoreBadge score={deal.ai_score_label} />
-                <span className="text-[11px] text-white/40">Score: {deal.ai_score_num}/100</span>
+                <ScoreBadge score={dc.ai_score_label} />
+                {dc.ai_score_num != null && <span className="text-[11px] text-white/40">Score: {dc.ai_score_num}/100</span>}
               </div>
 
               <div className="flex items-center gap-2 p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.06]">
@@ -514,11 +582,11 @@ function DealModal({
                 <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide">Dane kontaktowe</p>
                 <div className="grid grid-cols-1 gap-2">
                   {[
-                    { icon: User,      label: deal.contact_position || '—' },
+                    { icon: User,      label: dc.contact_position || '—' },
                     { icon: Building2, label: deal.title },
-                    { icon: Mail,      label: deal.contact_email || '—' },
-                    { icon: Phone,     label: deal.contact_phone || '—' },
-                    { icon: Tag,       label: deal.contact_segment || '—' },
+                    { icon: Mail,      label: dc.contact_email || '—' },
+                    { icon: Phone,     label: dc.contact_phone || '—' },
+                    { icon: Tag,       label: dc.contact_segment || '—' },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-2 text-[12px]">
                       <item.icon size={13} className="text-white/30 flex-shrink-0" />
@@ -529,26 +597,28 @@ function DealModal({
               </div>
 
               {/* Scope */}
-              {deal.project_scope && (
+              {dc.project_scope && (
                 <div className="p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.06]">
                   <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1">Zakres projektu</p>
-                  <p className="text-[13px] text-white/75">{deal.project_scope}</p>
+                  <p className="text-[13px] text-white/75">{dc.project_scope}</p>
                 </div>
               )}
 
               {/* Next step */}
-              {deal.next_step && (
+              {dc.next_step && (
                 <div className="p-3 rounded-[10px] bg-[#6366f1]/[0.08] border border-accent/20">
                   <p className="text-[10px] font-semibold text-accent/70 uppercase tracking-wide mb-1">Następny krok</p>
-                  <p className="text-[13px] text-white/80">{deal.next_step}</p>
+                  <p className="text-[13px] text-white/80">{dc.next_step}</p>
                 </div>
               )}
 
               {/* Last contact */}
-              <div className="flex items-center gap-2 text-[12px] text-white/40">
-                <Calendar size={13} />
-                Ostatni kontakt: {new Date(deal.last_contact_date).toLocaleDateString('pl-PL')}
-              </div>
+              {dc.last_contact_date && (
+                <div className="flex items-center gap-2 text-[12px] text-white/40">
+                  <Calendar size={13} />
+                  Ostatni kontakt: {new Date(dc.last_contact_date).toLocaleDateString('pl-PL')}
+                </div>
+              )}
 
               {/* Notes */}
               {deal.notes && (
@@ -676,16 +746,25 @@ function NewDealModal({
     setError('')
 
     const salesUser = isSalesUser() ? getCurrentUser() : null
+    const contactData: ContactData = {
+      contact_name:     form.contactName || undefined,
+      contact_email:    form.email || undefined,
+      contact_phone:    form.phone || undefined,
+      contact_position: form.position || undefined,
+      contact_segment:  form.segment || undefined,
+    }
     const res = await fetch('/api/deals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        title: form.company || 'Nowa Firma',
-        contact_name: form.contactName || null,
-        contact_email: form.email || null,
-        contact_phone: form.phone || null,
+        title: form.company || form.contactName || 'Nowa Firma',
+        notes: buildNotes(contactData, ''),
+        // also try real columns (works after migration)
+        contact_name:     form.contactName || null,
+        contact_email:    form.email || null,
+        contact_phone:    form.phone || null,
         contact_position: form.position || null,
-        contact_segment: form.segment || null,
+        contact_segment:  form.segment || null,
         value: parseInt(form.value) || 10000,
         stage: form.stage,
         ...(salesUser ? { assigned_to: salesUser.id } : {}),
