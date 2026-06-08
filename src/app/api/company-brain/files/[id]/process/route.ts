@@ -71,7 +71,7 @@ Odpowiedz jako JSON: {"summary": "...", "key_facts": ["...", "..."]}`,
 // ─── Universal DNA extraction — works regardless of file category ─────────────
 // One prompt extracts all possible fields. Category is used as a hint only.
 
-const UNIVERSAL_PROMPT = `Jesteś asystentem który wyciąga informacje z dokumentów firmowych.
+export const UNIVERSAL_PROMPT = `Jesteś asystentem który wyciąga informacje z dokumentów firmowych.
 Przeanalizuj poniższy dokument i wyciągnij WSZYSTKIE informacje które pasują do poniższych pól profilu firmy.
 WAŻNE: wyciągaj TYLKO to co faktycznie jest w tekście — nie wymyślaj. Dla pól których nie ma w dokumencie zwróć null.
 

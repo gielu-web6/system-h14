@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   Brain, Save, Loader2, Plus, X, ChevronRight, CheckCircle2,
   Building2, Target, TrendingUp, Megaphone, Star, BarChart3, Eye,
-  RefreshCw, MessageSquare, Send, ChevronDown, ChevronUp,
+  RefreshCw, MessageSquare, Send, ChevronDown, ChevronUp, Globe,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -129,6 +129,38 @@ function dbToDNA(d: Record<string, unknown>): DNA {
     quarterly_deals_target: str(d.quarterly_deals_target), current_clients_count: str(d.current_clients_count),
     target_clients_count: str(d.target_clients_count),
   }
+}
+
+// ─── Merge draft into current DNA — fills only empty fields ──────────────────
+
+function mergeDNADraft(current: DNA, draft: DNA): DNA {
+  const result = { ...current }
+  for (const _key of Object.keys(draft)) {
+    const key = _key as keyof DNA
+    if (key === 'id') continue
+    const curr = current[key]
+    const val = draft[key]
+    if (Array.isArray(val)) {
+      if ((val as unknown[]).length === 0) continue
+      if (Array.isArray(curr)) {
+        if ((curr as unknown[]).length === 0) {
+          (result as Record<string, unknown>)[key] = val
+        } else {
+          // String arrays — append unique
+          const merged = [...(curr as string[])]
+          for (const item of val as string[]) {
+            if (item && !merged.includes(item)) merged.push(item)
+          }
+          (result as Record<string, unknown>)[key] = merged
+        }
+      }
+    } else if (typeof val === 'string' && val.trim()) {
+      if (typeof curr === 'string' && !curr.trim()) {
+        (result as Record<string, unknown>)[key] = val
+      }
+    }
+  }
+  return result
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -362,9 +394,12 @@ type TabId = typeof TABS[number]['id']
 export default function DNAEditorPage() {
   const [dna, setDna]       = useState<DNA>(EMPTY_DNA)
   const [tab, setTab]       = useState<TabId>('interview')
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving]   = useState(false)
-  const [syncing, setSyncing] = useState(false)
+  const [loading, setLoading]         = useState(true)
+  const [saving, setSaving]           = useState(false)
+  const [syncing, setSyncing]         = useState(false)
+  const [urlInput, setUrlInput]       = useState('')
+  const [urlFilling, setUrlFilling]   = useState(false)
+  const [draftApplied, setDraftApplied] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -390,6 +425,29 @@ export default function DNAEditorPage() {
       toast.error((e as Error).message ?? 'Błąd synchronizacji')
     } finally {
       setSyncing(false)
+    }
+  }
+
+  const fillFromUrl = async () => {
+    if (!urlInput.trim()) return
+    setUrlFilling(true)
+    setDraftApplied(false)
+    try {
+      const res = await fetch('/api/company-brain/fill-from-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: urlInput.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Błąd analizy strony')
+      const draft = dbToDNA(data.extracted as Record<string, unknown>)
+      setDna(prev => mergeDNADraft(prev, draft))
+      setDraftApplied(true)
+      toast.success('DNA uzupełnione szkicem ze strony — sprawdź pola i zapisz ✓')
+    } catch (e: unknown) {
+      toast.error((e as Error).message ?? 'Błąd pobierania strony')
+    } finally {
+      setUrlFilling(false)
     }
   }
 
@@ -471,6 +529,41 @@ export default function DNAEditorPage() {
           </button>
         </div>
       </div>
+
+      {/* Fill from URL */}
+      <div className="flex items-center gap-2 px-3 py-2 rounded-[12px] bg-white/[0.02] border border-white/[0.07]">
+        <Globe size={14} className="text-white/30 flex-shrink-0" />
+        <input
+          value={urlInput}
+          onChange={e => setUrlInput(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') void fillFromUrl() }}
+          placeholder="https://strona-klienta.pl — AI wypełni DNA na podstawie strony"
+          className="flex-1 bg-transparent text-[13px] text-white placeholder:text-white/25 focus:outline-none min-w-0"
+        />
+        <button
+          onClick={() => void fillFromUrl()}
+          disabled={urlFilling || !urlInput.trim()}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-white/[0.06] border border-white/[0.1] hover:bg-white/[0.1] disabled:opacity-40 text-white/80 text-[12px] font-semibold transition-all whitespace-nowrap"
+        >
+          {urlFilling
+            ? <><Loader2 size={12} className="animate-spin" /> Analizuję…</>
+            : <><Globe size={12} /> Wypełnij DNA ze strony</>
+          }
+        </button>
+      </div>
+
+      {/* Draft applied banner */}
+      {draftApplied && (
+        <div className="flex items-center gap-2 p-3 rounded-[10px] bg-green-500/[0.08] border border-green-500/20 text-green-400 text-[12px]">
+          <CheckCircle2 size={14} className="flex-shrink-0" />
+          <span>
+            Szkic ze strony wczytany — AI uzupełnił puste pola. Przejrzyj każdą zakładkę i kliknij <strong className="text-green-300">Zapisz DNA</strong>.
+          </span>
+          <button onClick={() => setDraftApplied(false)} className="ml-auto text-green-400/60 hover:text-green-400 transition-colors">
+            <X size={13} />
+          </button>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 flex-wrap bg-white/[0.03] border border-white/[0.07] rounded-[12px] p-1">
