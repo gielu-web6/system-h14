@@ -178,7 +178,7 @@ body {
   width: 2px;
   background: var(--nav-accent, var(--accent));
   border-radius: 0 2px 2px 0;
-  box-shadow: var(--nav-glow, none);
+  box-shadow: 0 0 8px var(--nav-accent, var(--accent));
 }
 
 /* ── Monospace number utility ──────────────────────────────────── */

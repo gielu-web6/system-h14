@@ -113,6 +113,19 @@ const SALES_NAV_SECTIONS = [
   },
 ]
 
+// ─── Group accent colours ─────────────────────────────────────────────────────
+
+const GROUP_ACCENT: Record<string, string> = {
+  main:    'var(--accent)',
+  sales:   'var(--group-sprzedaz)',
+  content: 'var(--group-content)',
+  finance: 'var(--group-finanse)',
+  client:  'var(--group-klient)',
+  brain:   'var(--group-ai)',
+  tools:   'var(--group-content)',
+  stats:   'var(--group-finanse)',
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function isItemActive(pathname: string, href: string): boolean {
@@ -129,9 +142,10 @@ interface NavItemProps {
   collapsed: boolean
   onClick?: () => void
   soon?: boolean
+  accent?: string
 }
 
-function NavItem({ href, label, icon: Icon, collapsed, onClick, soon }: NavItemProps) {
+function NavItem({ href, label, icon: Icon, collapsed, onClick, soon, accent = 'var(--accent)' }: NavItemProps) {
   const pathname = usePathname()
   const active = isItemActive(pathname, href)
 
@@ -164,14 +178,18 @@ function NavItem({ href, label, icon: Icon, collapsed, onClick, soon }: NavItemP
       className={`relative flex items-center gap-2.5 px-3 py-[7px] rounded-[7px] text-[12.5px] font-medium
         transition-colors duration-100 group select-none
         ${active
-          ? 'nav-active bg-[var(--accent-dim)] text-accent'
+          ? 'nav-active'
           : 'text-muted hover:text-fg hover:bg-[rgba(255,255,255,0.04)] dark:hover:bg-[rgba(255,255,255,0.04)]'
         }
         ${collapsed ? 'justify-center px-2' : ''}`}
+      style={active
+        ? { '--nav-accent': accent, color: accent, background: `color-mix(in srgb, ${accent} 12%, transparent)` } as React.CSSProperties
+        : undefined}
     >
       <Icon
         size={15}
-        className={`flex-shrink-0 transition-colors ${active ? 'text-accent' : 'text-subtle group-hover:text-muted'}`}
+        className={`flex-shrink-0 transition-colors ${active ? '' : 'text-subtle group-hover:text-muted'}`}
+        style={active ? { color: accent } : undefined}
       />
       {!collapsed && <span className="truncate">{label}</span>}
 
@@ -251,6 +269,7 @@ function SidebarContent({ collapsed, onNavClick, showCloseButton, onClose }: Sid
                     icon={item.icon}
                     collapsed={collapsed}
                     onClick={onNavClick}
+                    accent={GROUP_ACCENT[section.id] ?? 'var(--accent)'}
                   />
                 ))}
               </div>
