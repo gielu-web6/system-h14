@@ -220,17 +220,16 @@ export default function DashboardPage() {
                 sub: 'z behawioralnym trackingiem',
               },
             ].map((item) => (
-              <div key={item.label} className="p-3.5 rounded-[12px]"
-                style={{ background: 'var(--bg-raised)', border: '1px solid rgba(0,0,0,0.30)', borderTop: '2px solid rgba(255,255,255,0.06)', boxShadow: 'var(--shadow-card)' }}>
-                <div className="flex items-center gap-2 mb-2.5">
-                  <div className="w-7 h-7 rounded-[7px] flex items-center justify-center flex-shrink-0"
-                    style={{ background: item.color + '18' }}>
-                    <item.icon size={13} style={{ color: item.color }} />
+              <div key={item.label} className="kpi-card p-3.5"
+                style={{ '--card-accent': item.color } as React.CSSProperties}>
+                <div className="relative flex items-center gap-2 mb-2.5">
+                  <div className="kpi-icon w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0">
+                    <item.icon size={13} style={{ color: 'var(--card-accent)' }} />
                   </div>
                   <p className="text-[10.5px] text-muted font-medium leading-tight">{item.label}</p>
                 </div>
-                <p className="text-[20px] font-bold text-fg tracking-tight leading-none num">{item.value}</p>
-                <p className="text-[10px] text-subtle mt-1.5 leading-snug">{item.sub}</p>
+                <p className="relative text-[20px] font-bold text-fg tracking-tight leading-none num">{item.value}</p>
+                <p className="relative text-[10px] text-subtle mt-1.5 leading-snug">{item.sub}</p>
               </div>
             ))}
           </div>
