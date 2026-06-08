@@ -113,10 +113,10 @@ export default function DashboardPage() {
   const replyRateValue = isDemo ? DEMO_KPI.replyRate : replyRate
 
   const kpiCards = [
-    { label: 'Leady / miesiąc',   value: kpiLoading ? '…' : String(kpi.leadsThisMonth),      icon: Users,         iconColor: 'text-info',   iconBg: 'bg-info/[0.12]',   glowClass: 'glow-blue',   arrowHover: 'group-hover:text-info',   href: '/leads',    sub: 'dodane w tym miesiącu',              isHero: false },
-    { label: 'Aktywne deale',     value: kpiLoading ? '…' : String(kpi.activeDeals),          icon: TrendingUp,    iconColor: 'text-violet', iconBg: 'bg-violet/[0.12]', glowClass: 'glow-violet', arrowHover: 'group-hover:text-violet', href: '/pipeline', sub: 'w toku (bez zakończonych)',          isHero: false },
-    { label: 'Reply rate',        value: replyRateValue,                                       icon: MessageSquare, iconColor: 'text-amber',  iconBg: 'bg-amber/[0.12]',  glowClass: 'glow-amber',  arrowHover: 'group-hover:text-amber',  href: '/outreach', sub: isDemo ? 'ze wszystkich wiadomości' : 'wkrótce dostępne', isHero: false },
-    { label: 'Przychód miesiąc',  value: kpiLoading ? '…' : formatPLN(kpi.revenueThisMonth), icon: DollarSign,    iconColor: 'text-accent', iconBg: 'bg-accent/[0.12]', glowClass: 'glow-teal',   arrowHover: 'group-hover:text-accent', href: '/finance',  sub: 'wygrane deale (ten miesiąc)',        isHero: true  },
+    { label: 'Leady / miesiąc',   value: kpiLoading ? '…' : String(kpi.leadsThisMonth),      icon: Users,         iconColor: 'text-info',   iconBg: 'bg-info/[0.12]',   glowClass: 'glow-blue',   arrowHover: 'group-hover:text-info',   topColor: 'var(--c-blue)',   href: '/leads',    sub: 'dodane w tym miesiącu',              isHero: false },
+    { label: 'Aktywne deale',     value: kpiLoading ? '…' : String(kpi.activeDeals),          icon: TrendingUp,    iconColor: 'text-violet', iconBg: 'bg-violet/[0.12]', glowClass: 'glow-violet', arrowHover: 'group-hover:text-violet', topColor: 'var(--c-violet)', href: '/pipeline', sub: 'w toku (bez zakończonych)',          isHero: false },
+    { label: 'Reply rate',        value: replyRateValue,                                       icon: MessageSquare, iconColor: 'text-amber',  iconBg: 'bg-amber/[0.12]',  glowClass: 'glow-amber',  arrowHover: 'group-hover:text-amber',  topColor: 'var(--c-amber)',  href: '/outreach', sub: isDemo ? 'ze wszystkich wiadomości' : 'wkrótce dostępne', isHero: false },
+    { label: 'Przychód miesiąc',  value: kpiLoading ? '…' : formatPLN(kpi.revenueThisMonth), icon: DollarSign,    iconColor: 'text-accent', iconBg: 'bg-accent/[0.12]', glowClass: 'glow-teal',   arrowHover: 'group-hover:text-accent', topColor: 'var(--accent)',   href: '/finance',  sub: 'wygrane deale (ten miesiąc)',        isHero: true  },
   ]
 
   const goalRevenue = isDemo ? DEMO_KPI.monthlyGoal : 0
@@ -158,8 +158,14 @@ export default function DashboardPage() {
           <Link
             key={card.label}
             href={card.href}
-            className="group card-elevated is-interactive p-5"
+            className="group card-elevated is-interactive p-5 relative overflow-hidden"
+            style={{ '--card-accent': card.topColor } as React.CSSProperties}
           >
+            {/* hero: gradient wash */}
+            {card.isHero && (
+              <div className="absolute inset-0 pointer-events-none rounded-[12px]"
+                style={{ background: 'var(--gradient-signature)', opacity: 0.06 }} />
+            )}
             <div className="flex items-start justify-between mb-4">
               <div className={`w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 ${card.iconBg} ${card.glowClass}`}>
                 <card.icon size={18} className={card.iconColor} />
@@ -167,7 +173,7 @@ export default function DashboardPage() {
               <ArrowUpRight size={13} className={`text-subtle transition-colors mt-0.5 ${card.arrowHover}`} />
             </div>
             <p className="section-label mb-1.5">{card.label}</p>
-            <p className={`text-[26px] font-bold tracking-tight leading-none num ${card.isHero ? 'text-accent' : 'text-fg'}`}>
+            <p className={`text-[30px] font-bold tracking-tight leading-none num ${card.isHero ? 'text-accent' : 'text-fg'}`}>
               {card.value}
             </p>
             <p className="text-[11px] text-muted mt-2 leading-snug">{card.sub}</p>
@@ -177,7 +183,7 @@ export default function DashboardPage() {
 
       {/* ── ROI Counter ── */}
       {roi && (
-        <div className="bg-card border border-border rounded-[12px] p-5">
+        <div className="card-elevated p-5">
           <div className="flex items-center gap-2 mb-4">
             <Brain size={14} className="text-accent" />
             <p className="text-[13.5px] font-semibold text-fg">Co H14 zrobiło za Ciebie</p>
@@ -214,7 +220,8 @@ export default function DashboardPage() {
                 sub: 'z behawioralnym trackingiem',
               },
             ].map((item) => (
-              <div key={item.label} className="p-3.5 rounded-[10px] bg-raised border border-border">
+              <div key={item.label} className="p-3.5 rounded-[12px]"
+                style={{ background: 'var(--bg-raised)', border: '1px solid rgba(0,0,0,0.30)', borderTop: '2px solid rgba(255,255,255,0.06)', boxShadow: 'var(--shadow-card)' }}>
                 <div className="flex items-center gap-2 mb-2.5">
                   <div className="w-7 h-7 rounded-[7px] flex items-center justify-center flex-shrink-0"
                     style={{ background: item.color + '18' }}>
