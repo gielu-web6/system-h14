@@ -423,6 +423,37 @@ body {
 .glow-amber  { box-shadow: var(--glow-amber);   }
 .glow-pink   { box-shadow: var(--glow-pink);    }
 
+/* ── KPI cards ─────────────────────────────────────────────────── */
+.kpi-card {
+  position: relative; overflow: hidden; border-radius: 14px;
+  background:
+    radial-gradient(120% 85% at 0% 0%, color-mix(in srgb, var(--card-accent, var(--accent)) 16%, transparent) 0%, transparent 55%),
+    linear-gradient(180deg, #1b232b 0%, #10161b 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.05);
+  transition: transform 160ms cubic-bezier(0.4,0,0.2,1), box-shadow 160ms cubic-bezier(0.4,0,0.2,1);
+}
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--card-accent, var(--accent));
+  box-shadow: 0 0 12px var(--card-accent, var(--accent));
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.50), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.kpi-icon {
+  background: color-mix(in srgb, var(--card-accent, var(--accent)) 16%, transparent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--card-accent, var(--accent)) 30%, transparent);
+}
+.light .kpi-card {
+  background:
+    radial-gradient(120% 85% at 0% 0%, color-mix(in srgb, var(--card-accent, var(--accent)) 9%, transparent) 0%, transparent 55%),
+    var(--bg-card);
+  border: 1px solid var(--border); box-shadow: var(--shadow-card);
+}
+.light .kpi-icon { box-shadow: none; }
+
 /* ══════════════════════════════════════════════════════════════════
    GLOBAL ATMOSPHERE — fixed behind entire app, never blocks clicks
    ══════════════════════════════════════════════════════════════════ */

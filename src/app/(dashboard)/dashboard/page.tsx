@@ -158,25 +158,25 @@ export default function DashboardPage() {
           <Link
             key={card.label}
             href={card.href}
-            className="group card-elevated is-interactive p-5 relative overflow-hidden"
+            className="kpi-card group p-5"
             style={{ '--card-accent': card.topColor } as React.CSSProperties}
           >
             {/* hero: gradient wash */}
             {card.isHero && (
-              <div className="absolute inset-0 pointer-events-none rounded-[12px]"
-                style={{ background: 'var(--gradient-signature)', opacity: 0.06 }} />
+              <div className="absolute inset-0 pointer-events-none rounded-[14px]"
+                style={{ background: 'var(--gradient-signature)', opacity: 0.10 }} />
             )}
-            <div className="flex items-start justify-between mb-4">
-              <div className={`w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 ${card.iconBg} ${card.glowClass}`}>
-                <card.icon size={18} className={card.iconColor} />
+            <div className="relative flex items-start justify-between mb-4">
+              <div className="kpi-icon w-11 h-11 rounded-[12px] flex items-center justify-center flex-shrink-0">
+                <card.icon size={20} style={{ color: 'var(--card-accent)' }} />
               </div>
               <ArrowUpRight size={13} className={`text-subtle transition-colors mt-0.5 ${card.arrowHover}`} />
             </div>
-            <p className="section-label mb-1.5">{card.label}</p>
-            <p className={`text-[30px] font-bold tracking-tight leading-none num ${card.isHero ? 'text-accent' : 'text-fg'}`}>
+            <p className="relative section-label mb-1.5">{card.label}</p>
+            <p className={`relative text-[32px] font-bold tracking-tight leading-none num ${card.isHero ? 'text-accent' : 'text-fg'}`}>
               {card.value}
             </p>
-            <p className="text-[11px] text-muted mt-2 leading-snug">{card.sub}</p>
+            <p className="relative text-[11px] text-muted mt-2 leading-snug">{card.sub}</p>
           </Link>
         ))}
       </div>
