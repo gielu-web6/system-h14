@@ -22,7 +22,8 @@ interface FileSummary {
 }
 
 interface DNA {
-  completeness_score: number
+  completeness_score?: number
+  dna_score?: number
   company_name: string | null
 }
 
@@ -127,7 +128,7 @@ export default function CompanyBrainPage() {
 
   useEffect(() => { void load() }, [load])
 
-  const completeness = dna?.completeness_score ?? 0
+  const completeness = dna?.dna_score ?? dna?.completeness_score ?? 0
   const doneFiles    = files.filter(f => f.processing_status === 'done')
   const totalChunks  = doneFiles.reduce((s, f) => s + f.chunks_count, 0)
 

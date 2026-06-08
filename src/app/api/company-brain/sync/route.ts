@@ -64,7 +64,7 @@ export async function POST() {
       completeness = calculateDNACompleteness(dna as Record<string, unknown>)
       await supabase
         .from('company_dna')
-        .update({ completeness_score: completeness })
+        .update({ dna_score: completeness })
         .eq('id', dna.id)
     }
 
