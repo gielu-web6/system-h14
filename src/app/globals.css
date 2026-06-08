@@ -420,3 +420,31 @@ body {
 .glow-blue   { box-shadow: var(--glow-blue);    }
 .glow-amber  { box-shadow: var(--glow-amber);   }
 .glow-pink   { box-shadow: var(--glow-pink);    }
+
+/* ══════════════════════════════════════════════════════════════════
+   GLOBAL ATMOSPHERE — fixed behind entire app, never blocks clicks
+   ══════════════════════════════════════════════════════════════════ */
+
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(55% 45% at 12% -5%, rgba(0,200,190,0.07), transparent 70%),
+    radial-gradient(50% 50% at 105% 108%, rgba(143,123,255,0.06), transparent 70%),
+    var(--bg);
+}
+body::after {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image: radial-gradient(rgba(255,255,255,0.022) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
+
+.light body::before {
+  background:
+    radial-gradient(55% 45% at 12% -5%, rgba(0,158,149,0.05), transparent 70%),
+    radial-gradient(50% 50% at 105% 108%, rgba(109,40,217,0.04), transparent 70%),
+    var(--bg);
+}
+.light body::after {
+  background-image: radial-gradient(rgba(16,24,40,0.03) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
