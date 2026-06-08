@@ -43,7 +43,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <DashboardGuard>
       <LayoutProvider>
-        <div className="min-h-screen bg-bg text-fg">
+        <div className="min-h-screen bg-transparent text-fg">
           <Sidebar />
           <MainContent>
             <Topbar />
