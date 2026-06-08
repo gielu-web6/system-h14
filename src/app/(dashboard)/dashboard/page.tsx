@@ -113,10 +113,10 @@ export default function DashboardPage() {
   const replyRateValue = isDemo ? DEMO_KPI.replyRate : replyRate
 
   const kpiCards = [
-    { label: 'Leady / miesiąc',   value: kpiLoading ? '…' : String(kpi.leadsThisMonth),      icon: Users,         color: '#60a5fa', href: '/leads',    sub: 'dodane w tym miesiącu' },
-    { label: 'Aktywne deale',     value: kpiLoading ? '…' : String(kpi.activeDeals),          icon: TrendingUp,    color: '#30c060', href: '/pipeline', sub: 'w toku (bez zakończonych)' },
-    { label: 'Reply rate',        value: replyRateValue,                                       icon: MessageSquare, color: '#f0a040', href: '/outreach', sub: isDemo ? 'ze wszystkich wiadomości' : 'wkrótce dostępne' },
-    { label: 'Przychód miesiąc',  value: kpiLoading ? '…' : formatPLN(kpi.revenueThisMonth), icon: DollarSign,    color: '#00c8be', href: '/finance',  sub: 'wygrane deale (ten miesiąc)' },
+    { label: 'Leady / miesiąc',   value: kpiLoading ? '…' : String(kpi.leadsThisMonth),      icon: Users,         iconColor: 'text-info',   iconBg: 'bg-info/[0.12]',   glowClass: 'glow-blue',   arrowHover: 'group-hover:text-info',   href: '/leads',    sub: 'dodane w tym miesiącu',              isHero: false },
+    { label: 'Aktywne deale',     value: kpiLoading ? '…' : String(kpi.activeDeals),          icon: TrendingUp,    iconColor: 'text-violet', iconBg: 'bg-violet/[0.12]', glowClass: 'glow-violet', arrowHover: 'group-hover:text-violet', href: '/pipeline', sub: 'w toku (bez zakończonych)',          isHero: false },
+    { label: 'Reply rate',        value: replyRateValue,                                       icon: MessageSquare, iconColor: 'text-amber',  iconBg: 'bg-amber/[0.12]',  glowClass: 'glow-amber',  arrowHover: 'group-hover:text-amber',  href: '/outreach', sub: isDemo ? 'ze wszystkich wiadomości' : 'wkrótce dostępne', isHero: false },
+    { label: 'Przychód miesiąc',  value: kpiLoading ? '…' : formatPLN(kpi.revenueThisMonth), icon: DollarSign,    iconColor: 'text-accent', iconBg: 'bg-accent/[0.12]', glowClass: 'glow-teal',   arrowHover: 'group-hover:text-accent', href: '/finance',  sub: 'wygrane deale (ten miesiąc)',        isHero: true  },
   ]
 
   const goalRevenue = isDemo ? DEMO_KPI.monthlyGoal : 0
@@ -158,18 +158,19 @@ export default function DashboardPage() {
           <Link
             key={card.label}
             href={card.href}
-            className="group bg-card border border-border rounded-[12px] p-4 hover:border-border hover:bg-raised transition-colors"
+            className="group card-elevated is-interactive p-5"
           >
-            <div className="flex items-start justify-between mb-3">
-              <div className="w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0"
-                style={{ background: card.color + '18' }}>
-                <card.icon size={15} style={{ color: card.color }} />
+            <div className="flex items-start justify-between mb-4">
+              <div className={`w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 ${card.iconBg} ${card.glowClass}`}>
+                <card.icon size={18} className={card.iconColor} />
               </div>
-              <ArrowUpRight size={13} className="text-subtle group-hover:text-muted transition-colors mt-0.5" />
+              <ArrowUpRight size={13} className={`text-subtle transition-colors mt-0.5 ${card.arrowHover}`} />
             </div>
             <p className="section-label mb-1.5">{card.label}</p>
-            <p className="text-[22px] font-bold text-fg tracking-tight leading-none num">{card.value}</p>
-            <p className="text-[11px] text-subtle mt-2 leading-snug">{card.sub}</p>
+            <p className={`text-[26px] font-bold tracking-tight leading-none num ${card.isHero ? 'text-accent' : 'text-fg'}`}>
+              {card.value}
+            </p>
+            <p className="text-[11px] text-muted mt-2 leading-snug">{card.sub}</p>
           </Link>
         ))}
       </div>
