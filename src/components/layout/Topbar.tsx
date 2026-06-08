@@ -72,7 +72,10 @@ function useBreadcrumbs() {
     return crumbs
   }
 
-  if (entry.parent) crumbs.push({ label: entry.parent, href: '#' })
+  if (entry.parent) {
+    const parentHref = Object.entries(BREADCRUMB_MAP).find(([, v]) => v.label === entry.parent)?.[0] ?? '#'
+    crumbs.push({ label: entry.parent, href: parentHref })
+  }
   crumbs.push({ label: entry.label, href: pathname })
   return crumbs
 }
