@@ -9,9 +9,9 @@
 
 /* ── Dark (default) ────────────────────────────────────────────── */
 :root {
-  --bg:         #0a0d0f;
-  --bg-card:    #161c22;
-  --bg-raised:  #1d242b;
+  --bg:         #08090b;
+  --bg-card:    #0c1014;
+  --bg-raised:  #11151a;
   --bg-sidebar: #0c1014;
 
   --border:     #1c2329;
