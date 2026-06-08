@@ -28,6 +28,27 @@
   --c-red:      #e84040;
   --c-green:    #30c060;
   --c-blue:     #5898f0;
+  --c-violet:   #8f7bff;
+  --c-pink:     #e879f9;
+  --c-coral:    #ff8a5b;
+
+  --group-sprzedaz: var(--accent);
+  --group-content:  var(--c-violet);
+  --group-finanse:  var(--c-blue);
+  --group-klient:   var(--c-amber);
+  --group-ai:       var(--c-pink);
+
+  --gradient-signature: linear-gradient(135deg, var(--accent) 0%, var(--c-violet) 100%);
+
+  --shadow-card:   0 1px 2px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.04);
+  --shadow-raised: 0 4px 16px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05);
+  --shadow-hover:  0 8px 28px rgba(0,0,0,0.50), inset 0 1px 0 rgba(255,255,255,0.06);
+
+  --glow-teal:   0 0 24px rgba(0,200,190,0.22);
+  --glow-violet: 0 0 24px rgba(143,123,255,0.24);
+  --glow-blue:   0 0 24px rgba(88,152,240,0.22);
+  --glow-amber:  0 0 24px rgba(240,160,64,0.22);
+  --glow-pink:   0 0 24px rgba(232,121,249,0.22);
 
   color-scheme: dark;
 }
@@ -54,6 +75,25 @@
   --c-red:      #b91c1c;
   --c-green:    #15803d;
   --c-blue:     #1d4ed8;
+  --c-violet:   #6d28d9;
+  --c-pink:     #be185d;
+  --c-coral:    #c2410c;
+
+  --group-sprzedaz: var(--accent);
+  --group-content:  var(--c-violet);
+  --group-finanse:  var(--c-blue);
+  --group-klient:   var(--c-amber);
+  --group-ai:       var(--c-pink);
+
+  --gradient-signature: linear-gradient(135deg, var(--accent) 0%, var(--c-violet) 100%);
+
+  --shadow-card:   0 1px 2px rgba(16,24,40,0.06), 0 1px 3px rgba(16,24,40,0.04);
+  --shadow-raised: 0 4px 12px rgba(16,24,40,0.08);
+  --shadow-hover:  0 8px 24px rgba(16,24,40,0.12);
+
+  --glow-teal: 0 0 0 transparent; --glow-violet: 0 0 0 transparent;
+  --glow-blue: 0 0 0 transparent; --glow-amber: 0 0 0 transparent;
+  --glow-pink: 0 0 0 transparent;
 
   color-scheme: light;
 }
@@ -81,6 +121,14 @@
   --color-danger:   var(--c-red);
   --color-success:  var(--c-green);
   --color-info:     var(--c-blue);
+  --color-violet:   var(--c-violet);
+  --color-pink:     var(--c-pink);
+  --color-coral:    var(--c-coral);
+  --color-group-sprzedaz: var(--group-sprzedaz);
+  --color-group-content:  var(--group-content);
+  --color-group-finanse:  var(--group-finanse);
+  --color-group-klient:   var(--group-klient);
+  --color-group-ai:       var(--group-ai);
 
   /* Legacy compat — existing pages reference these */
   --color-primary:   var(--accent);
@@ -128,8 +176,9 @@ body {
   top: 15%;
   height: 70%;
   width: 2px;
-  background: var(--accent);
+  background: var(--nav-accent, var(--accent));
   border-radius: 0 2px 2px 0;
+  box-shadow: var(--nav-glow, none);
 }
 
 /* ── Monospace number utility ──────────────────────────────────── */
@@ -332,3 +381,36 @@ body {
 .light .force-dark .bg-blue-500\/20  { background-color: rgba(88,152,240,0.15) !important; }
 .light .force-dark .bg-blue-600\/20  { background-color: rgba(37,99,235,0.2) !important; }
 .light .force-dark .bg-indigo-500\/15 { background-color: rgba(99,102,241,0.15) !important; }
+
+/* ══════════════════════════════════════════════════════════════════
+   OPT-IN HELPER CLASSES — not used anywhere yet, purely additive
+   ══════════════════════════════════════════════════════════════════ */
+
+.card-elevated {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+.card-elevated.is-interactive {
+  transition: transform 160ms cubic-bezier(0.4,0,0.2,1),
+              box-shadow 160ms cubic-bezier(0.4,0,0.2,1);
+}
+.card-elevated.is-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.bg-gradient-signature { background: var(--gradient-signature); }
+.text-gradient-signature {
+  background: var(--gradient-signature);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glow-teal   { box-shadow: var(--glow-teal);   }
+.glow-violet { box-shadow: var(--glow-violet);  }
+.glow-blue   { box-shadow: var(--glow-blue);    }
+.glow-amber  { box-shadow: var(--glow-amber);   }
+.glow-pink   { box-shadow: var(--glow-pink);    }
