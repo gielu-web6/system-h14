@@ -52,7 +52,6 @@ const FEATURE_CONTEXT: Array<{
   { label: 'Generator ofert',     feature: 'offer_generator',    icon: FileText,     categories: ['opis_uslug', 'cennik', 'szablony'] },
   { label: 'Outreach AI',         feature: 'outreach_generator', icon: MessageSquare,categories: ['strategia_sprzedazy', 'icp_profil', 'szablony'] },
   { label: 'Tygodniowy brief',    feature: 'weekly_brief',       icon: BarChart3,    categories: ['strategia_sprzedazy', 'finanse'] },
-  { label: 'Asystent HANA',       feature: 'hana',               icon: Users,        categories: ['opis_uslug', 'icp_profil', 'cennik'] },
 ]
 
 function StatusIcon({ status }: { status: FileSummary['processing_status'] }) {

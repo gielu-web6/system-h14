@@ -12,7 +12,6 @@ const FEATURES = [
   { value: 'offer_generator',    label: 'Generator ofert',      hint: 'np. oferta CRM dla agencji e-commerce 10 osób' },
   { value: 'outreach_generator', label: 'Outreach AI',          hint: 'np. wiadomość do CEO agencji reklamowej w Warszawie' },
   { value: 'weekly_brief',       label: 'Tygodniowy brief',     hint: 'np. przegląd wyników sprzedaży tygodniowy' },
-  { value: 'hana',               label: 'Asystent HANA',        hint: 'np. klient pyta o wdrożenie systemu CRM' },
 ]
 
 interface TestResult {
