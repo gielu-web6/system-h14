@@ -32,7 +32,6 @@ interface Lead {
   segment: string
   aiScore: number
   aiLabel: AiScore
-  // real per-criteria scores (0–25 each)
   aiIcpScore: number
   aiSignalsScore: number
   aiActivityScore: number
@@ -155,8 +154,6 @@ function saveSegment(key: string, label: string) {
 
 // ─── CSV Export ───────────────────────────────────────────────────────────────
 
-// ─── CSV column map (Polish export headers → DB column names) ─────────────────
-
 const CSV_COL_MAP: Record<string, string> = {
   'ID': 'id', 'Imię': 'first_name', 'Nazwisko': 'last_name', 'Firma': 'company',
   'Stanowisko': 'position', 'Email': 'email', 'Telefon': 'phone', 'Miasto': 'city',
@@ -194,17 +191,20 @@ function exportCSV(leads: Lead[]) {
 
 function ScoreBadge({ label, score }: { label: AiScore; score: number }) {
   if (label === 'hot') return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 text-[10px] font-bold">
+    <span
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-danger/15 text-danger text-[10px] font-bold"
+      style={{ boxShadow: '0 0 10px rgba(232,64,64,0.28)' }}
+    >
       <Flame size={9} />{score}
     </span>
   )
   if (label === 'warm') return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-400 text-[10px] font-bold">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber/15 text-amber text-[10px] font-bold">
       <Thermometer size={9} />{score}
     </span>
   )
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400 text-[10px] font-bold">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-info/15 text-info text-[10px] font-bold">
       <Snowflake size={9} />{score}
     </span>
   )
@@ -215,12 +215,23 @@ const STATUS_LABELS: Record<string, string> = {
   pipeline: 'W pipeline', nieaktywny: 'Nieaktywny',
 }
 const STATUS_COLORS: Record<string, string> = {
-  nowy: 'bg-white/[0.07] text-white/40',
-  kontakt: 'bg-blue-500/15 text-blue-400',
-  zainteresowany: 'bg-amber-500/15 text-amber-400',
-  pipeline: 'bg-accent/15 text-accent',
-  nieaktywny: 'bg-white/[0.05] text-white/25',
+  nowy:           'bg-fg/[0.07] text-subtle',
+  kontakt:        'bg-info/15 text-info',
+  zainteresowany: 'bg-amber/15 text-amber',
+  pipeline:       'bg-accent/15 text-accent',
+  nieaktywny:     'bg-fg/[0.05] text-subtle',
 }
+
+// ─── Shared style constants ───────────────────────────────────────────────────
+
+const INPUT_CLS = 'w-full px-3 py-2 rounded-[8px] bg-fg/[0.04] border border-fg/[0.08] text-fg text-[13px] placeholder:text-muted focus:outline-none focus:border-accent/50 transition-all'
+const INPUT_SM  = 'flex-1 px-3 py-2 rounded-[8px] bg-fg/[0.04] border border-fg/[0.08] text-fg text-[12px] placeholder:text-muted focus:outline-none focus:border-accent/50 transition-all'
+const LABEL_CLS = 'block text-[10px] font-semibold text-subtle uppercase tracking-wide mb-1.5'
+const BTN_CANCEL = 'flex-1 py-2.5 rounded-[10px] bg-fg/[0.04] border border-fg/[0.08] text-muted text-[13px] font-medium hover:bg-fg/[0.08] hover:text-fg disabled:opacity-40 transition-all'
+const MODAL_SURFACE = 'relative z-10 w-full bg-sidebar border border-border rounded-[18px] overflow-hidden'
+const MODAL_HDR = 'flex items-center justify-between px-6 py-5 border-b border-border sticky top-0 bg-sidebar z-10'
+const SHADOW_RAISED = { boxShadow: 'var(--shadow-raised)' } as React.CSSProperties
+const BTN_GLOW = { boxShadow: '0 2px 14px rgba(0,0,0,0.35), var(--glow-teal)' } as React.CSSProperties
 
 // ─── Segment combobox ─────────────────────────────────────────────────────────
 
@@ -265,26 +276,27 @@ function SegmentCombobox({
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
           placeholder="Wpisz lub wybierz branżę..."
-          className="w-full px-3 py-2 pr-8 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all"
+          className="w-full px-3 py-2 pr-8 rounded-[8px] bg-fg/[0.04] border border-fg/[0.08] text-fg text-[13px] placeholder:text-muted focus:outline-none focus:border-accent/50 transition-all"
         />
-        <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+        <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-subtle pointer-events-none" />
       </div>
       {open && (
-        <div className="absolute z-50 top-full mt-1 w-full bg-bg border border-white/[0.1] rounded-[10px] shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+        <div className="absolute z-50 top-full mt-1 w-full bg-sidebar border border-border rounded-[10px] overflow-hidden max-h-48 overflow-y-auto"
+          style={SHADOW_RAISED}>
           {filtered.map(s => (
             <button key={s} onMouseDown={() => select(s)}
-              className={`w-full text-left px-3 py-2 text-[12px] hover:bg-white/[0.06] transition-colors ${s === value ? 'text-accent' : 'text-white/70'}`}>
+              className={`w-full text-left px-3 py-2 text-[12px] hover:bg-fg/[0.06] transition-colors ${s === value ? 'text-accent' : 'text-muted'}`}>
               {segmentLabels[s] ?? s}
             </button>
           ))}
           {canAdd && (
             <button onMouseDown={addNew}
-              className="w-full text-left px-3 py-2 text-[12px] text-accent hover:bg-accent/10 transition-colors flex items-center gap-1.5 border-t border-white/[0.06]">
+              className="w-full text-left px-3 py-2 text-[12px] text-accent hover:bg-accent/10 transition-colors flex items-center gap-1.5 border-t border-border">
               <Plus size={11} /> Dodaj &quot;{input.trim()}&quot; jako nową branżę
             </button>
           )}
           {filtered.length === 0 && !canAdd && (
-            <p className="px-3 py-2 text-[12px] text-white/30">Brak wyników</p>
+            <p className="px-3 py-2 text-[12px] text-subtle">Brak wyników</p>
           )}
         </div>
       )}
@@ -353,10 +365,8 @@ function NewLeadModal({
       return
     }
 
-    // Close modal immediately — scoring runs in background
     onClose()
 
-    // Fire AI scoring without blocking UI
     fetch('/api/ai/score-lead', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -381,7 +391,7 @@ function NewLeadModal({
         })
         toast.success(`AI scoring: ${savedLead.firstName} ${savedLead.lastName} — ${result.total_score}/100`)
       })
-      .catch(() => {}) // silent fail — scoring optional
+      .catch(() => {})
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -432,29 +442,24 @@ function NewLeadModal({
         }
       `}</style>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      <div className="relative z-10 w-full max-w-[520px] bg-sidebar border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+      <div className={`${MODAL_SURFACE} max-w-[520px] max-h-[90vh] overflow-y-auto`} style={SHADOW_RAISED}>
         {duplicate && (
           <div className="absolute inset-0 z-20 bg-sidebar/97 rounded-[18px] flex flex-col items-center justify-center gap-5 px-8 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center">
-              <AlertCircle size={22} className="text-amber-400" />
+            <div className="w-12 h-12 rounded-2xl bg-amber/10 border border-amber/25 flex items-center justify-center">
+              <AlertCircle size={22} className="text-amber" />
             </div>
             <div>
-              <p className="text-[15px] font-bold text-white">Lead już istnieje</p>
-              <p className="text-[12px] text-white/40 mt-1 leading-relaxed">
-                Lead <span className="text-white/70 font-semibold">{duplicate.firstName} {duplicate.lastName}</span>{' '}
-                z firmy <span className="text-white/70 font-semibold">{duplicate.company}</span> jest już w systemie.
+              <p className="text-[15px] font-bold text-fg">Lead już istnieje</p>
+              <p className="text-[12px] text-muted mt-1 leading-relaxed">
+                Lead <span className="text-fg/70 font-semibold">{duplicate.firstName} {duplicate.lastName}</span>{' '}
+                z firmy <span className="text-fg/70 font-semibold">{duplicate.company}</span> jest już w systemie.
               </p>
             </div>
             <div className="flex gap-2 w-full max-w-[280px]">
-              <button
-                onClick={() => setDuplicate(null)}
-                className="flex-1 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white/50 text-[13px] font-medium hover:bg-white/[0.08] hover:text-white transition-all"
-              >
-                Anuluj
-              </button>
+              <button onClick={() => setDuplicate(null)} className={BTN_CANCEL}>Anuluj</button>
               <button
                 onClick={() => { setDuplicate(null); doAdd() }}
-                className="flex-1 py-2.5 rounded-[10px] bg-amber-500/15 border border-amber-500/30 text-amber-400 text-[13px] font-semibold hover:bg-amber-500/25 transition-all"
+                className="flex-1 py-2.5 rounded-[10px] bg-amber/15 border border-amber/30 text-amber text-[13px] font-semibold hover:bg-amber/25 transition-all"
               >
                 Dodaj mimo to
               </button>
@@ -469,128 +474,107 @@ function NewLeadModal({
                 <Brain size={28} className="text-accent" style={{ animation: 'scanPulse 1.4s ease-in-out infinite' }} />
               </div>
               <div
-                className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-[#6366f1] to-transparent rounded-full"
+                className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-accent to-transparent rounded-full"
                 style={{ top: 0, animation: 'scanLine 1.4s ease-in-out infinite' }}
               />
             </div>
             <div className="text-center">
-              <p className="text-[15px] font-bold text-white">Zapisuję i skanuję leada…</p>
-              <p className="text-[12px] text-white/40 mt-1">AI analizuje profil i oblicza scoring</p>
+              <p className="text-[15px] font-bold text-fg">Zapisuję i skanuję leada…</p>
+              <p className="text-[12px] text-muted mt-1">AI analizuje profil i oblicza scoring</p>
             </div>
             <div className="flex gap-1.5">
               {[0, 1, 2, 3].map(i => (
-                <div
-                  key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-accent"
-                  style={{ animation: `scanPulse 1.2s ease-in-out ${i * 0.2}s infinite` }}
-                />
+                <div key={i} className="w-1.5 h-1.5 rounded-full bg-accent"
+                  style={{ animation: `scanPulse 1.2s ease-in-out ${i * 0.2}s infinite` }} />
               ))}
             </div>
           </div>
         )}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.07] sticky top-0 bg-sidebar z-10">
+
+        <div className={MODAL_HDR}>
           <div>
-            <p className="text-[15px] font-bold text-white">Dodaj lead</p>
-            <p className="text-[11px] text-white/40 mt-0.5">Lead zostanie zapisany i automatycznie oceniony przez AI</p>
+            <p className="text-[15px] font-bold text-fg">Dodaj lead</p>
+            <p className="text-[11px] text-muted mt-0.5">Lead zostanie zapisany i automatycznie oceniony przez AI</p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-[8px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all">
+          <button onClick={onClose} className="p-1.5 rounded-[8px] text-subtle hover:text-fg hover:bg-fg/[0.06] transition-all">
             <X size={16} />
           </button>
         </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            {/* Basic info */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Imię *</label>
-                <input value={form.firstName} onChange={set('firstName')} required placeholder="Jan"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Nazwisko *</label>
-                <input value={form.lastName} onChange={set('lastName')} required placeholder="Kowalski"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
-              </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={LABEL_CLS}>Imię *</label>
+              <input value={form.firstName} onChange={set('firstName')} required placeholder="Jan" className={INPUT_CLS} />
             </div>
+            <div>
+              <label className={LABEL_CLS}>Nazwisko *</label>
+              <input value={form.lastName} onChange={set('lastName')} required placeholder="Kowalski" className={INPUT_CLS} />
+            </div>
+          </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Firma *</label>
-                <input value={form.company} onChange={set('company')} required placeholder="Nazwa firmy"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Stanowisko</label>
-                <input value={form.position} onChange={set('position')} placeholder="CEO / Owner"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
-              </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={LABEL_CLS}>Firma *</label>
+              <input value={form.company} onChange={set('company')} required placeholder="Nazwa firmy" className={INPUT_CLS} />
             </div>
+            <div>
+              <label className={LABEL_CLS}>Stanowisko</label>
+              <input value={form.position} onChange={set('position')} placeholder="CEO / Owner" className={INPUT_CLS} />
+            </div>
+          </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Email</label>
-                <input value={form.email} onChange={set('email')} type="email" placeholder="jan@firma.pl"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Telefon</label>
-                <input value={form.phone} onChange={set('phone')} placeholder="+48 500 000 000"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
-              </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={LABEL_CLS}>Email</label>
+              <input value={form.email} onChange={set('email')} type="email" placeholder="jan@firma.pl" className={INPUT_CLS} />
             </div>
+            <div>
+              <label className={LABEL_CLS}>Telefon</label>
+              <input value={form.phone} onChange={set('phone')} placeholder="+48 500 000 000" className={INPUT_CLS} />
+            </div>
+          </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Miasto</label>
-                <input value={form.city} onChange={set('city')} placeholder="Warszawa"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Branża / Segment</label>
-                <SegmentCombobox
-                  value={form.segment}
-                  onChange={v => setForm(f => ({ ...f, segment: v }))}
-                  segments={segments}
-                  segmentLabels={segmentLabels}
-                  onAddSegment={onAddSegment}
-                />
-              </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={LABEL_CLS}>Miasto</label>
+              <input value={form.city} onChange={set('city')} placeholder="Warszawa" className={INPUT_CLS} />
             </div>
+            <div>
+              <label className={LABEL_CLS}>Branża / Segment</label>
+              <SegmentCombobox value={form.segment} onChange={v => setForm(f => ({ ...f, segment: v }))}
+                segments={segments} segmentLabels={segmentLabels} onAddSegment={onAddSegment} />
+            </div>
+          </div>
 
-            {/* Social / web */}
-            <div className="pt-1 border-t border-white/[0.06]">
-              <p className="text-[10px] font-semibold text-white/30 uppercase tracking-wide mb-3">Social media & strona (do AI skanowania)</p>
-              <div className="space-y-2.5">
-                <div className="flex items-center gap-2">
-                  <Globe size={13} className="text-white/25 flex-shrink-0" />
-                  <input value={form.website} onChange={set('website')} placeholder="strona.pl"
-                    className="flex-1 px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[12px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Link2 size={13} className="text-blue-400/60 flex-shrink-0" />
-                  <input value={form.linkedin} onChange={set('linkedin')} placeholder="linkedin.com/in/jankowalski"
-                    className="flex-1 px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[12px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Share2 size={13} className="text-pink-400/60 flex-shrink-0" />
-                  <input value={form.instagram} onChange={set('instagram')} placeholder="instagram.com/jankowalski"
-                    className="flex-1 px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[12px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
-                </div>
+          <div className="pt-1 border-t border-border">
+            <p className="text-[10px] font-semibold text-subtle uppercase tracking-wide mb-3">Social media & strona (do AI skanowania)</p>
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-2">
+                <Globe size={13} className="text-subtle flex-shrink-0" />
+                <input value={form.website} onChange={set('website')} placeholder="strona.pl" className={INPUT_SM} />
               </div>
-              <p className="mt-2 text-[10px] text-white/25">AI automatycznie przeskanuje leada i obliczy scoring na podstawie Twojej Bazy Wiedzy</p>
+              <div className="flex items-center gap-2">
+                <Link2 size={13} className="text-blue-400/60 flex-shrink-0" />
+                <input value={form.linkedin} onChange={set('linkedin')} placeholder="linkedin.com/in/jankowalski" className={INPUT_SM} />
+              </div>
+              <div className="flex items-center gap-2">
+                <Share2 size={13} className="text-pink-400/60 flex-shrink-0" />
+                <input value={form.instagram} onChange={set('instagram')} placeholder="instagram.com/jankowalski" className={INPUT_SM} />
+              </div>
             </div>
+            <p className="mt-2 text-[10px] text-subtle">AI automatycznie przeskanuje leada i obliczy scoring na podstawie Twojej Bazy Wiedzy</p>
+          </div>
 
-            <div className="flex gap-2 pt-2">
-              <button type="button" onClick={onClose} disabled={saving}
-                className="flex-1 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white/50 text-[13px] font-medium hover:bg-white/[0.08] hover:text-white disabled:opacity-40 transition-all">
-                Anuluj
-              </button>
-              <button type="submit" disabled={saving}
-                className="flex-1 py-2.5 rounded-[10px] bg-accent text-white text-[13px] font-bold hover:opacity-90 disabled:opacity-60 transition-all shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2">
-                {saving ? <><Loader2 size={13} className="animate-spin" />Zapisuję...</> : 'Dodaj i skanuj AI'}
-              </button>
-            </div>
-          </form>
+          <div className="flex gap-2 pt-2">
+            <button type="button" onClick={onClose} disabled={saving} className={BTN_CANCEL}>Anuluj</button>
+            <button type="submit" disabled={saving}
+              className="flex-1 py-2.5 rounded-[10px] bg-accent text-white text-[13px] font-bold hover:opacity-90 disabled:opacity-60 transition-all flex items-center justify-center gap-2"
+              style={BTN_GLOW}>
+              {saving ? <><Loader2 size={13} className="animate-spin" />Zapisuję...</> : 'Dodaj i skanuj AI'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )
@@ -664,37 +648,38 @@ function DMModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-[560px] bg-sidebar border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.07] sticky top-0 bg-sidebar z-10">
+      <div className={`${MODAL_SURFACE} max-w-[560px] max-h-[90vh] overflow-y-auto`} style={SHADOW_RAISED}>
+        <div className={MODAL_HDR}>
           <div>
-            <p className="text-[15px] font-bold text-white">Generuj DM — 2 warianty</p>
-            <p className="text-[11px] text-white/40 mt-0.5">{lead.firstName} {lead.lastName} · {lead.company}</p>
+            <p className="text-[15px] font-bold text-fg">Generuj DM — 2 warianty</p>
+            <p className="text-[11px] text-muted mt-0.5">{lead.firstName} {lead.lastName} · {lead.company}</p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-[8px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all"><X size={16} /></button>
+          <button onClick={onClose} className="p-1.5 rounded-[8px] text-subtle hover:text-fg hover:bg-fg/[0.06] transition-all"><X size={16} /></button>
         </div>
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Typ wiadomości — sekwencja</label>
+            <label className={LABEL_CLS}>Typ wiadomości — sekwencja</label>
             <div className="grid grid-cols-2 gap-2">
               {DM_TYPES.map(t => (
                 <button key={t.id} onClick={() => setMsgType(t.id)}
-                  className={`px-3 py-2 rounded-[8px] text-[11px] font-medium text-left transition-all flex items-center justify-between gap-2 ${msgType === t.id ? 'bg-accent/20 border border-accent/40 text-accent' : 'bg-white/[0.04] border border-white/[0.08] text-white/50 hover:text-white'}`}>
+                  className={`px-3 py-2 rounded-[8px] text-[11px] font-medium text-left transition-all flex items-center justify-between gap-2 ${msgType === t.id ? 'bg-accent/20 border border-accent/40 text-accent' : 'bg-fg/[0.04] border border-fg/[0.08] text-muted hover:text-fg'}`}>
                   <span>{t.label}</span>
-                  <span className={`text-[9px] font-semibold flex-shrink-0 ${msgType === t.id ? 'text-accent/70' : 'text-white/25'}`}>{t.delay}</span>
+                  <span className={`text-[9px] font-semibold flex-shrink-0 ${msgType === t.id ? 'text-accent/70' : 'text-subtle'}`}>{t.delay}</span>
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Dodatkowy kontekst (opcjonalne)</label>
+            <label className={LABEL_CLS}>Dodatkowy kontekst (opcjonalne)</label>
             <textarea value={context} onChange={e => setContext(e.target.value)} rows={2}
               placeholder="np. widział post o automatyzacji, skomentował reel..."
-              className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[12px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all resize-none" />
+              className="w-full px-3 py-2 rounded-[8px] bg-fg/[0.04] border border-fg/[0.08] text-fg text-[12px] placeholder:text-muted focus:outline-none focus:border-accent/50 transition-all resize-none" />
           </div>
 
           <button onClick={generate} disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-accent hover:opacity-90 disabled:opacity-60 text-white text-[13px] font-bold transition-all">
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-accent hover:opacity-90 disabled:opacity-60 text-white text-[13px] font-bold transition-all"
+            style={BTN_GLOW}>
             {loading ? <><Loader2 size={14} className="animate-spin" /> Generuję 2 warianty...</> : <><Send size={14} /> Generuj 2 warianty</>}
           </button>
 
@@ -705,14 +690,14 @@ function DMModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-accent uppercase tracking-wide">Wariant {idx === 0 ? 'A' : 'B'}</span>
                     <button onClick={() => copy(idx)}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-[7px] bg-white/[0.05] border border-white/[0.09] text-white/55 text-[10px] font-medium hover:bg-white/[0.09] hover:text-white transition-all">
-                      {copied === idx ? <><CheckCircle2 size={11} className="text-green-400" /> Skopiowano</> : <>Kopiuj</>}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-[7px] bg-fg/[0.05] border border-fg/[0.09] text-muted text-[10px] font-medium hover:bg-fg/[0.09] hover:text-fg transition-all">
+                      {copied === idx ? <><CheckCircle2 size={11} className="text-success" /> Skopiowano</> : <>Kopiuj</>}
                     </button>
                   </div>
-                  <div className="p-4 rounded-[10px] bg-[#6366f1]/[0.07] border border-accent/20">
-                    <pre className="text-[13px] text-white/80 whitespace-pre-wrap font-sans leading-relaxed">{v.message}</pre>
+                  <div className="p-4 rounded-[10px] bg-accent/[0.06] border border-accent/20">
+                    <pre className="text-[13px] text-fg/80 whitespace-pre-wrap font-sans leading-relaxed">{v.message}</pre>
                   </div>
-                  {v.notes && <p className="text-[11px] text-white/40 italic">{v.notes}</p>}
+                  {v.notes && <p className="text-[11px] text-muted italic">{v.notes}</p>}
                 </div>
               ))}
             </div>
@@ -731,22 +716,20 @@ function NoteModal({ lead, onSave, onClose }: { lead: Lead; onSave: (note: strin
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-[400px] bg-sidebar border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.07]">
-          <p className="text-[15px] font-bold text-white">Notatka</p>
-          <button onClick={onClose} className="p-1.5 rounded-[8px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all"><X size={16} /></button>
+      <div className={`${MODAL_SURFACE} max-w-[400px]`} style={SHADOW_RAISED}>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+          <p className="text-[15px] font-bold text-fg">Notatka</p>
+          <button onClick={onClose} className="p-1.5 rounded-[8px] text-subtle hover:text-fg hover:bg-fg/[0.06] transition-all"><X size={16} /></button>
         </div>
         <div className="p-6 space-y-4">
           <textarea value={note} onChange={e => setNote(e.target.value)} rows={5}
             placeholder="Dodaj notatkę o leadzie, wyniki rozmowy, status..."
-            className="w-full px-3 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all resize-none" />
+            className="w-full px-3 py-2.5 rounded-[10px] bg-fg/[0.04] border border-fg/[0.08] text-fg text-[13px] placeholder:text-muted focus:outline-none focus:border-accent/50 transition-all resize-none" />
           <div className="flex gap-2">
-            <button onClick={onClose}
-              className="flex-1 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white/50 text-[13px] font-medium hover:bg-white/[0.08] hover:text-white transition-all">
-              Anuluj
-            </button>
+            <button onClick={onClose} className={BTN_CANCEL}>Anuluj</button>
             <button onClick={() => { onSave(note); onClose() }}
-              className="flex-1 py-2.5 rounded-[10px] bg-accent text-white text-[13px] font-bold hover:opacity-90 transition-all">
+              className="flex-1 py-2.5 rounded-[10px] bg-accent text-white text-[13px] font-bold hover:opacity-90 transition-all"
+              style={BTN_GLOW}>
               Zapisz notatkę
             </button>
           </div>
@@ -821,94 +804,67 @@ function EditLeadModal({
     onClose()
   }
 
-  const inputCls = 'w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all'
-
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-[520px] bg-sidebar border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.07] sticky top-0 bg-sidebar z-10">
+      <div className={`${MODAL_SURFACE} max-w-[520px] max-h-[90vh] overflow-y-auto`} style={SHADOW_RAISED}>
+        <div className={MODAL_HDR}>
           <div>
-            <p className="text-[15px] font-bold text-white">Edytuj lead</p>
-            <p className="text-[11px] text-white/40 mt-0.5">{lead.firstName} {lead.lastName} · {lead.company}</p>
+            <p className="text-[15px] font-bold text-fg">Edytuj lead</p>
+            <p className="text-[11px] text-muted mt-0.5">{lead.firstName} {lead.lastName} · {lead.company}</p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-[8px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all"><X size={16} /></button>
+          <button onClick={onClose} className="p-1.5 rounded-[8px] text-subtle hover:text-fg hover:bg-fg/[0.06] transition-all"><X size={16} /></button>
         </div>
         <form onSubmit={handleSave} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Imię</label>
-              <input value={form.firstName} onChange={set('firstName')} className={inputCls} />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Nazwisko</label>
-              <input value={form.lastName} onChange={set('lastName')} className={inputCls} />
-            </div>
+            <div><label className={LABEL_CLS}>Imię</label><input value={form.firstName} onChange={set('firstName')} className={INPUT_CLS} /></div>
+            <div><label className={LABEL_CLS}>Nazwisko</label><input value={form.lastName} onChange={set('lastName')} className={INPUT_CLS} /></div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Firma</label>
-              <input value={form.company} onChange={set('company')} className={inputCls} />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Stanowisko</label>
-              <input value={form.position} onChange={set('position')} className={inputCls} />
-            </div>
+            <div><label className={LABEL_CLS}>Firma</label><input value={form.company} onChange={set('company')} className={INPUT_CLS} /></div>
+            <div><label className={LABEL_CLS}>Stanowisko</label><input value={form.position} onChange={set('position')} className={INPUT_CLS} /></div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Email</label>
-              <input value={form.email} onChange={set('email')} type="email" className={inputCls} />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Telefon</label>
-              <input value={form.phone} onChange={set('phone')} className={inputCls} />
-            </div>
+            <div><label className={LABEL_CLS}>Email</label><input value={form.email} onChange={set('email')} type="email" className={INPUT_CLS} /></div>
+            <div><label className={LABEL_CLS}>Telefon</label><input value={form.phone} onChange={set('phone')} className={INPUT_CLS} /></div>
           </div>
           <div className="grid grid-cols-2 gap-3">
+            <div><label className={LABEL_CLS}>Miasto</label><input value={form.city} onChange={set('city')} className={INPUT_CLS} /></div>
             <div>
-              <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Miasto</label>
-              <input value={form.city} onChange={set('city')} className={inputCls} />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Branża</label>
-              <SegmentCombobox
-                value={form.segment}
-                onChange={v => setForm(f => ({ ...f, segment: v }))}
-                segments={segments}
-                segmentLabels={segmentLabels}
-                onAddSegment={onAddSegment}
-              />
+              <label className={LABEL_CLS}>Branża</label>
+              <SegmentCombobox value={form.segment} onChange={v => setForm(f => ({ ...f, segment: v }))}
+                segments={segments} segmentLabels={segmentLabels} onAddSegment={onAddSegment} />
             </div>
           </div>
           <div className="space-y-2.5">
-            <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide">Social & strona</label>
+            <label className={LABEL_CLS}>Social & strona</label>
             <div className="flex items-center gap-2">
-              <Globe size={13} className="text-white/25 flex-shrink-0" />
-              <input value={form.website} onChange={set('website')} placeholder="strona.pl" className="flex-1 px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[12px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
+              <Globe size={13} className="text-subtle flex-shrink-0" />
+              <input value={form.website} onChange={set('website')} placeholder="strona.pl" className={INPUT_SM} />
             </div>
             <div className="flex items-center gap-2">
               <Link2 size={13} className="text-blue-400/60 flex-shrink-0" />
-              <input value={form.linkedin} onChange={set('linkedin')} placeholder="linkedin.com/in/..." className="flex-1 px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[12px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
+              <input value={form.linkedin} onChange={set('linkedin')} placeholder="linkedin.com/in/..." className={INPUT_SM} />
             </div>
             <div className="flex items-center gap-2">
               <Share2 size={13} className="text-pink-400/60 flex-shrink-0" />
-              <input value={form.instagram} onChange={set('instagram')} placeholder="instagram.com/..." className="flex-1 px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[12px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
+              <input value={form.instagram} onChange={set('instagram')} placeholder="instagram.com/..." className={INPUT_SM} />
             </div>
           </div>
           <div>
-            <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Notatka</label>
+            <label className={LABEL_CLS}>Notatka</label>
             <textarea value={form.notes} onChange={set('notes')} rows={3} placeholder="Notatki, obserwacje..."
-              className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[12px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all resize-none" />
+              className="w-full px-3 py-2 rounded-[8px] bg-fg/[0.04] border border-fg/[0.08] text-fg text-[12px] placeholder:text-muted focus:outline-none focus:border-accent/50 transition-all resize-none" />
           </div>
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={handleDelete} disabled={deleting}
-              className={`px-4 py-2.5 rounded-[10px] text-[13px] font-bold transition-all disabled:opacity-60 flex items-center gap-1.5 ${confirmDelete ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20'}`}>
+              className={`px-4 py-2.5 rounded-[10px] text-[13px] font-bold transition-all disabled:opacity-60 flex items-center gap-1.5 ${confirmDelete ? 'bg-danger text-white hover:opacity-90' : 'bg-danger/10 border border-danger/30 text-danger hover:bg-danger/20'}`}>
               <Trash2 size={13} />
               {deleting ? 'Usuwanie…' : confirmDelete ? 'Potwierdź usunięcie' : 'Usuń lead'}
             </button>
             <button type="submit" disabled={saving}
-              className="flex-1 py-2.5 rounded-[10px] bg-accent text-white text-[13px] font-bold hover:opacity-90 transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-60">
+              className="flex-1 py-2.5 rounded-[10px] bg-accent text-white text-[13px] font-bold hover:opacity-90 transition-all disabled:opacity-60"
+              style={BTN_GLOW}>
               {saving ? 'Zapisuję…' : 'Zapisz zmiany'}
             </button>
           </div>
@@ -970,17 +926,18 @@ function LeadScanPanel({ lead, onScanned }: { lead: Lead; onScanned: (data: Part
   }
 
   return (
-    <div className="p-3 rounded-[10px] bg-[#6366f1]/[0.05] border border-accent/20 flex items-center justify-between gap-3">
+    <div className="p-3 rounded-[10px] bg-accent/[0.05] border border-accent/20 flex items-center justify-between gap-3">
       <div className="flex items-center gap-2">
-        <Brain size={14} className={done ? 'text-green-400' : 'text-accent'} />
+        <Brain size={14} className={done ? 'text-success' : 'text-accent'} />
         <div>
-          <p className="text-[12px] font-semibold text-white">{done ? 'Lead przeskanowany' : 'Skanowanie AI'}</p>
-          <p className="text-[10px] text-white/40">{done ? 'Scoring i icebreaker gotowe' : 'Analizuje profil, branżę i dopasowanie ICP'}</p>
+          <p className="text-[12px] font-semibold text-fg">{done ? 'Lead przeskanowany' : 'Skanowanie AI'}</p>
+          <p className="text-[10px] text-muted">{done ? 'Scoring i icebreaker gotowe' : 'Analizuje profil, branżę i dopasowanie ICP'}</p>
         </div>
       </div>
       {!done && (
         <button onClick={scan} disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-accent hover:opacity-90 disabled:opacity-60 text-white text-[11px] font-bold transition-all flex-shrink-0">
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-accent hover:opacity-90 disabled:opacity-60 text-white text-[11px] font-bold transition-all flex-shrink-0"
+          style={BTN_GLOW}>
           {loading ? <><Loader2 size={11} className="animate-spin" /> Skanuję...</> : <><Brain size={11} /> Skanuj</>}
         </button>
       )}
@@ -1027,24 +984,25 @@ function LeadPanel({
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-end">
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-        <div className="relative z-10 w-full sm:max-w-[480px] h-full bg-sidebar sm:border-l border-white/[0.08] overflow-y-auto shadow-2xl">
+        <div className="relative z-10 w-full sm:max-w-[480px] h-full bg-sidebar sm:border-l border-border overflow-y-auto"
+          style={{ boxShadow: '-8px 0 32px rgba(0,0,0,0.45)' }}>
 
           {/* Header */}
-          <div className="sticky top-0 bg-sidebar/95 backdrop-blur border-b border-white/[0.07] p-5 flex items-start justify-between z-10">
+          <div className="sticky top-0 bg-sidebar/95 backdrop-blur border-b border-border p-5 flex items-start justify-between z-10">
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-[12px] bg-accent/20 flex items-center justify-center text-[15px] font-bold text-accent">
                 {initials}
               </div>
               <div>
-                <p className="text-[15px] font-bold text-white">{currentLead.firstName} {currentLead.lastName}</p>
-                <p className="text-[12px] text-white/40">{currentLead.position} · {currentLead.company}</p>
+                <p className="text-[15px] font-bold text-fg">{currentLead.firstName} {currentLead.lastName}</p>
+                <p className="text-[12px] text-muted">{currentLead.position} · {currentLead.company}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <button onClick={() => setShowEdit(true)} className="p-1.5 rounded-[8px] text-white/40 hover:text-accent hover:bg-accent/10 transition-all" title="Edytuj lead">
+              <button onClick={() => setShowEdit(true)} className="p-1.5 rounded-[8px] text-subtle hover:text-accent hover:bg-accent/10 transition-all" title="Edytuj lead">
                 <Pencil size={15} />
               </button>
-              <button onClick={onClose} className="p-1.5 rounded-[8px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all"><X size={16} /></button>
+              <button onClick={onClose} className="p-1.5 rounded-[8px] text-subtle hover:text-fg hover:bg-fg/[0.06] transition-all"><X size={16} /></button>
             </div>
           </div>
 
@@ -1052,7 +1010,7 @@ function LeadPanel({
             {/* Score + status */}
             <div className="flex items-center gap-2 flex-wrap">
               <ScoreBadge label={currentLead.aiLabel} score={currentLead.aiScore} />
-              <span className="px-2.5 py-1 rounded-full bg-white/[0.06] text-white/50 text-[11px] font-semibold">
+              <span className="px-2.5 py-1 rounded-full bg-fg/[0.07] text-muted text-[11px] font-semibold">
                 {segmentLabels[currentLead.segment] ?? currentLead.segment}
               </span>
               <div className="relative">
@@ -1061,10 +1019,11 @@ function LeadPanel({
                   {STATUS_LABELS[currentLead.status]} <ChevronDown size={10} />
                 </button>
                 {statusOpen && (
-                  <div className="absolute top-full mt-1 left-0 bg-bg border border-white/[0.1] rounded-[10px] shadow-2xl z-20 overflow-hidden min-w-[140px]">
+                  <div className="absolute top-full mt-1 left-0 bg-sidebar border border-border rounded-[10px] z-20 overflow-hidden min-w-[140px]"
+                    style={SHADOW_RAISED}>
                     {Object.entries(STATUS_LABELS).map(([k, v]) => (
                       <button key={k} onClick={() => { void update({ status: k as Lead['status'] }); setStatusOpen(false) }}
-                        className="w-full text-left px-3 py-2 text-[12px] text-white/70 hover:bg-white/[0.06] transition-colors">
+                        className="w-full text-left px-3 py-2 text-[12px] text-muted hover:bg-fg/[0.06] transition-colors">
                         {v}
                       </button>
                     ))}
@@ -1078,7 +1037,7 @@ function LeadPanel({
 
             {/* Contact info */}
             <div className="space-y-2">
-              <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide">Dane kontaktowe</p>
+              <p className="text-[11px] font-semibold text-subtle uppercase tracking-wide">Dane kontaktowe</p>
               {[
                 { icon: Mail, value: currentLead.email, href: `mailto:${currentLead.email}` },
                 { icon: Phone, value: currentLead.phone, href: `tel:${currentLead.phone}` },
@@ -1086,11 +1045,11 @@ function LeadPanel({
                 { icon: Calendar, value: `Ostatni kontakt: ${new Date(currentLead.lastContact).toLocaleDateString('pl-PL')}`, href: undefined as string | undefined },
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <item.icon size={13} className="text-white/30 flex-shrink-0" />
+                  <item.icon size={13} className="text-subtle flex-shrink-0" />
                   {item.href ? (
-                    <a href={item.href} target="_blank" rel="noopener noreferrer" className="text-[12px] text-accent hover:text-white transition-colors truncate">{item.value}</a>
+                    <a href={item.href} target="_blank" rel="noopener noreferrer" className="text-[12px] text-accent hover:text-fg transition-colors truncate">{item.value}</a>
                   ) : (
-                    <span className="text-[12px] text-white/60">{item.value}</span>
+                    <span className="text-[12px] text-muted">{item.value}</span>
                   )}
                 </div>
               ))}
@@ -1099,62 +1058,62 @@ function LeadPanel({
             {/* Social media */}
             {(currentLead.linkedin || currentLead.instagram) && (
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide">Social media</p>
+                <p className="text-[11px] font-semibold text-subtle uppercase tracking-wide">Social media</p>
                 {currentLead.linkedin && (
                   <div className="flex items-center gap-2">
                     <Link2 size={13} className="text-blue-400/60 flex-shrink-0" />
                     <a href={`https://${currentLead.linkedin.replace(/^https?:\/\//, '')}`} target="_blank" rel="noopener noreferrer"
-                      className="text-[12px] text-accent hover:text-white transition-colors truncate">{currentLead.linkedin}</a>
+                      className="text-[12px] text-accent hover:text-fg transition-colors truncate">{currentLead.linkedin}</a>
                   </div>
                 )}
                 {currentLead.instagram && (
                   <div className="flex items-center gap-2">
                     <Share2 size={13} className="text-pink-400/60 flex-shrink-0" />
                     <a href={`https://${currentLead.instagram.replace(/^https?:\/\//, '')}`} target="_blank" rel="noopener noreferrer"
-                      className="text-[12px] text-accent hover:text-white transition-colors truncate">{currentLead.instagram}</a>
+                      className="text-[12px] text-accent hover:text-fg transition-colors truncate">{currentLead.instagram}</a>
                   </div>
                 )}
               </div>
             )}
 
             {/* AI Scoring breakdown */}
-            <div className="p-4 rounded-[12px] bg-[#6366f1]/[0.07] border border-accent/20">
+            <div className="p-4 rounded-[12px] bg-raised border border-border">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[12px] font-semibold text-accent">AI Scoring Breakdown</p>
-                <span className="text-[18px] font-bold text-white">{currentLead.aiScore}<span className="text-[12px] text-white/40">/100</span></span>
+                <span className="text-[18px] font-bold text-fg">{currentLead.aiScore}<span className="text-[12px] text-muted">/100</span></span>
               </div>
               <div className="space-y-2">
                 {[
-                  { label: 'Dopasowanie do ICP',  value: currentLead.aiIcpScore,       color: '#6366f1' },
-                  { label: 'Sygnały zakupowe',    value: currentLead.aiSignalsScore,   color: '#f59e0b' },
-                  { label: 'Aktywność online',    value: currentLead.aiActivityScore,  color: '#22c55e' },
-                  { label: 'Potencjał projektu',  value: currentLead.aiPotentialScore, color: '#a78bfa' },
+                  { label: 'Dopasowanie do ICP',  value: currentLead.aiIcpScore,       color: 'var(--accent)' },
+                  { label: 'Sygnały zakupowe',    value: currentLead.aiSignalsScore,   color: 'var(--c-amber)' },
+                  { label: 'Aktywność online',    value: currentLead.aiActivityScore,  color: 'var(--c-green)' },
+                  { label: 'Potencjał projektu',  value: currentLead.aiPotentialScore, color: 'var(--c-violet)' },
                 ].map(c => (
                   <div key={c.label}>
                     <div className="flex justify-between text-[10px] mb-0.5">
-                      <span className="text-white/50">{c.label}</span>
+                      <span className="text-muted">{c.label}</span>
                       <span className="font-semibold" style={{ color: c.color }}>{c.value}/25</span>
                     </div>
-                    <div className="h-1 bg-white/[0.06] rounded-full">
+                    <div className="h-1 bg-fg/[0.07] rounded-full">
                       <div className="h-full rounded-full" style={{ width: `${Math.min(100, (c.value / 25) * 100)}%`, background: c.color }} />
                     </div>
                   </div>
                 ))}
               </div>
               {currentLead.problem && (
-                <div className="mt-3 pt-3 border-t border-white/[0.07]">
-                  <p className="text-[10px] text-white/40 uppercase tracking-wide mb-1">Zidentyfikowany problem</p>
-                  <p className="text-[12px] text-white/70 leading-relaxed">{currentLead.problem}</p>
+                <div className="mt-3 pt-3 border-t border-border">
+                  <p className="text-[10px] text-subtle uppercase tracking-wide mb-1">Zidentyfikowany problem</p>
+                  <p className="text-[12px] text-muted leading-relaxed">{currentLead.problem}</p>
                 </div>
               )}
               {currentLead.icebreaker && (
                 <div className="mt-2">
-                  <p className="text-[10px] text-white/40 uppercase tracking-wide mb-1">Icebreaker AI</p>
+                  <p className="text-[10px] text-subtle uppercase tracking-wide mb-1">Icebreaker AI</p>
                   <p className="text-[12px] text-accent/80 leading-relaxed italic">&quot;{currentLead.icebreaker}&quot;</p>
                 </div>
               )}
               {currentLead.aiScoredAt && (
-                <p className="mt-2 text-[10px] text-white/20">
+                <p className="mt-2 text-[10px] text-subtle">
                   Oceniono: {new Date(currentLead.aiScoredAt).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}
                 </p>
               )}
@@ -1163,17 +1122,17 @@ function LeadPanel({
             {/* Outreach history */}
             {currentLead.outreachHistory.length > 0 && (
               <div>
-                <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-2">Historia outreach</p>
+                <p className="text-[11px] font-semibold text-subtle uppercase tracking-wide mb-2">Historia outreach</p>
                 <div className="space-y-2">
                   {currentLead.outreachHistory.map((h, i) => (
-                    <div key={i} className="flex gap-3 p-2.5 rounded-[8px] bg-white/[0.03] border border-white/[0.05]">
+                    <div key={i} className="flex gap-3 p-2.5 rounded-[8px] bg-raised border border-border-s">
                       <div className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0 mt-1.5" />
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-0.5">
                           <span className="text-[10px] font-semibold text-accent">{h.type}</span>
-                          <span className="text-[10px] text-white/30">{new Date(h.date).toLocaleDateString('pl-PL')}</span>
+                          <span className="text-[10px] text-subtle">{new Date(h.date).toLocaleDateString('pl-PL')}</span>
                         </div>
-                        <p className="text-[12px] text-white/60">{h.content}</p>
+                        <p className="text-[12px] text-muted">{h.content}</p>
                       </div>
                     </div>
                   ))}
@@ -1183,19 +1142,19 @@ function LeadPanel({
 
             {/* Note */}
             {currentLead.notes && (
-              <div className="p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.06]">
+              <div className="p-3 rounded-[10px] bg-raised border border-border">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide">Notatka</p>
-                  <button onClick={() => setShowNote(true)} className="text-[10px] text-accent hover:text-white transition-colors">Edytuj</button>
+                  <p className="text-[10px] font-semibold text-subtle uppercase tracking-wide">Notatka</p>
+                  <button onClick={() => setShowNote(true)} className="text-[10px] text-accent hover:text-fg transition-colors">Edytuj</button>
                 </div>
-                <p className="text-[12px] text-white/65">{currentLead.notes}</p>
+                <p className="text-[12px] text-muted">{currentLead.notes}</p>
               </div>
             )}
 
             {/* Services */}
             {allServices.length > 0 && (
               <div>
-                <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-2">Przypisane usługi</p>
+                <p className="text-[11px] font-semibold text-subtle uppercase tracking-wide mb-2">Przypisane usługi</p>
                 <div className="flex flex-wrap gap-1.5">
                   {allServices.map(s => {
                     const assigned = (currentLead.service_ids ?? []).includes(s.id)
@@ -1203,8 +1162,8 @@ function LeadPanel({
                       <button key={s.id} onClick={() => void toggleServiceForLead(s.id)}
                         className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all ${
                           assigned
-                            ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
-                            : 'bg-white/[0.04] border-white/[0.08] text-white/35 hover:border-white/20 hover:text-white/60'
+                            ? 'bg-violet/20 border-violet/40 text-violet'
+                            : 'bg-fg/[0.04] border-fg/[0.08] text-subtle hover:border-fg/20 hover:text-muted'
                         }`}>
                         {assigned ? <Check size={9} className="inline mr-1" /> : null}{s.name}
                       </button>
@@ -1218,7 +1177,7 @@ function LeadPanel({
             <div className="grid grid-cols-2 gap-2 pt-2">
               <button
                 onClick={() => { void update({ status: 'pipeline' }); toast.success(`${currentLead.firstName} przeniesiony do pipeline`) }}
-                className="flex items-center justify-center gap-1 py-2.5 rounded-[8px] bg-white/[0.04] border border-white/[0.07] text-white/55 text-[11px] font-medium hover:bg-accent/15 hover:border-accent/30 hover:text-accent transition-all">
+                className="flex items-center justify-center gap-1 py-2.5 rounded-[8px] bg-fg/[0.04] border border-fg/[0.07] text-muted text-[11px] font-medium hover:bg-accent/15 hover:border-accent/30 hover:text-accent transition-all">
                 <TrendingUp size={12} /> Pipeline
               </button>
               <button
@@ -1228,12 +1187,12 @@ function LeadPanel({
               </button>
               <button
                 onClick={() => setShowNote(true)}
-                className="flex items-center justify-center gap-1 py-2.5 rounded-[8px] bg-white/[0.04] border border-white/[0.07] text-white/55 text-[11px] font-medium hover:bg-white/[0.08] hover:text-white transition-all">
+                className="flex items-center justify-center gap-1 py-2.5 rounded-[8px] bg-fg/[0.04] border border-fg/[0.07] text-muted text-[11px] font-medium hover:bg-fg/[0.08] hover:text-fg transition-all">
                 <StickyNote size={12} /> Notatka
               </button>
               <button
                 onClick={() => setShowEdit(true)}
-                className="flex items-center justify-center gap-1 py-2.5 rounded-[8px] bg-white/[0.04] border border-white/[0.07] text-white/55 text-[11px] font-medium hover:bg-white/[0.08] hover:text-white transition-all">
+                className="flex items-center justify-center gap-1 py-2.5 rounded-[8px] bg-fg/[0.04] border border-fg/[0.07] text-muted text-[11px] font-medium hover:bg-fg/[0.08] hover:text-fg transition-all">
                 <Pencil size={12} /> Edytuj lead
               </button>
             </div>
@@ -1306,7 +1265,7 @@ export default function LeadsPage() {
           try {
             const dbRow: Record<string, unknown> = {}
             for (const [csvKey, value] of Object.entries(row)) {
-              const dbKey = CSV_COL_MAP[csvKey] ?? csvKey // accept DB column names directly
+              const dbKey = CSV_COL_MAP[csvKey] ?? csvKey
               const v = (value ?? '').trim()
               if (v === '') continue
               if (CSV_JSON_COLS.has(dbKey)) {
@@ -1337,7 +1296,6 @@ export default function LeadsPage() {
           else imported += chunk.length
         }
 
-        // refresh list
         const { data } = await supabase.from('leads').select('*').order('last_contact', { ascending: false })
         if (data) setLeads(data.map(r => dbToLead(r as Record<string, unknown>)))
 
@@ -1440,69 +1398,73 @@ export default function LeadsPage() {
     return arr
   }, [search, segmentFilter, scoreFilter, statusFilter, sortBy, leads])
 
+  const hasActiveFilters = segmentFilter !== 'all' || scoreFilter !== 'all' || statusFilter !== 'all' || sortBy !== 'default'
+
+  const SELECT_CLS = 'px-3 py-1.5 rounded-[8px] bg-bg border border-fg/[0.08] text-fg text-[12px] focus:outline-none focus:border-accent/50'
+
   return (
     <div className="max-w-[1400px] space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-[20px] font-bold text-white">Leady</h1>
-          <p className="text-[12px] text-white/40 mt-0.5">{filtered.length} z {leads.length} leadów</p>
+          <h1 className="text-[20px] font-bold text-fg">Leady</h1>
+          <p className="text-[12px] text-muted mt-0.5">{filtered.length} z {leads.length} leadów</p>
         </div>
         <div className="flex items-center gap-2">
           <input ref={importRef} type="file" accept=".csv" className="hidden" onChange={handleImportFile} />
           <button
             onClick={() => importRef.current?.click()}
             disabled={importing}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-white/[0.05] border border-white/[0.09] text-white/50 text-[12px] font-medium hover:bg-white/[0.09] hover:text-white disabled:opacity-40 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-fg/[0.05] border border-fg/[0.09] text-muted text-[12px] font-medium hover:bg-fg/[0.09] hover:text-fg disabled:opacity-40 transition-all"
           >
             {importing ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />} Import CSV
           </button>
           <button
             onClick={() => exportCSV(filtered)}
             disabled={filtered.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-white/[0.05] border border-white/[0.09] text-white/50 text-[12px] font-medium hover:bg-white/[0.09] hover:text-white disabled:opacity-40 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-fg/[0.05] border border-fg/[0.09] text-muted text-[12px] font-medium hover:bg-fg/[0.09] hover:text-fg disabled:opacity-40 transition-all"
           >
             <Download size={13} /> Eksport CSV
           </button>
           <button
             onClick={() => setShowNewLead(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-accent/10 border border-accent/30 text-accent text-[12px] font-medium hover:bg-accent/20 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-accent/10 border border-accent/30 text-accent text-[12px] font-semibold hover:bg-accent/20 transition-all"
           >
             + Dodaj lead
           </button>
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Search + Filters toggle */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 sm:max-w-[320px]">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Szukaj leadów..."
-            className="w-full pl-9 pr-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-accent/50 transition-all" />
+            className="w-full pl-9 pr-3 py-2 rounded-[8px] bg-fg/[0.04] border border-fg/[0.08] text-fg placeholder:text-muted text-[13px] focus:outline-none focus:border-accent/50 transition-all" />
         </div>
         <button onClick={() => setShowFilters(v => !v)}
-          className={`flex items-center gap-1.5 px-3 py-2 rounded-[8px] border text-[12px] font-medium transition-all ${showFilters ? 'bg-accent/15 border-accent/40 text-accent' : 'bg-white/[0.04] border-white/[0.08] text-white/50 hover:text-white'}`}>
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-[8px] border text-[12px] font-medium transition-all ${showFilters ? 'bg-accent/15 border-accent/40 text-accent' : 'bg-fg/[0.04] border-fg/[0.08] text-muted hover:text-fg'}`}
+          style={showFilters ? BTN_GLOW : undefined}>
           <SlidersHorizontal size={13} /> Filtry
-          {(segmentFilter !== 'all' || scoreFilter !== 'all' || statusFilter !== 'all' || sortBy !== 'default') && (
+          {hasActiveFilters && (
             <span className="w-4 h-4 rounded-full bg-accent text-white text-[9px] flex items-center justify-center font-bold">!</span>
           )}
         </button>
       </div>
 
+      {/* Filter panel */}
       {showFilters && (
-        <div className="flex flex-wrap gap-3 p-4 rounded-[12px] bg-white/[0.03] border border-white/[0.07]">
+        <div className="flex flex-wrap gap-3 p-4 rounded-[12px] bg-raised border border-border">
           <div>
-            <label className="block text-[10px] text-white/40 uppercase tracking-wide mb-1">Segment</label>
-            <select value={segmentFilter} onChange={e => setSegment(e.target.value)}
-              className="px-3 py-1.5 rounded-[8px] bg-bg border border-white/[0.08] text-white text-[12px] focus:outline-none focus:border-accent/50">
+            <label className="block text-[10px] text-subtle uppercase tracking-wide mb-1">Segment</label>
+            <select value={segmentFilter} onChange={e => setSegment(e.target.value)} className={SELECT_CLS}>
               <option value="all">Wszystkie</option>
               {segments.map(s => <option key={s} value={s}>{segmentLabels[s] ?? s}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-[10px] text-white/40 uppercase tracking-wide mb-1">AI Score</label>
-            <select value={scoreFilter} onChange={e => setScore(e.target.value)}
-              className="px-3 py-1.5 rounded-[8px] bg-bg border border-white/[0.08] text-white text-[12px] focus:outline-none focus:border-accent/50">
+            <label className="block text-[10px] text-subtle uppercase tracking-wide mb-1">AI Score</label>
+            <select value={scoreFilter} onChange={e => setScore(e.target.value)} className={SELECT_CLS}>
               <option value="all">Wszystkie</option>
               <option value="hot">Hot 🔥</option>
               <option value="warm">Warm 🌡️</option>
@@ -1510,17 +1472,15 @@ export default function LeadsPage() {
             </select>
           </div>
           <div>
-            <label className="block text-[10px] text-white/40 uppercase tracking-wide mb-1">Status</label>
-            <select value={statusFilter} onChange={e => setStatus(e.target.value)}
-              className="px-3 py-1.5 rounded-[8px] bg-bg border border-white/[0.08] text-white text-[12px] focus:outline-none focus:border-accent/50">
+            <label className="block text-[10px] text-subtle uppercase tracking-wide mb-1">Status</label>
+            <select value={statusFilter} onChange={e => setStatus(e.target.value)} className={SELECT_CLS}>
               <option value="all">Wszystkie</option>
               {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-[10px] text-white/40 uppercase tracking-wide mb-1 flex items-center gap-1"><ArrowUpDown size={10} />Sortuj</label>
-            <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-              className="px-3 py-1.5 rounded-[8px] bg-bg border border-white/[0.08] text-white text-[12px] focus:outline-none focus:border-accent/50">
+            <label className="block text-[10px] text-subtle uppercase tracking-wide mb-1 flex items-center gap-1"><ArrowUpDown size={10} />Sortuj</label>
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)} className={SELECT_CLS}>
               <option value="default">Domyślnie</option>
               <option value="hot_first">Hot najpierw 🔥</option>
               <option value="warm_first">Warm najpierw 🌡️</option>
@@ -1529,9 +1489,9 @@ export default function LeadsPage() {
               <option value="score_asc">Wynik: od najniższego</option>
             </select>
           </div>
-          {(segmentFilter !== 'all' || scoreFilter !== 'all' || statusFilter !== 'all' || sortBy !== 'default') && (
+          {hasActiveFilters && (
             <button onClick={() => { setSegment('all'); setScore('all'); setStatus('all'); setSortBy('default') }}
-              className="self-end flex items-center gap-1 px-3 py-1.5 rounded-[8px] bg-white/[0.04] border border-white/[0.07] text-white/50 text-[12px] hover:text-white transition-all">
+              className="self-end flex items-center gap-1 px-3 py-1.5 rounded-[8px] bg-fg/[0.04] border border-fg/[0.07] text-muted text-[12px] hover:text-fg transition-all">
               <X size={12} /> Wyczyść
             </button>
           )}
@@ -1539,8 +1499,8 @@ export default function LeadsPage() {
       )}
 
       {/* Table */}
-      <div className="bg-card border border-white/[0.07] rounded-[14px] overflow-hidden">
-        <div className="grid grid-cols-[1fr_140px_110px_90px_80px_80px] gap-4 px-4 py-2.5 border-b border-white/[0.07] text-[10px] font-semibold text-white/30 uppercase tracking-wide">
+      <div className="card-elevated overflow-hidden">
+        <div className="grid grid-cols-[1fr_140px_110px_90px_80px_80px] gap-4 px-4 py-2.5 border-b border-border text-[10px] font-semibold text-subtle uppercase tracking-wide">
           <span>Lead</span>
           <span className="hidden md:block">Firma / Stanowisko</span>
           <span className="hidden lg:block">Segment</span>
@@ -1549,25 +1509,25 @@ export default function LeadsPage() {
           <span className="hidden md:block">Kontakt</span>
         </div>
 
-        <div className="divide-y divide-white/[0.04]">
+        <div className="divide-y divide-fg/[0.04]">
           {filtered.map(lead => {
             const initials = (lead.firstName[0] ?? '') + (lead.lastName[0] ?? '')
             return (
               <button key={lead.id} onClick={() => setSelected(lead)}
-                className="w-full grid grid-cols-[1fr_140px_110px_90px_80px_80px] gap-4 px-4 py-3 hover:bg-white/[0.03] transition-all text-left group">
+                className="w-full grid grid-cols-[1fr_140px_110px_90px_80px_80px] gap-4 px-4 py-3 hover:bg-fg/[0.03] transition-all text-left group">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 rounded-[8px] bg-accent/20 flex items-center justify-center text-[11px] font-bold text-accent flex-shrink-0">{initials}</div>
                   <div className="min-w-0">
-                    <p className="text-[13px] font-semibold text-white truncate">{lead.firstName} {lead.lastName}</p>
-                    <p className="text-[11px] text-white/40 truncate md:hidden">{lead.company}</p>
+                    <p className="text-[13px] font-semibold text-fg truncate">{lead.firstName} {lead.lastName}</p>
+                    <p className="text-[11px] text-muted truncate md:hidden">{lead.company}</p>
                   </div>
                 </div>
                 <div className="hidden md:flex flex-col justify-center min-w-0">
-                  <p className="text-[12px] text-white/70 truncate">{lead.company}</p>
-                  <p className="text-[11px] text-white/35 truncate">{lead.position}</p>
+                  <p className="text-[12px] text-fg/70 truncate">{lead.company}</p>
+                  <p className="text-[11px] text-subtle truncate">{lead.position}</p>
                 </div>
                 <div className="hidden lg:flex items-center">
-                  <span className="px-2 py-0.5 rounded-full bg-white/[0.06] text-white/50 text-[10px] font-medium">
+                  <span className="px-2 py-0.5 rounded-full bg-fg/[0.06] text-muted text-[10px] font-medium">
                     {segmentLabels[lead.segment] ?? lead.segment}
                   </span>
                 </div>
@@ -1576,7 +1536,7 @@ export default function LeadsPage() {
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${STATUS_COLORS[lead.status]}`}>{STATUS_LABELS[lead.status]}</span>
                 </div>
                 <div className="hidden md:flex items-center">
-                  <span className="text-[11px] text-white/35">
+                  <span className="text-[11px] text-subtle">
                     {new Date(lead.lastContact).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit' })}
                   </span>
                 </div>
@@ -1587,12 +1547,12 @@ export default function LeadsPage() {
 
         {leads.length === 0 && (
           <div className="py-16 text-center space-y-3">
-            <p className="text-[14px] text-white/40 font-medium">Brak leadów w bazie</p>
-            <p className="text-[12px] text-white/25">Kliknij &quot;+ Dodaj lead&quot; aby dodać pierwszego leada</p>
+            <p className="text-[14px] text-muted font-medium">Brak leadów w bazie</p>
+            <p className="text-[12px] text-subtle">Kliknij &quot;+ Dodaj lead&quot; aby dodać pierwszego leada</p>
           </div>
         )}
         {leads.length > 0 && filtered.length === 0 && (
-          <div className="py-12 text-center text-[13px] text-white/30">
+          <div className="py-12 text-center text-[13px] text-muted">
             Brak leadów spełniających kryteria
           </div>
         )}
