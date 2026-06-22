@@ -136,12 +136,12 @@ export default function DashboardPage() {
         <div className="flex items-center gap-2 flex-wrap sm:justify-end">
           <Link href="/leads"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-[7px] bg-raised border border-border
-              text-muted text-[12px] font-medium hover:bg-raised hover:text-fg transition-colors">
+              text-muted text-[12px] font-medium hover:border-accent/40 hover:bg-accent/[0.06] hover:text-fg transition-colors">
             <PlusCircle size={12} /> Dodaj lead
           </Link>
           <Link href="/outreach"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-[7px] bg-raised border border-border
-              text-muted text-[12px] font-medium hover:bg-raised hover:text-fg transition-colors">
+              text-muted text-[12px] font-medium hover:border-accent/40 hover:bg-accent/[0.06] hover:text-fg transition-colors">
             <MessageCircle size={12} /> Nowa wiadomość
           </Link>
           <Link href="/finance"
@@ -237,7 +237,7 @@ export default function DashboardPage() {
       )}
 
       {/* ── Monthly goal ── */}
-      <div className="bg-card border border-border rounded-[12px] p-4">
+      <div className="card-elevated p-4" style={{ '--card-accent': 'var(--accent)' } as React.CSSProperties}>
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2">
             <Target size={14} className="text-accent" />
@@ -246,7 +246,7 @@ export default function DashboardPage() {
           <span className="num text-[12px] text-muted">{pct}%</span>
         </div>
         <div className="h-1.5 bg-raised rounded-full overflow-hidden">
-          <div className="h-full rounded-full bg-accent transition-all duration-500" style={{ width: `${pct}%` }} />
+          <div className="h-full rounded-full bg-accent transition-all duration-500" style={{ width: `${pct}%`, boxShadow: 'var(--glow-teal)' }} />
         </div>
         <div className="flex items-center justify-between mt-2">
           <span className="text-[11px] text-subtle">
@@ -258,7 +258,7 @@ export default function DashboardPage() {
 
       {/* ── P&L mini chart (demo) ── */}
       {isDemo && (
-        <div className="bg-card border border-border rounded-[12px] p-5">
+        <div className="card-elevated p-5">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp size={14} className="text-accent" />
             <p className="text-[13.5px] font-semibold text-fg">P&L — ostatnie 6 miesięcy</p>
@@ -295,7 +295,7 @@ export default function DashboardPage() {
 
       {/* ── Sugerowane leady (demo) ── */}
       {isDemo && (
-        <div className="bg-card border border-border rounded-[12px] p-5">
+        <div className="card-elevated p-5">
           <div className="flex items-center gap-2 mb-3">
             <Clock size={14} className="text-amber" />
             <p className="text-[13.5px] font-semibold text-fg">Skontaktuj się dziś</p>
@@ -304,7 +304,7 @@ export default function DashboardPage() {
           <div className="space-y-1.5">
             {DEMO_KPI.suggestedLeads.map((name, i) => (
               <div key={i}
-                className="flex items-center gap-3 p-2.5 rounded-[8px] bg-raised border border-border">
+                className="list-row flex items-center gap-3 p-2.5">
                 <div className="w-7 h-7 rounded-full bg-amber/10 border border-amber/20 flex items-center justify-center flex-shrink-0">
                   <span className="text-[10px] font-bold text-amber num">
                     {name.split(' ').map(w => w[0]).join('').slice(0, 2)}
@@ -324,7 +324,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4">
 
         {/* Quick start */}
-        <div className="bg-card border border-border rounded-[12px] p-5">
+        <div className="card-elevated p-5">
           <div className="flex items-center gap-2 mb-4">
             <Zap size={14} className="text-accent" />
             <p className="text-[13.5px] font-semibold text-fg">Zacznij tutaj</p>
@@ -340,8 +340,7 @@ export default function DashboardPage() {
               <Link
                 key={step.href}
                 href={step.href}
-                className="flex items-start gap-3 p-3 rounded-[8px] bg-raised border border-border
-                  hover:bg-raised hover:border-border group transition-colors"
+                className="list-row flex items-start gap-3 p-3 group transition-colors"
               >
                 <div className="w-7 h-7 rounded-[7px] flex-shrink-0 flex items-center justify-center mt-0.5"
                   style={{ background: step.color + '18' }}>
