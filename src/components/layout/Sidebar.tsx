@@ -179,7 +179,7 @@ function NavItem({ href, label, icon: Icon, collapsed, onClick, soon, accent = '
         transition-colors duration-100 group select-none
         ${active
           ? 'nav-active'
-          : 'text-muted hover:text-fg hover:bg-[rgba(255,255,255,0.04)] dark:hover:bg-[rgba(255,255,255,0.04)]'
+          : 'text-muted hover:text-fg hover:bg-fg/[0.04]'
         }
         ${collapsed ? 'justify-center px-2' : ''}`}
       style={active
@@ -188,8 +188,10 @@ function NavItem({ href, label, icon: Icon, collapsed, onClick, soon, accent = '
     >
       <Icon
         size={15}
-        className={`flex-shrink-0 transition-colors ${active ? '' : 'text-subtle group-hover:text-muted'}`}
-        style={active ? { color: accent } : undefined}
+        className={`flex-shrink-0 transition-all ${active ? '' : 'text-subtle group-hover:text-fg'}`}
+        style={active
+          ? { color: accent, filter: `drop-shadow(0 0 5px ${accent}80)` }
+          : undefined}
       />
       {!collapsed && <span className="truncate">{label}</span>}
 
@@ -221,17 +223,21 @@ function SidebarContent({ collapsed, onNavClick, showCloseButton, onClose }: Sid
   const navSections = isSales ? SALES_NAV_SECTIONS : ADMIN_NAV_SECTIONS
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
+      {/* dark-only: signature radial glow behind logo area */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 z-0"
+        style={{ background: 'radial-gradient(75% 55% at 50% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 80%)' }} />
 
       {/* ── Logo ── */}
-      <div className={`flex items-center border-b border-border flex-shrink-0
+      <div className={`relative z-10 flex items-center border-b border-border flex-shrink-0
         ${collapsed ? 'justify-center px-3 py-[14px]' : 'gap-2.5 px-4 py-[14px]'}`}>
-        <div className="w-7 h-7 rounded-[8px] flex-shrink-0 flex items-center justify-center bg-accent/10 border border-accent/20">
-          <Zap size={13} className="text-accent" strokeWidth={2.5} />
+        <div className="w-7 h-7 rounded-[8px] flex-shrink-0 flex items-center justify-center"
+          style={{ background: 'var(--gradient-signature)', boxShadow: 'var(--glow-teal)' }}>
+          <Zap size={13} strokeWidth={2.5} style={{ color: 'rgba(255,255,255,0.92)' }} />
         </div>
         {!collapsed && (
           <div className="flex-1 min-w-0">
-            <p className="text-[12.5px] font-semibold text-fg tracking-tight leading-none">System H14</p>
+            <p className="text-[12.5px] font-bold text-fg tracking-tight leading-none">System H14</p>
             <p className="section-label mt-0.5">AM Automations</p>
           </div>
         )}
@@ -255,7 +261,11 @@ function SidebarContent({ collapsed, onNavClick, showCloseButton, onClose }: Sid
           {navSections.map((section) => (
             <div key={section.id}>
               {!collapsed && section.section && (
-                <p className="px-3 mb-1 section-label select-none">{section.section}</p>
+                <div className="flex items-center gap-1.5 px-3 mb-1">
+                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 opacity-80"
+                    style={{ background: GROUP_ACCENT[section.id] ?? 'var(--accent)' }} />
+                  <p className="section-label select-none">{section.section}</p>
+                </div>
               )}
               {collapsed && section.section && (
                 <div className="mx-auto w-5 h-px bg-border mb-2" />
@@ -328,7 +338,7 @@ export function Sidebar() {
       {/* ── Desktop Sidebar ── */}
       <aside
         className={`hidden md:flex flex-col fixed left-0 top-0 h-screen z-40
-          bg-sidebar border-r border-border sidebar-transition
+          sidebar-depth border-r border-border sidebar-transition
           ${collapsed ? 'w-[56px]' : 'w-[220px]'}`}
       >
         <SidebarContent collapsed={collapsed} />
@@ -359,7 +369,7 @@ export function Sidebar() {
       {/* ── Mobile: Drawer ── */}
       <aside
         className={`md:hidden fixed left-0 top-0 h-screen z-50 w-[260px]
-          bg-sidebar border-r border-border
+          sidebar-depth border-r border-border
           transition-transform duration-300 ease-in-out
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >

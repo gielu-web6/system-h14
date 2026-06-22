@@ -194,10 +194,14 @@ export function Topbar() {
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
 
       <header className="h-14 sticky top-0 z-30 flex items-center justify-between px-4 sm:px-5
-        bg-bg/90 backdrop-blur-md border-b border-border transition-colors duration-200">
+        bg-bg/85 backdrop-blur-md border-b border-border transition-colors duration-200 relative
+        shadow-[inset_0_-1px_0_rgba(255,255,255,0.04)]">
+        {/* dark-only: signature glow from left, spójność z hero dashboard */}
+        <div className="pointer-events-none absolute left-0 top-0 h-full w-56 z-0"
+          style={{ background: 'linear-gradient(to right, color-mix(in srgb, var(--accent) 5%, transparent), transparent)' }} />
 
         {/* ── Left: hamburger + breadcrumbs ── */}
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="relative z-10 flex items-center gap-3 min-w-0">
           <button
             onClick={openMobile}
             className="md:hidden p-2 rounded-[7px] text-muted hover:text-fg hover:bg-raised transition-colors"
@@ -228,18 +232,19 @@ export function Topbar() {
         </div>
 
         {/* ── Right ── */}
-        <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="relative z-10 flex items-center gap-1 flex-shrink-0">
 
           {/* Search */}
           <button
             onClick={() => setSearchOpen(true)}
             className="hidden md:flex items-center gap-2 pl-3 pr-2.5 py-1.5 rounded-[7px]
-              bg-raised border border-border text-muted hover:text-fg hover:border-border
-              transition-colors text-[12px]"
+              bg-raised border border-border text-muted
+              hover:text-fg hover:border-accent/30 hover:bg-accent/[0.04] hover:shadow-[var(--glow-teal)]
+              transition-all text-[12px]"
           >
             <Search size={12} />
             <span>Szukaj…</span>
-            <kbd className="ml-2 px-1 py-0.5 rounded-[4px] bg-bg border border-border text-[10px] font-mono text-subtle">⌘K</kbd>
+            <kbd className="ml-1.5 px-1.5 py-0.5 rounded-[4px] bg-bg border border-border/80 text-[10px] font-mono text-subtle leading-none">⌘K</kbd>
           </button>
 
           {/* Dark/light toggle */}
@@ -265,7 +270,8 @@ export function Topbar() {
             >
               <Bell size={15} />
               {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-accent" />
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-accent dot-pulse"
+                  style={{ boxShadow: 'var(--glow-teal)' }} />
               )}
             </button>
             {notifOpen && (
@@ -290,9 +296,10 @@ export function Topbar() {
               <div
                 className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0"
                 style={{
-                  background: (appUser?.color ?? '#00c8be') + '20',
-                  border: `1px solid ${appUser?.color ?? '#00c8be'}40`,
+                  background: (appUser?.color ?? '#00c8be') + '18',
+                  border: `1.5px solid ${appUser?.color ?? '#00c8be'}55`,
                   color: appUser?.color ?? '#00c8be',
+                  boxShadow: `0 0 0 2px ${appUser?.color ?? '#00c8be'}14`,
                 }}
               >
                 {appUser?.initials ?? 'AM'}

@@ -537,3 +537,29 @@ body::after {
   background-image: radial-gradient(rgba(16,24,40,0.03) 1px, transparent 1px);
   background-size: 34px 34px;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   SIDEBAR depth & atmosphere
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Dark: vertical gradient panel + subtle inner right highlight */
+.sidebar-depth {
+  background: linear-gradient(180deg, #0e1419 0%, #090c10 100%);
+  box-shadow: inset -1px 0 0 rgba(255,255,255,0.04);
+}
+/* Light: restore flat sidebar colour and drop the shadow */
+.light .sidebar-depth {
+  background: var(--bg-sidebar);
+  box-shadow: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   NOTIFICATION DOT pulse
+   ══════════════════════════════════════════════════════════════════ */
+
+@keyframes dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,200,190,0.45); }
+  60%       { box-shadow: 0 0 0 5px rgba(0,200,190,0); }
+}
+.dot-pulse { animation: dot-pulse 2.6s ease-out infinite; }
+.light .dot-pulse { animation: none; }
