@@ -176,7 +176,10 @@ export default function DashboardPage() {
               <ArrowUpRight size={13} className={`text-subtle transition-colors mt-0.5 ${card.arrowHover}`} />
             </div>
             <p className="relative section-label mb-1.5">{card.label}</p>
-            <p className={`relative text-[36px] font-bold tracking-tight leading-none num ${card.isHero ? 'text-accent' : 'text-fg'}`}>
+            <p className={`relative text-[36px] font-bold tracking-tight leading-none num ${card.isHero ? 'text-accent' : 'text-fg'}`}
+              style={{ textShadow: card.isHero
+                ? '0 0 32px color-mix(in srgb, var(--card-accent) 44%, transparent)'
+                : '0 0 22px color-mix(in srgb, var(--card-accent) 26%, transparent)' }}>
               {card.value}
             </p>
             <p className="relative text-[11px] text-muted mt-2 leading-snug">{card.sub}</p>
@@ -231,7 +234,7 @@ export default function DashboardPage() {
                   </div>
                   <p className="text-[10.5px] text-muted font-medium leading-tight">{item.label}</p>
                 </div>
-                <p className="relative text-[20px] font-bold text-fg tracking-tight leading-none num">{item.value}</p>
+                <p className="relative text-[22px] font-bold text-fg tracking-tight leading-none num">{item.value}</p>
                 <p className="relative text-[10px] text-subtle mt-1.5 leading-snug">{item.sub}</p>
               </div>
             ))}
@@ -250,7 +253,11 @@ export default function DashboardPage() {
         </div>
         <div className="h-3 bg-raised rounded-full overflow-hidden">
           <div className="h-full rounded-full bg-accent transition-all duration-700"
-            style={{ width: `${pct}%`, boxShadow: pct > 0 ? 'var(--glow-teal)' : 'none' }} />
+            style={{
+              width: pct > 0 ? `${pct}%` : '4.5%',
+              opacity: pct > 0 ? 1 : 0.18,
+              boxShadow: pct > 0 ? 'var(--glow-teal)' : 'none',
+            }} />
         </div>
         <div className="flex items-center justify-between mt-2.5">
           <span className="text-[11px] text-subtle">
