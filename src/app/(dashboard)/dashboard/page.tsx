@@ -126,14 +126,17 @@ export default function DashboardPage() {
     <div className="max-w-[1400px] space-y-5">
 
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-[20px] font-bold text-fg tracking-tight">
+      <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
+        {/* atmosferyczna poświata teal za tytułem */}
+        <div className="absolute -inset-x-4 -top-8 h-32 pointer-events-none"
+          style={{ background: 'radial-gradient(55% 80% at 20% 0%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 72%)' }} />
+        <div className="relative">
+          <h1 className="text-[27px] font-bold text-fg tracking-tight leading-none">
             Dzień dobry, {isDemo ? 'Adrian' : (user?.fullName ?? 'tam')}
           </h1>
-          <p className="text-[12px] text-muted mt-0.5 capitalize">{today}</p>
+          <p className="text-[12px] text-muted mt-1.5 capitalize">{today}</p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap sm:justify-end">
+        <div className="relative flex items-center gap-2 flex-wrap sm:justify-end">
           <Link href="/leads"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-[7px] bg-raised border border-border
               text-muted text-[12px] font-medium hover:border-accent/40 hover:bg-accent/[0.06] hover:text-fg transition-colors">
@@ -146,7 +149,7 @@ export default function DashboardPage() {
           </Link>
           <Link href="/finance"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-[7px] bg-accent/10 border border-accent/20
-              text-accent text-[12px] font-medium hover:bg-accent/15 transition-colors">
+              text-accent text-[12px] font-medium hover:bg-accent/15 hover:border-accent/40 hover:shadow-[var(--glow-teal)] transition-all">
             <ReceiptText size={12} /> Dodaj przychód
           </Link>
         </div>
@@ -164,7 +167,7 @@ export default function DashboardPage() {
             {/* hero: gradient wash */}
             {card.isHero && (
               <div className="absolute inset-0 pointer-events-none rounded-[14px]"
-                style={{ background: 'var(--gradient-signature)', opacity: 0.10 }} />
+                style={{ background: 'var(--gradient-signature)', opacity: 0.14 }} />
             )}
             <div className="relative flex items-start justify-between mb-4">
               <div className="kpi-icon w-11 h-11 rounded-[12px] flex items-center justify-center flex-shrink-0">
@@ -173,7 +176,7 @@ export default function DashboardPage() {
               <ArrowUpRight size={13} className={`text-subtle transition-colors mt-0.5 ${card.arrowHover}`} />
             </div>
             <p className="relative section-label mb-1.5">{card.label}</p>
-            <p className={`relative text-[32px] font-bold tracking-tight leading-none num ${card.isHero ? 'text-accent' : 'text-fg'}`}>
+            <p className={`relative text-[36px] font-bold tracking-tight leading-none num ${card.isHero ? 'text-accent' : 'text-fg'}`}>
               {card.value}
             </p>
             <p className="relative text-[11px] text-muted mt-2 leading-snug">{card.sub}</p>
@@ -245,12 +248,17 @@ export default function DashboardPage() {
           </div>
           <span className="num text-[12px] text-muted">{pct}%</span>
         </div>
-        <div className="h-1.5 bg-raised rounded-full overflow-hidden">
-          <div className="h-full rounded-full bg-accent transition-all duration-500" style={{ width: `${pct}%`, boxShadow: 'var(--glow-teal)' }} />
+        <div className="h-3 bg-raised rounded-full overflow-hidden">
+          <div className="h-full rounded-full bg-accent transition-all duration-700"
+            style={{ width: `${pct}%`, boxShadow: pct > 0 ? 'var(--glow-teal)' : 'none' }} />
         </div>
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex items-center justify-between mt-2.5">
           <span className="text-[11px] text-subtle">
-            {isDemo ? `${formatPLN(kpi.revenueThisMonth)} z ${formatPLN(goalRevenue)} celu` : 'Wygrane deale — pipeline'}
+            {isDemo
+              ? `${formatPLN(kpi.revenueThisMonth)} z ${formatPLN(goalRevenue)} celu`
+              : pct === 0
+                ? 'Brak wygranych dealów w tym miesiącu'
+                : 'Wygrane deale — pipeline'}
           </span>
           <Link href="/finance" className="text-[11px] text-accent/60 hover:text-accent transition-colors">Przejdź →</Link>
         </div>
@@ -340,7 +348,7 @@ export default function DashboardPage() {
               <Link
                 key={step.href}
                 href={step.href}
-                className="list-row flex items-start gap-3 p-3 group transition-colors"
+                className="list-row flex items-start gap-3 p-3 group transition-all hover:-translate-y-px"
               >
                 <div className="w-7 h-7 rounded-[7px] flex-shrink-0 flex items-center justify-center mt-0.5"
                   style={{ background: step.color + '18' }}>
@@ -350,7 +358,7 @@ export default function DashboardPage() {
                   <p className="text-[12.5px] font-semibold text-fg leading-tight">{step.title}</p>
                   <p className="text-[11px] text-muted mt-0.5 leading-snug">{step.desc}</p>
                 </div>
-                <ChevronRight size={12} className="text-subtle group-hover:text-muted transition-colors flex-shrink-0 mt-1" />
+                <ChevronRight size={12} className="text-subtle group-hover:text-fg group-hover:translate-x-0.5 transition-all flex-shrink-0 mt-1" />
               </Link>
             ))}
           </div>

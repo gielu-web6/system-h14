@@ -52,7 +52,7 @@ export function TasksWidget() {
   }
 
   return (
-    <div className="bg-card border border-border rounded-[12px] p-5 flex flex-col gap-4">
+    <div className="card-elevated p-5 flex flex-col gap-4">
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-2">
@@ -79,7 +79,7 @@ export function TasksWidget() {
             type="submit"
             disabled={adding || !newTitle.trim()}
             className="flex-shrink-0 px-3 py-2 rounded-[8px] bg-accent text-bg text-[12px] font-bold
-              disabled:opacity-30 hover:opacity-90 transition-opacity"
+              disabled:opacity-30 hover:opacity-90 hover:shadow-[var(--glow-teal)] transition-all"
           >
             {adding ? '…' : <Plus size={15} />}
           </button>
@@ -90,13 +90,16 @@ export function TasksWidget() {
       {loading ? (
         <div className="py-4 text-center text-[12px] text-subtle">Ładowanie…</div>
       ) : todayPending.length === 0 && todayCompleted.length === 0 ? (
-        <p className="text-center text-[12px] text-subtle py-2">Brak zadań — wpisz coś powyżej</p>
+        <div className="py-5 text-center">
+          <p className="text-[12px] text-muted">Brak zadań na dziś</p>
+          <p className="text-[11px] text-subtle mt-1">Wpisz coś powyżej, żeby zacząć</p>
+        </div>
       ) : (
         <div className="space-y-1 max-h-[340px] overflow-y-auto">
 
           {todayPending.map(task => (
             <div key={task.id}
-              className="flex items-start gap-2.5 p-2.5 rounded-[8px] bg-raised hover:bg-raised/80 group transition-colors">
+              className="list-row flex items-start gap-2.5 p-2.5 group transition-all hover:-translate-y-px">
               <button
                 onClick={() => void toggle(task.id)}
                 className="flex-shrink-0 mt-0.5 text-subtle hover:text-accent transition-colors"
@@ -188,7 +191,7 @@ export function TasksWidget() {
                   <div className="space-y-1 max-h-[240px] overflow-y-auto">
                     {overdue.map(task => (
                       <div key={task.id}
-                        className="flex items-start gap-2.5 p-2.5 rounded-[8px] bg-raised hover:bg-raised/80 group transition-colors">
+                        className="list-row flex items-start gap-2.5 p-2.5 group transition-colors">
                         <button
                           onClick={() => void complete(task.id)}
                           className="flex-shrink-0 mt-0.5 text-subtle hover:text-accent transition-colors"
