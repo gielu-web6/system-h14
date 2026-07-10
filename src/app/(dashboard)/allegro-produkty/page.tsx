@@ -935,7 +935,8 @@ export default function AllegroProduktPage() {
 
       {/* Category tabs */}
       {categoriesInUse.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[10px] font-semibold text-subtle uppercase tracking-wide mr-1">Kategoria</span>
           {[{ id: 'all', label: 'Wszystkie' }, ...categoriesInUse.map(c => ({ id: c, label: c }))].map(cat => {
             const count = cat.id === 'all'
               ? bySegment.length
