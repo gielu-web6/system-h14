@@ -1011,23 +1011,14 @@ export default function AllegroProduktPage() {
                   {p.category && <p className="text-[11px] text-muted mt-0.5 truncate">{p.category}</p>}
                 </div>
 
-                <div className="text-right hidden sm:block w-[90px]">
-                  <p className="text-[13px] font-semibold text-fg num">
-                    {p.target_price != null ? p.target_price.toFixed(2) + ' PLN' : '—'}
-                  </p>
-                  <p className="text-[10px] text-subtle">cena sprzedaży</p>
-                </div>
-
-                <div className="text-right hidden sm:block w-[70px]">
-                  <p className={`text-[13px] font-bold num ${(p.target_price ?? 0) > 0 ? marginColor(m.marginPct) : 'text-subtle'}`}>
+                <div className="text-right hidden sm:block w-[130px]">
+                  <p className={`text-[15px] font-bold num ${(p.target_price ?? 0) > 0 ? marginColor(m.marginPct) : 'text-subtle'}`}>
                     {(p.target_price ?? 0) > 0 ? m.marginPct.toFixed(1) + '%' : '—'}
+                    <span className="text-[10px] font-normal text-subtle ml-1">marża</span>
                   </p>
-                  <p className="text-[10px] text-subtle">marża</p>
-                </div>
-
-                <div className="text-right hidden md:block w-[60px]">
-                  <p className="text-[13px] font-semibold text-fg num">{fmtNum(p.units_sold ?? 0)}</p>
-                  <p className="text-[10px] text-subtle">szt.</p>
+                  <p className="text-[11px] text-subtle num mt-0.5">
+                    {p.target_price != null ? p.target_price.toFixed(2) + ' PLN' : '—'} · {fmtNum(p.units_sold ?? 0)} szt.
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-1.5 flex-shrink-0">
