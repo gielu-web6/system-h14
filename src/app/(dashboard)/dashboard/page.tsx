@@ -335,45 +335,8 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── Start guide + Tasks ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4">
-
-        {/* Quick start */}
-        <div className="card-elevated p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Zap size={14} className="text-accent" />
-            <p className="text-[13.5px] font-semibold text-fg">Zacznij tutaj</p>
-          </div>
-          <div className="space-y-1.5">
-            {[
-              { href: '/knowledge-base', icon: BookOpen,        color: '#60a5fa', title: '1. Wypełnij Bazę Wiedzy',     desc: 'Dodaj info o firmie, usługach i ICP — AI będzie lepiej działać' },
-              { href: '/leads',          icon: Users,            color: '#30c060', title: '2. Dodaj pierwszych leadów',  desc: 'Ręcznie lub przez import CSV z LinkedIn Sales Navigator' },
-              { href: '/ai-scoring',     icon: Target,           color: '#f0a040', title: '3. Uruchom AI Scoring',       desc: 'AI oceni leadów i wygeneruje personalizowane wiadomości' },
-              { href: '/pipeline',       icon: TrendingUp,       color: '#00c8be', title: '4. Otwórz deal w pipeline',   desc: 'Po pierwszym kontakcie przesuń lead do CRM Pipeline' },
-              { href: '/content-generator', icon: MessageSquare, color: '#a78bfa', title: '5. Wygeneruj treści',        desc: 'Posty LinkedIn, Instagram, newsletter — AI na podstawie Twojej firmy' },
-            ].map((step) => (
-              <Link
-                key={step.href}
-                href={step.href}
-                className="list-row flex items-start gap-3 p-3 group transition-all hover:-translate-y-px"
-              >
-                <div className="w-7 h-7 rounded-[7px] flex-shrink-0 flex items-center justify-center mt-0.5"
-                  style={{ background: step.color + '18' }}>
-                  <step.icon size={13} style={{ color: step.color }} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[12.5px] font-semibold text-fg leading-tight">{step.title}</p>
-                  <p className="text-[11px] text-muted mt-0.5 leading-snug">{step.desc}</p>
-                </div>
-                <ChevronRight size={12} className="text-subtle group-hover:text-fg group-hover:translate-x-0.5 transition-all flex-shrink-0 mt-1" />
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Tasks */}
-        <TasksWidget />
-      </div>
+      {/* ── Tasks ── */}
+      <TasksWidget />
     </div>
   )
 }

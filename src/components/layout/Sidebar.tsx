@@ -15,11 +15,15 @@ import {
   TrendingUp,
   Settings,
   ChevronLeft,
+  ChevronRight,
   X,
   Zap,
   BrainCircuit,
   Brain,
   CheckSquare,
+  ShoppingBag,
+  Package,
+  Warehouse,
 } from 'lucide-react'
 import { useLayout } from './LayoutContext'
 import { useAppUser } from '@/contexts/UserContext'
@@ -41,15 +45,15 @@ const ADMIN_NAV_SECTIONS = [
     items: [
       { href: '/pipeline',          label: 'Pipeline (CRM)',   icon: KanbanSquare },
       { href: '/leads',             label: 'Leady',            icon: Users },
-      { href: '/outreach',          label: 'Outreach Gen.',    icon: Send },
-      { href: '/ai-scoring',        label: 'AI Scoring',       icon: BrainCircuit },
+      // { href: '/outreach',       label: 'Outreach Gen.',    icon: Send },          // hidden
+      // { href: '/ai-scoring',     label: 'AI Scoring',       icon: BrainCircuit },  // hidden
     ],
   },
   {
     id: 'content',
     section: 'Content',
     items: [
-      { href: '/content-generator', label: 'Generator Treści', icon: Sparkles },
+      // { href: '/content-generator', label: 'Generator Treści', icon: Sparkles }, // hidden
       { href: '/content-calendar',  label: 'Kalendarz',        icon: CalendarDays },
     ],
   },
@@ -61,18 +65,51 @@ const ADMIN_NAV_SECTIONS = [
       { href: '/analytics',         label: 'Analityka',        icon: TrendingUp },
     ],
   },
+  // { // hidden — sekcja KLIENT z Generator Ofert
+  //   id: 'client',
+  //   section: 'Klient',
+  //   items: [
+  //     { href: '/offer-generator', label: 'Generator Ofert', icon: FileText },
+  //   ],
+  // },
   {
-    id: 'client',
-    section: 'Klient',
+    id: 'allegro',
+    section: 'Allegro Dropshipping',
     items: [
-      { href: '/offer-generator',   label: 'Generator Ofert',  icon: FileText },
+      { href: '/allegro-produkty',     label: 'Produkty',   icon: Package },
+      { href: '/allegro-hurtownie',    label: 'Hurtownie',  icon: Warehouse },
+    ],
+  },
+  // { // hidden — sekcja AI SYSTEM z Company Brain
+  //   id: 'brain',
+  //   section: 'AI System',
+  //   items: [
+  //     { href: '/company-brain', label: 'Company Brain', icon: Brain },
+  //   ],
+  // },
+]
+
+const ALLEGRO_NAV_SECTIONS = [
+  {
+    id: 'main',
+    section: '',
+    items: [
+      { href: '/tasks',            label: 'Zadania',   icon: CheckSquare },
     ],
   },
   {
-    id: 'brain',
-    section: 'AI System',
+    id: 'content',
+    section: 'Content',
     items: [
-      { href: '/company-brain',     label: 'Company Brain',    icon: Brain },
+      { href: '/content-calendar', label: 'Kalendarz', icon: CalendarDays },
+    ],
+  },
+  {
+    id: 'allegro',
+    section: 'Allegro Dropshipping',
+    items: [
+      { href: '/allegro-produkty',     label: 'Produkty',   icon: Package },
+      { href: '/allegro-hurtownie',    label: 'Hurtownie',  icon: Warehouse },
     ],
   },
 ]
@@ -124,6 +161,7 @@ const GROUP_ACCENT: Record<string, string> = {
   brain:   'var(--group-ai)',
   tools:   'var(--group-content)',
   stats:   'var(--group-finanse)',
+  allegro: 'var(--group-allegro)',
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -132,6 +170,11 @@ function isItemActive(pathname: string, href: string): boolean {
   if (href === '/demo') return pathname === '/dashboard'
   return pathname === href || pathname.startsWith(href + '/')
 }
+
+// ─── DNA progress placeholder ─────────────────────────────────────────────────
+// TODO: podłączyć do Company Brain DNA (fetch % uzupełnienia z Supabase)
+const DNA_PCT = 36
+const DNA_CIRCUMFERENCE = 2 * Math.PI * 14
 
 // ─── NavItem ─────────────────────────────────────────────────────────────────
 
@@ -153,11 +196,13 @@ function NavItem({ href, label, icon: Icon, collapsed, onClick, soon, accent = '
     return (
       <div
         title={collapsed ? label : undefined}
-        className={`relative flex items-center gap-2.5 px-3 py-[7px] rounded-[7px] text-[12.5px]
+        className={`relative flex items-center gap-2.5 px-2 py-1.5 rounded-[9px] text-[12.5px]
           text-subtle cursor-not-allowed select-none
-          ${collapsed ? 'justify-center px-2' : ''}`}
+          ${collapsed ? 'justify-center' : ''}`}
       >
-        <Icon size={15} className="flex-shrink-0 opacity-30" />
+        <div className="w-[30px] h-[30px] rounded-[8px] flex items-center justify-center flex-shrink-0 bg-white/[0.03]">
+          <Icon size={14} className="opacity-25" />
+        </div>
         {!collapsed && (
           <>
             <span className="truncate">{label}</span>
@@ -175,24 +220,32 @@ function NavItem({ href, label, icon: Icon, collapsed, onClick, soon, accent = '
       href={href}
       onClick={onClick}
       title={collapsed ? label : undefined}
-      className={`relative flex items-center gap-2.5 px-3 py-[7px] rounded-[7px] text-[12.5px] font-medium
-        transition-colors duration-100 group select-none
-        ${active
-          ? 'nav-active'
-          : 'text-muted hover:text-fg hover:bg-fg/[0.04]'
-        }
-        ${collapsed ? 'justify-center px-2' : ''}`}
+      className={`relative flex items-center gap-2.5 px-2 py-1.5 rounded-[9px] text-[12.5px] font-medium
+        transition-all duration-150 group select-none
+        ${active ? '' : 'text-muted hover:text-fg'}
+        ${collapsed ? 'justify-center' : ''}`}
       style={active
-        ? { '--nav-accent': accent, color: accent, background: `color-mix(in srgb, ${accent} 12%, transparent)` } as React.CSSProperties
+        ? {
+            background: accent,
+            boxShadow: `0 0 18px color-mix(in srgb, ${accent} 38%, transparent), inset 0 1px 0 rgba(255,255,255,0.22)`,
+            color: 'var(--nav-pill-text)',
+          } as React.CSSProperties
         : undefined}
     >
-      <Icon
-        size={15}
-        className={`flex-shrink-0 transition-all ${active ? '' : 'text-subtle group-hover:text-fg'}`}
-        style={active
-          ? { color: accent, filter: `drop-shadow(0 0 5px ${accent}80)` }
-          : undefined}
-      />
+      {/* Icon tile */}
+      <div className={`w-[30px] h-[30px] rounded-[8px] flex items-center justify-center flex-shrink-0
+        transition-all duration-150
+        ${active
+          ? 'bg-black/[0.18]'
+          : 'bg-white/[0.04] group-hover:bg-white/[0.08]'
+        }`}
+      >
+        <Icon
+          size={14}
+          className={active ? '' : 'text-subtle group-hover:text-fg'}
+        />
+      </div>
+
       {!collapsed && <span className="truncate">{label}</span>}
 
       {/* Tooltip for collapsed state */}
@@ -219,28 +272,40 @@ interface SidebarContentProps {
 }
 
 function SidebarContent({ collapsed, onNavClick, showCloseButton, onClose }: SidebarContentProps) {
-  const { isSales } = useAppUser()
-  const navSections = isSales ? SALES_NAV_SECTIONS : ADMIN_NAV_SECTIONS
+  const { isSales, isAllegro, user: appUser } = useAppUser()
+  const navSections = isAllegro ? ALLEGRO_NAV_SECTIONS : isSales ? SALES_NAV_SECTIONS : ADMIN_NAV_SECTIONS
 
   return (
     <div className="flex flex-col h-full relative">
-      {/* dark-only: signature radial glow behind logo area */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 z-0"
-        style={{ background: 'radial-gradient(75% 55% at 50% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 80%)' }} />
+      {/* dark-only: signature radial bloom behind logo */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-44 z-0"
+        style={{ background: 'radial-gradient(70% 50% at 50% 0%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 80%)' }} />
 
-      {/* ── Logo ── */}
+      {/* ── Logo / Brand ── */}
       <div className={`relative z-10 flex items-center border-b border-border flex-shrink-0
-        ${collapsed ? 'justify-center px-3 py-[14px]' : 'gap-2.5 px-4 py-[14px]'}`}>
-        <div className="w-7 h-7 rounded-[8px] flex-shrink-0 flex items-center justify-center"
+        ${collapsed ? 'justify-center px-3 py-3' : 'gap-3 px-4 py-3'}`}>
+
+        {/* Brand mark — 40px gradient tile */}
+        <div className="w-10 h-10 rounded-[10px] flex-shrink-0 flex items-center justify-center"
           style={{ background: 'var(--gradient-signature)', boxShadow: 'var(--glow-teal)' }}>
-          <Zap size={13} strokeWidth={2.5} style={{ color: 'rgba(255,255,255,0.92)' }} />
+          <Zap size={17} strokeWidth={2.5} style={{ color: 'rgba(255,255,255,0.95)' }} />
         </div>
+
         {!collapsed && (
           <div className="flex-1 min-w-0">
-            <p className="text-[12.5px] font-bold text-fg tracking-tight leading-none">System H14</p>
-            <p className="section-label mt-0.5">AM Automations</p>
+            <p className="text-[13px] font-bold text-fg tracking-tight leading-none"
+              style={{ fontFamily: 'var(--font-syne, var(--font-sans))' }}>
+              System H14
+            </p>
+            {/* pill badge */}
+            <span className="inline-flex items-center mt-1.5 px-1.5 py-[2px] rounded-full
+              text-[9px] font-semibold tracking-wide
+              bg-accent/10 border border-accent/25 text-accent">
+              AM Automations
+            </span>
           </div>
         )}
+
         {showCloseButton && (
           <button
             onClick={onClose}
@@ -253,24 +318,22 @@ function SidebarContent({ collapsed, onNavClick, showCloseButton, onClose }: Sid
 
       {/* ── Nav ── */}
       <nav className="flex-1 overflow-y-auto py-3 px-2">
-        {/* justify-between distributes free vertical space between section groups.
-            gap-4 is the minimum gap so sections never touch on short screens.
-            min-h-full ensures the flex container fills the nav viewport height
-            so justify-between has space to distribute on tall screens. */}
-        <div className="flex flex-col gap-9">
+        <div className="flex flex-col gap-6">
           {navSections.map((section) => (
             <div key={section.id}>
               {!collapsed && section.section && (
-                <div className="flex items-center gap-1.5 px-3 mb-1">
-                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 opacity-80"
-                    style={{ background: GROUP_ACCENT[section.id] ?? 'var(--accent)' }} />
+                <div className="flex items-center gap-1.5 px-3 mb-1.5">
+                  <span
+                    className="w-1.5 h-1.5 rounded-full flex-shrink-0 opacity-80"
+                    style={{ background: GROUP_ACCENT[section.id] ?? 'var(--accent)' }}
+                  />
                   <p className="section-label select-none">{section.section}</p>
                 </div>
               )}
               {collapsed && section.section && (
                 <div className="mx-auto w-5 h-px bg-border mb-2" />
               )}
-              <div className="space-y-px">
+              <div className="space-y-0.5">
                 {section.items.map((item) => (
                   <NavItem
                     key={item.href}
@@ -289,19 +352,79 @@ function SidebarContent({ collapsed, onNavClick, showCloseButton, onClose }: Sid
       </nav>
 
       {/* ── Bottom ── */}
-      <div className="flex-shrink-0 border-t border-border p-2 space-y-px">
-        {!isSales && (
-          <NavItem
-            href="/settings"
-            label="Ustawienia"
-            icon={Settings}
-            collapsed={collapsed}
-            onClick={onNavClick}
-            soon
-          />
+      <div className="flex-shrink-0 border-t border-border pt-2 px-2 pb-2 space-y-1.5">
+
+        {/* ── DNA widget — only when expanded, not for allegro role ── */}
+        {!collapsed && !isAllegro && (
+          <div className="rounded-[10px] bg-raised border border-border p-3">
+            {/* TODO: podłączyć do Company Brain DNA — fetch % uzupełnienia */}
+            <div className="flex items-center gap-3">
+              {/* SVG progress ring */}
+              <div className="relative flex-shrink-0 w-9 h-9">
+                <svg viewBox="0 0 36 36" className="w-9 h-9 -rotate-90" aria-hidden="true">
+                  <circle cx="18" cy="18" r="14" fill="none" strokeWidth="3"
+                    stroke="rgba(255,255,255,0.06)" />
+                  <circle cx="18" cy="18" r="14" fill="none" strokeWidth="3"
+                    stroke="var(--accent)"
+                    strokeDasharray={`${(DNA_PCT / 100) * DNA_CIRCUMFERENCE} ${DNA_CIRCUMFERENCE}`}
+                    strokeLinecap="round"
+                    style={{ filter: 'drop-shadow(0 0 4px rgba(0,200,190,0.45))' }} />
+                </svg>
+                <span className="absolute inset-0 flex items-center justify-center
+                  text-[8.5px] font-bold text-accent num">
+                  {DNA_PCT}%
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11.5px] font-semibold text-fg leading-tight">DNA firmy</p>
+                <p className="text-[10px] text-muted mt-0.5 leading-snug">12 pytań do uzupełnienia</p>
+              </div>
+            </div>
+            <Link
+              href="/company-brain"
+              onClick={onNavClick}
+              className="mt-2.5 flex items-center justify-center gap-1 w-full py-1.5 rounded-[7px]
+                bg-accent/10 border border-accent/20 text-accent text-[11px] font-medium
+                hover:bg-accent/15 hover:border-accent/35 transition-colors"
+            >
+              Uzupełnij Brain →
+            </Link>
+          </div>
         )}
+
+        {/* ── User card — only when expanded ── */}
+        {/* TODO: podłączyć klik do dropdown profilu / wylogowania */}
         {!collapsed && (
-          <div className="px-3 pt-2 pb-0.5">
+          <button
+            className="w-full flex items-center gap-2.5 px-2 py-2 rounded-[9px]
+              hover:bg-fg/[0.04] transition-colors group"
+          >
+            <div
+              className="w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0
+                text-[11px] font-bold"
+              style={{
+                background: (appUser?.color ?? '#00c8be') + '18',
+                border: `1.5px solid ${appUser?.color ?? '#00c8be'}55`,
+                color: appUser?.color ?? '#00c8be',
+                boxShadow: `0 0 10px ${appUser?.color ?? '#00c8be'}30`,
+              }}
+            >
+              {appUser?.initials ?? 'AM'}
+            </div>
+            <div className="flex-1 min-w-0 text-left">
+              <p className="text-[11.5px] font-medium text-fg leading-tight truncate">
+                {(appUser as any)?.fullName ?? appUser?.name ?? 'Anna Kowalska'}
+              </p>
+              {/* TODO: podłączyć do planu subskrypcji usera */}
+              <p className="text-[10px] text-muted leading-tight">System Pracy</p>
+            </div>
+            <ChevronRight size={12} className="text-subtle group-hover:text-muted transition-colors flex-shrink-0" />
+          </button>
+        )}
+
+        {/* Footer link — only when expanded */}
+        {!collapsed && (
+          <div className="px-1 pt-0.5">
             <p className="section-label leading-relaxed">
               H14 ·{' '}
               <a
@@ -337,12 +460,14 @@ export function Sidebar() {
     <>
       {/* ── Desktop Sidebar ── */}
       <aside
-        className={`hidden md:flex flex-col fixed left-0 top-0 h-screen z-40
-          sidebar-depth border-r border-border sidebar-transition
+        className={`hidden md:flex flex-col fixed top-3.5 left-3.5 bottom-3.5 z-40
+          sidebar-depth border border-border sidebar-transition shell-sidebar
+          rounded-[22px]
           ${collapsed ? 'w-[56px]' : 'w-[220px]'}`}
       >
         <SidebarContent collapsed={collapsed} />
 
+        {/* Collapse toggle — sits outside the aside rounded clip zone */}
         <button
           onClick={toggleCollapsed}
           className="absolute -right-3 top-[68px] z-10 w-6 h-6 rounded-full

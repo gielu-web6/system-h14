@@ -40,24 +40,24 @@ const CATEGORIES = [
 ]
 
 const CATEGORY_COLORS: Record<string, string> = {
-  strategia_firmy:      'bg-purple-500/15 text-purple-400',
-  opis_uslug:           'bg-blue-500/15 text-blue-400',
-  strategia_sprzedazy:  'bg-orange-500/15 text-orange-400',
-  strategia_marketingu: 'bg-pink-500/15 text-pink-400',
-  case_studies:         'bg-green-500/15 text-green-400',
-  cennik:               'bg-yellow-500/15 text-yellow-400',
-  konkurencja:          'bg-red-500/15 text-red-400',
-  icp_profil:           'bg-indigo-500/15 text-indigo-400',
-  szablony:             'bg-teal-500/15 text-teal-400',
-  finanse:              'bg-emerald-500/15 text-emerald-400',
-  inne:                 'bg-white/10 text-white/50',
+  strategia_firmy:      'bg-violet/15 text-violet',
+  opis_uslug:           'bg-info/15 text-info',
+  strategia_sprzedazy:  'bg-amber/15 text-amber',
+  strategia_marketingu: 'bg-pink/15 text-pink',
+  case_studies:         'bg-success/15 text-success',
+  cennik:               'bg-amber/10 text-amber',
+  konkurencja:          'bg-danger/15 text-danger',
+  icp_profil:           'bg-violet/15 text-violet',
+  szablony:             'bg-accent/15 text-accent',
+  finanse:              'bg-success/10 text-success',
+  inne:                 'bg-fg/[0.1] text-muted',
 }
 
 function StatusIcon({ status }: { status: ContextFile['processing_status'] }) {
-  if (status === 'done')       return <CheckCircle2 size={14} className="text-green-400" />
-  if (status === 'processing') return <Loader2 size={14} className="text-blue-400 animate-spin" />
-  if (status === 'failed')     return <XCircle size={14} className="text-red-400" />
-  return <Clock size={14} className="text-white/30" />
+  if (status === 'done')       return <CheckCircle2 size={14} className="text-success" />
+  if (status === 'processing') return <Loader2 size={14} className="text-info animate-spin" />
+  if (status === 'failed')     return <XCircle size={14} className="text-danger" />
+  return <Clock size={14} className="text-subtle" />
 }
 
 const PRIORITY_LABELS = ['', 'Uzupełniający', 'Ważny', 'Ważny+', 'Kluczowy', 'Zawsze wczytuj']
@@ -108,68 +108,69 @@ function AddFileForm({ onAdded }: { onAdded: () => void }) {
   }
 
   return (
-    <div className="bg-card border border-white/[0.07] rounded-[14px] overflow-hidden">
+    <div className="card-elevated rounded-[14px] overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/[0.02] transition-colors"
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-fg/[0.03] transition-colors"
       >
         <div className="flex items-center gap-2">
-          <Plus size={16} className="text-accent" />
-          <span className="text-[14px] font-semibold text-white">Dodaj nowy plik kontekstowy</span>
+          <Plus size={16} className="text-pink" />
+          <span className="text-[14px] font-semibold text-fg">Dodaj nowy plik kontekstowy</span>
         </div>
-        {open ? <ChevronUp size={14} className="text-white/40" /> : <ChevronDown size={14} className="text-white/40" />}
+        {open ? <ChevronUp size={14} className="text-subtle" /> : <ChevronDown size={14} className="text-subtle" />}
       </button>
 
       {open && (
-        <div className="px-5 pb-5 space-y-4 border-t border-white/[0.06]">
-          <div className="mt-4 p-3 rounded-[8px] bg-[#6366f1]/[0.07] border border-accent/20">
-            <p className="text-[11px] text-accent">
+        <div className="px-5 pb-5 space-y-4 border-t border-border">
+          <div className="mt-4 p-3 rounded-[8px] bg-pink/[0.07] border border-pink/20">
+            <p className="text-[11px] text-pink">
               💡 <strong>Wskazówka:</strong> Wklej treść dokumentu (strategię firmy, case study, cennik, itp.). Im lepiej opisany dokument, tym trafniejszy kontekst AI. Priorytet 5 = zawsze wczytywany.
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-white/50 uppercase tracking-wide">Nazwa pliku *</label>
+              <label className="text-[11px] font-semibold text-muted uppercase tracking-wide">Nazwa pliku *</label>
               <input value={name} onChange={e => setName(e.target.value)} placeholder="np. strategia_sprzedazy_2025.md"
-                className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white placeholder:text-white/25 focus:outline-none focus:border-accent/50 transition-colors" />
+                className="w-full bg-raised border border-fg/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-fg placeholder:text-subtle focus:outline-none focus:border-pink/50 transition-colors" />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-white/50 uppercase tracking-wide">Kategoria *</label>
+              <label className="text-[11px] font-semibold text-muted uppercase tracking-wide">Kategoria *</label>
               <select value={category} onChange={e => setCategory(e.target.value)}
-                className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white focus:outline-none focus:border-accent/50">
-                {CATEGORIES.map(c => <option key={c.value} value={c.value} className="bg-bg">{c.label}</option>)}
+                className="w-full bg-raised border border-fg/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-fg focus:outline-none focus:border-pink/50">
+                {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-white/50 uppercase tracking-wide">Opis (opcjonalny)</label>
+            <label className="text-[11px] font-semibold text-muted uppercase tracking-wide">Opis (opcjonalny)</label>
             <input value={description} onChange={e => setDesc(e.target.value)} placeholder="Co zawiera ten plik..."
-              className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white placeholder:text-white/25 focus:outline-none focus:border-accent/50 transition-colors" />
+              className="w-full bg-raised border border-fg/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-fg placeholder:text-subtle focus:outline-none focus:border-pink/50 transition-colors" />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-white/50 uppercase tracking-wide">
+            <label className="text-[11px] font-semibold text-muted uppercase tracking-wide">
               Priorytet: {PRIORITY_LABELS[priority]} ({priority}/5)
             </label>
             <input type="range" min={1} max={5} value={priority} onChange={e => setPriority(parseInt(e.target.value))}
-              className="w-full accent-[#6366f1]" />
+              className="w-full" style={{ accentColor: 'var(--c-pink)' }} />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-white/50 uppercase tracking-wide">Treść pliku * (wklej zawartość)</label>
+            <label className="text-[11px] font-semibold text-muted uppercase tracking-wide">Treść pliku * (wklej zawartość)</label>
             <textarea value={rawText} onChange={e => setRawText(e.target.value)}
               placeholder="Wklej tutaj pełną treść dokumentu — strategię, case study, cennik, opisy usług itp."
               rows={10}
-              className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[12px] text-white placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-colors resize-y font-mono" />
-            <p className="text-[10px] text-white/25">{rawText.length} znaków · ~{Math.round(rawText.length / 3)} tokenów</p>
+              className="w-full bg-raised border border-fg/[0.08] rounded-[8px] px-3 py-2 text-[12px] text-fg placeholder:text-subtle focus:outline-none focus:border-pink/50 transition-colors resize-y font-mono" />
+            <p className="text-[10px] text-subtle">{rawText.length} znaków · ~{Math.round(rawText.length / 3)} tokenów</p>
           </div>
 
           <button
             onClick={() => void submit()}
             disabled={saving}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-accent hover:opacity-90 disabled:opacity-50 text-white text-[13px] font-bold transition-all"
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-pink hover:opacity-90 hover:shadow-[var(--glow-pink)] disabled:opacity-50 text-[13px] font-bold transition-all"
+            style={{ color: 'var(--nav-pill-text)' }}
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
             {saving ? 'Dodaję i przetwarzam…' : 'Dodaj i przetwórz plik'}
@@ -227,21 +228,21 @@ function FileCard({ file, onUpdate, onDelete, onProcess }: {
   }
 
   return (
-    <div className="bg-white/[0.02] border border-white/[0.06] rounded-[12px] overflow-hidden">
+    <div className="card-elevated rounded-[12px] overflow-hidden">
       <div className="flex items-center gap-3 px-4 py-3">
         <StatusIcon status={processing ? 'processing' : file.processing_status} />
 
         <button onClick={() => setExpanded(e => !e)} className="flex-1 text-left min-w-0">
-          <p className="text-[13px] font-medium text-white truncate">{file.original_name}</p>
+          <p className="text-[13px] font-medium text-fg truncate">{file.original_name}</p>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${CATEGORY_COLORS[file.category] ?? 'bg-white/10 text-white/40'}`}>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${CATEGORY_COLORS[file.category] ?? 'bg-fg/[0.1] text-muted'}`}>
               {CATEGORIES.find(c => c.value === file.category)?.label ?? file.category}
             </span>
             {file.processing_status === 'done' && (
-              <span className="text-[10px] text-white/30">{file.chunks_count} fragmentów</span>
+              <span className="text-[10px] text-subtle">{file.chunks_count} fragmentów</span>
             )}
             {file.processing_status === 'failed' && (
-              <span className="text-[10px] text-red-400 flex items-center gap-1">
+              <span className="text-[10px] text-danger flex items-center gap-1">
                 <AlertCircle size={9} /> {file.processing_error?.slice(0, 50) ?? 'Błąd'}
               </span>
             )}
@@ -249,62 +250,62 @@ function FileCard({ file, onUpdate, onDelete, onProcess }: {
         </button>
 
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <span className="text-[10px] text-white/30 px-1.5 py-0.5 rounded bg-white/[0.04]">P{file.priority}</span>
+          <span className="text-[10px] text-subtle px-1.5 py-0.5 rounded bg-fg/[0.06]">P{file.priority}</span>
 
           <button onClick={() => void toggleActive()} title={file.is_active ? 'Dezaktywuj' : 'Aktywuj'}
-            className={`p-1.5 rounded-[6px] transition-colors ${file.is_active ? 'text-green-400 hover:text-white' : 'text-white/20 hover:text-white/50'}`}>
+            className={`p-1.5 rounded-[6px] transition-colors ${file.is_active ? 'text-success hover:text-fg' : 'text-subtle hover:text-muted'}`}>
             {file.is_active ? <Eye size={13} /> : <EyeOff size={13} />}
           </button>
 
           {(file.processing_status === 'pending' || file.processing_status === 'failed') && (
             <button onClick={() => void handleProcess()} title="Przetwórz"
-              className="p-1.5 rounded-[6px] text-accent hover:text-white hover:bg-accent/20 transition-colors">
+              className="p-1.5 rounded-[6px] text-pink hover:text-fg hover:bg-pink/20 transition-colors">
               <Play size={13} />
             </button>
           )}
 
           {file.processing_status === 'done' && (
             <button onClick={() => void handleProcess()} title="Przetworz ponownie"
-              className="p-1.5 rounded-[6px] text-white/20 hover:text-accent transition-colors">
+              className="p-1.5 rounded-[6px] text-subtle hover:text-pink transition-colors">
               <RefreshCw size={13} />
             </button>
           )}
 
           <button onClick={() => void handleDelete()} title="Usuń"
-            className="p-1.5 rounded-[6px] text-white/20 hover:text-red-400 transition-colors">
+            className="p-1.5 rounded-[6px] text-subtle hover:text-danger transition-colors">
             <Trash2 size={13} />
           </button>
 
-          <button onClick={() => setExpanded(e => !e)} className="p-1.5 text-white/20 hover:text-white transition-colors">
+          <button onClick={() => setExpanded(e => !e)} className="p-1.5 text-subtle hover:text-fg transition-colors">
             {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
           </button>
         </div>
       </div>
 
       {expanded && (
-        <div className="px-4 pb-4 pt-2 border-t border-white/[0.05] space-y-3">
+        <div className="px-4 pb-4 pt-2 border-t border-border-s space-y-3">
           {file.description && (
-            <p className="text-[12px] text-white/50 italic">{file.description}</p>
+            <p className="text-[12px] text-muted italic">{file.description}</p>
           )}
           {file.summary && (
-            <div className="p-3 rounded-[8px] bg-white/[0.03] border border-white/[0.05]">
-              <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1">AI Podsumowanie</p>
-              <p className="text-[12px] text-white/65 leading-snug">{file.summary}</p>
+            <div className="p-3 rounded-[8px] bg-raised border border-border">
+              <p className="text-[10px] font-semibold text-subtle uppercase tracking-wide mb-1">AI Podsumowanie</p>
+              <p className="text-[12px] text-muted leading-snug">{file.summary}</p>
             </div>
           )}
           {file.key_facts && file.key_facts.length > 0 && (
-            <div className="p-3 rounded-[8px] bg-white/[0.03] border border-white/[0.05]">
-              <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Kluczowe fakty</p>
+            <div className="p-3 rounded-[8px] bg-raised border border-border">
+              <p className="text-[10px] font-semibold text-subtle uppercase tracking-wide mb-2">Kluczowe fakty</p>
               <ul className="space-y-1">
                 {(file.key_facts as string[]).map((f, i) => (
-                  <li key={i} className="text-[11px] text-white/55 flex items-start gap-1.5">
-                    <span className="text-accent flex-shrink-0 mt-0.5">·</span>{f}
+                  <li key={i} className="text-[11px] text-muted flex items-start gap-1.5">
+                    <span className="text-pink flex-shrink-0 mt-0.5">·</span>{f}
                   </li>
                 ))}
               </ul>
             </div>
           )}
-          <p className="text-[10px] text-white/20 text-right">
+          <p className="text-[10px] text-subtle text-right">
             Dodano: {new Date(file.created_at).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}
             {file.processed_at && ` · Przetworzone: ${new Date(file.processed_at).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}`}
           </p>
@@ -349,21 +350,21 @@ export default function FilesPage() {
     <div className="max-w-[900px] space-y-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-[20px] font-bold text-white flex items-center gap-2">
-            <Layers size={20} className="text-accent" /> Pliki kontekstowe
+          <h1 className="text-[20px] font-bold text-fg flex items-center gap-2">
+            <Layers size={20} className="text-pink" /> Pliki kontekstowe
           </h1>
-          <p className="text-[12px] text-white/40 mt-0.5">
+          <p className="text-[12px] text-muted mt-0.5">
             {done}/{total} przetworzonych · {chunks} fragmentów w Vector Store
           </p>
         </div>
-        <button onClick={load} className="p-2 rounded-[8px] bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-white transition-all" title="Odśwież">
+        <button onClick={load} className="p-2 rounded-[8px] bg-fg/[0.05] border border-fg/[0.08] text-subtle hover:text-fg transition-all" title="Odśwież">
           <RefreshCw size={14} />
         </button>
       </div>
 
       {/* Suggested files hint */}
-      <div className="p-4 rounded-[12px] bg-white/[0.02] border border-white/[0.06]">
-        <p className="text-[12px] font-semibold text-white/50 mb-2">Rekomendowane pliki do wgrania:</p>
+      <div className="p-4 rounded-[12px] bg-raised border border-border">
+        <p className="text-[12px] font-semibold text-muted mb-2">Rekomendowane pliki do wgrania:</p>
         <div className="grid grid-cols-2 gap-1">
           {[
             'Strategia firmy / misja / wartości',
@@ -375,8 +376,8 @@ export default function FilesPage() {
             'Bank objekcji + najlepsze odpowiedzi',
             'Analiza konkurencji',
           ].map(item => (
-            <div key={item} className="flex items-center gap-1.5 text-[11px] text-white/35">
-              <FileText size={10} className="text-white/25 flex-shrink-0" />{item}
+            <div key={item} className="flex items-center gap-1.5 text-[11px] text-subtle">
+              <FileText size={10} className="text-subtle flex-shrink-0" />{item}
             </div>
           ))}
         </div>
@@ -386,14 +387,14 @@ export default function FilesPage() {
 
       {loading ? (
         <div className="flex items-center gap-3 p-4">
-          <div className="w-4 h-4 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
-          <p className="text-[13px] text-white/40">Ładowanie plików…</p>
+          <div className="w-4 h-4 border-2 border-fg/20 border-t-pink rounded-full animate-spin" />
+          <p className="text-[13px] text-muted">Ładowanie plików…</p>
         </div>
       ) : (
         <div className="space-y-3">
           {files.length === 0 && (
-            <div className="text-center py-8 text-white/30">
-              <Layers size={28} className="mx-auto mb-2 text-white/15" />
+            <div className="text-center py-8 text-muted">
+              <Layers size={28} className="mx-auto mb-2 text-subtle" />
               <p className="text-[13px]">Brak plików — dodaj pierwszy dokument powyżej</p>
             </div>
           )}

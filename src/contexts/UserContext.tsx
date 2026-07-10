@@ -11,6 +11,7 @@ interface UserContextValue {
   loading: boolean
   isAdmin: boolean
   isSales: boolean
+  isAllegro: boolean
   switchUser: (id: string) => void
   logout: () => void
 }
@@ -20,6 +21,7 @@ const UserContext = createContext<UserContextValue>({
   loading: true,
   isAdmin: true,
   isSales: false,
+  isAllegro: false,
   switchUser: () => {},
   logout: () => {},
 })
@@ -43,11 +45,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }, [])
 
-  const isAdmin = user?.role === 'admin' || user?.role === undefined
-  const isSales = user?.role === 'sales'
+  const isAdmin   = user?.role === 'admin' || user?.role === undefined
+  const isSales   = user?.role === 'sales'
+  const isAllegro = user?.role === 'allegro'
 
   return (
-    <UserContext.Provider value={{ user, loading, isAdmin, isSales, switchUser, logout }}>
+    <UserContext.Provider value={{ user, loading, isAdmin, isSales, isAllegro, switchUser, logout }}>
       {children}
     </UserContext.Provider>
   )

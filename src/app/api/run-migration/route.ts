@@ -2,17 +2,41 @@ import { NextResponse } from 'next/server'
 import { Client } from 'pg'
 
 const SQL = `
-  -- deals: add missing contact columns
-  ALTER TABLE deals ADD COLUMN IF NOT EXISTS contact_name     TEXT;
-  ALTER TABLE deals ADD COLUMN IF NOT EXISTS contact_email    TEXT;
-  ALTER TABLE deals ADD COLUMN IF NOT EXISTS contact_phone    TEXT;
-  ALTER TABLE deals ADD COLUMN IF NOT EXISTS contact_position TEXT;
-  ALTER TABLE deals ADD COLUMN IF NOT EXISTS contact_segment  TEXT;
-  ALTER TABLE deals ADD COLUMN IF NOT EXISTS last_contact_date DATE;
-  ALTER TABLE deals ADD COLUMN IF NOT EXISTS next_step        TEXT;
-  ALTER TABLE deals ADD COLUMN IF NOT EXISTS project_scope    TEXT;
-  ALTER TABLE deals ADD COLUMN IF NOT EXISTS ai_score_label   TEXT DEFAULT 'warm';
-  ALTER TABLE deals ADD COLUMN IF NOT EXISTS ai_score_num     INTEGER DEFAULT 50;
+  -- ── Migracja 010: finanse — model VAT ──────────────────────────────────────
+  -- Idempotentna (IF NOT EXISTS / DROP CONSTRAINT IF EXISTS).
+  -- Żadnych DROP TABLE / DROP COLUMN / DELETE.
+
+  -- ─── TABELA: income ────────────────────────────────────────────────────────
+  ALTER TABLE income ADD COLUMN IF NOT EXISTS vat_rate     NUMERIC(5,2)  NOT NULL DEFAULT 0;
+  ALTER TABLE income ADD COLUMN IF NOT EXISTS vat_amount   NUMERIC(10,2) NOT NULL DEFAULT 0;
+  ALTER TABLE income ADD COLUMN IF NOT EXISTS gross_amount NUMERIC(10,2) NOT NULL DEFAULT 0;
+  ALTER TABLE income ADD COLUMN IF NOT EXISTS net_profit   NUMERIC(10,2) NOT NULL DEFAULT 0;
+  ALTER TABLE income ADD COLUMN IF NOT EXISTS from_invoice BOOLEAN       NOT NULL DEFAULT false;
+
+  ALTER TABLE income DROP CONSTRAINT IF EXISTS income_status_check;
+  ALTER TABLE income ADD CONSTRAINT income_status_check CHECK (status IN (
+    'oczekujaca','oplacona','czesciowa','zalegla','anulowana',
+    'oczekująca','opłacona','częściowa','zaległa'
+  ));
+
+  ALTER TABLE income DROP CONSTRAINT IF EXISTS income_payment_type_check;
+  ALTER TABLE income ADD CONSTRAINT income_payment_type_check CHECK (payment_type IN (
+    'zaliczka','rata','platnosc_koncowa','jednorazowa','abonament',
+    'końcowa','faktura'
+  ));
+
+  -- ─── TABELA: expenses ──────────────────────────────────────────────────────
+  ALTER TABLE expenses ADD COLUMN IF NOT EXISTS vat_rate      NUMERIC(5,2)  NOT NULL DEFAULT 0;
+  ALTER TABLE expenses ADD COLUMN IF NOT EXISTS vat_amount    NUMERIC(10,2) NOT NULL DEFAULT 0;
+  ALTER TABLE expenses ADD COLUMN IF NOT EXISTS gross_amount  NUMERIC(10,2) NOT NULL DEFAULT 0;
+  ALTER TABLE expenses ADD COLUMN IF NOT EXISTS invoice_number TEXT;
+  ALTER TABLE expenses ADD COLUMN IF NOT EXISTS from_invoice  BOOLEAN       NOT NULL DEFAULT false;
+
+  ALTER TABLE expenses DROP CONSTRAINT IF EXISTS expenses_category_check;
+  ALTER TABLE expenses ADD CONSTRAINT expenses_category_check CHECK (category IN (
+    'podatki','ksiegowosc','narzedzia','hosting','marketing','licencje','sprzet','biuro','podroze','szkolenia','inne',
+    'Narzędzia','Reklama','Podwykonawcy','Biuro','Szkolenia','Sprzęt','Inne'
+  ));
 
   -- context_files table for Company Brain
   CREATE TABLE IF NOT EXISTS context_files (
@@ -120,7 +144,7 @@ export async function GET() {
   try {
     await client.connect()
     await client.query(SQL)
-    return NextResponse.json({ ok: true, message: 'Migration applied — deals + company_brain tables updated!' })
+    return NextResponse.json({ ok: true, message: 'Migration 010 applied — income + expenses VAT model columns added!' })
   } catch (err: unknown) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
   } finally {

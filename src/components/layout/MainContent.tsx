@@ -9,7 +9,8 @@ export function MainContent({ children }: { children: React.ReactNode }) {
     <div
       className={`
         flex flex-col min-h-screen sidebar-transition
-        ${collapsed ? 'md:ml-[56px]' : 'md:ml-[220px]'}
+        ml-0 md:mr-3.5 md:py-3.5
+        ${collapsed ? 'md:ml-[84px]' : 'md:ml-[248px]'}
       `}
     >
       {children}

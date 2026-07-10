@@ -96,19 +96,20 @@ function addDays(days: number): string {
   return d.toISOString().split('T')[0]
 }
 
-const VARIANT_COLORS = ['#E8A838', '#60a5fa', '#a78bfa']
+// Accent per-variant — design system tokens
+const VARIANT_COLORS = ['var(--accent)', 'var(--c-blue)', 'var(--c-violet)']
 
-const inputCls = `w-full px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08]
-  text-white placeholder:text-white/25 text-[13px]
-  focus:outline-none focus:border-[#E8A838]/50 focus:bg-[#E8A838]/[0.02]
+const inputCls = `w-full px-3.5 py-2.5 rounded-[10px] bg-fg/[0.04] border border-fg/[0.08]
+  text-fg placeholder:text-muted text-[13px]
+  focus:outline-none focus:border-accent/50 focus:bg-accent/[0.02]
   transition-all`
 
 // ─── ICP Badge ────────────────────────────────────────────────────────────────
 
 function IcpBadge({ fit }: { fit: 'hot' | 'warm' | 'cold' }) {
-  if (fit === 'hot')  return <span className="px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 text-[10px] font-bold">Hot ICP</span>
-  if (fit === 'warm') return <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-[10px] font-bold">Warm ICP</span>
-  return <span className="px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400 text-[10px] font-bold">Cold ICP</span>
+  if (fit === 'hot')  return <span className="px-2 py-0.5 rounded-full bg-danger/15 text-danger text-[10px] font-bold">Hot ICP</span>
+  if (fit === 'warm') return <span className="px-2 py-0.5 rounded-full bg-amber/15 text-amber text-[10px] font-bold">Warm ICP</span>
+  return <span className="px-2 py-0.5 rounded-full bg-info/15 text-info text-[10px] font-bold">Cold ICP</span>
 }
 
 // ─── Variant Card ─────────────────────────────────────────────────────────────
@@ -132,7 +133,7 @@ function VariantCard({
   const [savedText, setSavedText] = useState<string | null>(null)
 
   const displayMessage = savedText ?? variant?.tresc ?? ''
-  const color = VARIANT_COLORS[index] ?? '#E8A838'
+  const color = VARIANT_COLORS[index] ?? 'var(--accent)'
 
   const handleCopy = async () => {
     const text = editing ? editText : displayMessage
@@ -150,7 +151,7 @@ function VariantCard({
 
   return (
     <div
-      className="rounded-[14px] bg-card border border-border overflow-hidden flex flex-col"
+      className="card-elevated rounded-[14px] overflow-hidden flex flex-col"
       style={{ borderLeft: `3px solid ${color}` }}
     >
       {/* Header */}
@@ -158,24 +159,24 @@ function VariantCard({
         <div className="flex items-center justify-between mb-1">
           <div
             className="flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-bold"
-            style={{ background: `${color}15`, color }}
+            style={{ background: `color-mix(in srgb, ${color} 12%, transparent)`, color }}
           >
             Wariant {index + 1}
           </div>
           {variant?.katAtaku && (
-            <span className="text-[10px] text-white/30 font-medium text-right max-w-[140px] leading-snug">
+            <span className="text-[10px] text-subtle font-medium text-right max-w-[140px] leading-snug">
               {variant.katAtaku}
             </span>
           )}
         </div>
         {variant?.temat && channel === 'email' && (
-          <p className="text-[11px] text-white/40 mt-1.5">
-            <span className="text-white/20 mr-1">Temat:</span>
+          <p className="text-[11px] text-muted mt-1.5">
+            <span className="text-subtle mr-1">Temat:</span>
             {variant.temat}
           </p>
         )}
         {variant?.notatkaHandlowca && (
-          <p className="text-[10px] text-amber-400/60 italic mt-1.5 leading-relaxed">
+          <p className="text-[10px] text-amber/60 italic mt-1.5 leading-relaxed">
             {variant.notatkaHandlowca}
           </p>
         )}
@@ -185,23 +186,23 @@ function VariantCard({
       <div className="p-4 flex-1">
         {loading ? (
           <div className="flex items-center gap-2.5 py-6 justify-center">
-            <Loader2 size={14} className="animate-spin text-white/30" />
-            <span className="text-[12px] text-white/30">Generuję…</span>
+            <Loader2 size={14} className="animate-spin text-subtle" />
+            <span className="text-[12px] text-muted">Generuję…</span>
           </div>
         ) : editing ? (
           <textarea
             value={editText}
             onChange={e => setEditText(e.target.value)}
             rows={8}
-            className="w-full px-3 py-2.5 rounded-[8px] bg-raised border border-border text-[12px] text-white/85 leading-relaxed resize-none focus:outline-none focus:border-[#E8A838]/40 font-mono"
+            className="w-full px-3 py-2.5 rounded-[8px] bg-raised border border-border text-[12px] text-fg leading-relaxed resize-none focus:outline-none focus:border-accent/40 font-mono"
             autoFocus
           />
         ) : displayMessage ? (
-          <pre className="text-[13px] text-white/80 leading-relaxed whitespace-pre-wrap font-sans bg-raised p-3 rounded-[8px] border border-border">
+          <pre className="text-[13px] text-fg/80 leading-relaxed whitespace-pre-wrap font-sans bg-raised p-3 rounded-[8px] border border-border">
             {displayMessage}
           </pre>
         ) : (
-          <div className="flex items-center justify-center py-8 text-white/20 text-[12px]">
+          <div className="flex items-center justify-center py-8 text-subtle text-[12px]">
             Brak wiadomości
           </div>
         )}
@@ -214,13 +215,13 @@ function VariantCard({
             <>
               <button
                 onClick={() => setEditing(false)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white/40 text-[11px] hover:text-white transition-all"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[8px] bg-fg/[0.04] border border-fg/[0.08] text-subtle text-[11px] hover:text-fg transition-all"
               >
                 <X size={11} /> Anuluj
               </button>
               <button
                 onClick={saveEdit}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[8px] bg-[#E8A838]/10 border border-[#E8A838]/30 text-[#E8A838] text-[11px] hover:bg-[#E8A838]/20 transition-all"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[8px] bg-accent/10 border border-accent/30 text-accent text-[11px] hover:bg-accent/20 transition-all"
               >
                 <Save size={11} /> Zapisz
               </button>
@@ -229,16 +230,16 @@ function VariantCard({
             <>
               <button
                 onClick={startEdit}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white/40 text-[11px] hover:text-white hover:bg-white/[0.08] transition-all"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[8px] bg-fg/[0.04] border border-fg/[0.08] text-subtle text-[11px] hover:text-fg hover:bg-fg/[0.08] transition-all"
               >
                 <Edit3 size={11} /> Edytuj
               </button>
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[8px] bg-white/[0.05] border border-white/[0.1] text-white/50 text-[11px] hover:text-white hover:bg-white/[0.1] transition-all"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[8px] bg-fg/[0.05] border border-fg/[0.09] text-muted text-[11px] hover:text-fg hover:bg-fg/[0.09] transition-all"
               >
                 {copied
-                  ? <><Check size={11} className="text-green-400" /> Skopiowano</>
+                  ? <><Check size={11} className="text-success" /> Skopiowano</>
                   : <><Copy size={11} /> Kopiuj</>
                 }
               </button>
@@ -249,9 +250,9 @@ function VariantCard({
 
       {/* Brain attribution */}
       {!loading && displayMessage && (
-        <div className="px-4 pb-3 pt-0 border-t border-white/[0.05] mt-1 flex items-center gap-1.5">
-          <Brain size={10} className={brainUsed ? 'text-[#E8A838]/60' : 'text-white/20'} />
-          <span className="text-[10px] text-white/30">
+        <div className="px-4 pb-3 pt-0 border-t border-border mt-1 flex items-center gap-1.5">
+          <Brain size={10} className={brainUsed ? 'text-accent/60' : 'text-subtle'} />
+          <span className="text-[10px] text-subtle">
             {brainUsed ? 'Wygenerowano z Company Brain' : 'Wygenerowano bez Company Brain'}
           </span>
         </div>
@@ -307,71 +308,76 @@ function LeadPicker({ onSelect }: { onSelect: (lead: LeadOption) => void }) {
   }
 
   const statusColor: Record<string, string> = {
-    nowy: '#60a5fa', kontakt: '#E8A838', negocjacje: '#a78bfa', klient: '#4ade80', odrzucony: '#f87171',
+    nowy: 'var(--c-blue)', kontakt: 'var(--accent)', negocjacje: 'var(--c-violet)',
+    klient: 'var(--c-green)', odrzucony: 'var(--c-red)',
   }
 
   return (
     <div ref={containerRef} className="relative">
-      <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">
-        <Users size={10} className="inline mr-1 mb-0.5" />
+      <label className="section-label mb-1.5 flex items-center gap-1">
+        <Users size={10} className="text-accent" />
         Wybierz lead z bazy
       </label>
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-left transition-all hover:border-[#E8A838]/40 focus:outline-none focus:border-[#E8A838]/50"
+        className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-[10px] bg-fg/[0.04] border border-fg/[0.08] text-left transition-all hover:border-accent/40 focus:outline-none focus:border-accent/50"
       >
-        <span className={`text-[13px] ${selected ? 'text-white' : 'text-white/25'}`}>
+        <span className={`text-[13px] ${selected ? 'text-fg' : 'text-muted'}`}>
           {selected
             ? `${selected.company}${selected.first_name ? ` · ${selected.first_name} ${selected.last_name}` : ''}`
             : 'Wyszukaj firmę lub decydenta…'}
         </span>
-        <ChevronDown size={14} className={`text-white/30 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown size={14} className={`text-subtle transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
-        <div className="absolute z-50 left-0 right-0 mt-1.5 rounded-[12px] bg-[#1A1A1F] border border-white/[0.1] shadow-2xl overflow-hidden">
-          <div className="p-2 border-b border-white/[0.06]">
-            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-[8px] bg-white/[0.04] border border-white/[0.06]">
-              <Search size={12} className="text-white/30 flex-shrink-0" />
+        <div className="absolute z-50 left-0 right-0 mt-1.5 rounded-[12px] bg-card border border-border overflow-hidden"
+          style={{ boxShadow: 'var(--shadow-raised)' }}>
+          <div className="p-2 border-b border-border">
+            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-[8px] bg-raised border border-border">
+              <Search size={12} className="text-subtle flex-shrink-0" />
               <input
                 autoFocus
                 type="text"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Szukaj po nazwie firmy…"
-                className="flex-1 bg-transparent text-[12px] text-white placeholder:text-white/25 focus:outline-none"
+                className="flex-1 bg-transparent text-[12px] text-fg placeholder:text-muted focus:outline-none"
               />
-              {loading && <Loader2 size={11} className="animate-spin text-white/30" />}
+              {loading && <Loader2 size={11} className="animate-spin text-subtle" />}
             </div>
           </div>
           <div className="max-h-[280px] overflow-y-auto">
             {leads.length === 0 && !loading && (
-              <p className="text-[12px] text-white/30 text-center py-6">Brak leadów</p>
+              <p className="text-[12px] text-muted text-center py-6">Brak leadów</p>
             )}
             {leads.map(lead => (
               <button
                 key={lead.id}
                 type="button"
                 onClick={() => handleSelect(lead)}
-                className="w-full flex items-start gap-3 px-4 py-3 hover:bg-white/[0.05] transition-colors text-left border-b border-white/[0.04] last:border-0"
+                className="w-full flex items-start gap-3 px-4 py-3 hover:bg-fg/[0.06] transition-colors text-left border-b border-border last:border-0"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-semibold text-white truncate">{lead.company}</p>
+                  <p className="text-[13px] font-semibold text-fg truncate">{lead.company}</p>
                   {(lead.first_name || lead.position) && (
-                    <p className="text-[11px] text-white/40 mt-0.5 truncate">
+                    <p className="text-[11px] text-muted mt-0.5 truncate">
                       {[lead.first_name, lead.last_name].filter(Boolean).join(' ')}
-                      {lead.position && <span className="text-white/25"> · {lead.position}</span>}
+                      {lead.position && <span className="text-subtle"> · {lead.position}</span>}
                     </p>
                   )}
                   {lead.company_website && (
-                    <p className="text-[10px] text-white/25 mt-0.5 truncate">{lead.company_website}</p>
+                    <p className="text-[10px] text-subtle mt-0.5 truncate">{lead.company_website}</p>
                   )}
                 </div>
                 {lead.app_status && (
                   <span
                     className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 mt-0.5"
-                    style={{ background: `${statusColor[lead.app_status] ?? '#6b7280'}18`, color: statusColor[lead.app_status] ?? '#6b7280' }}
+                    style={{
+                      background: `color-mix(in srgb, ${statusColor[lead.app_status] ?? 'var(--fg-subtle)'} 12%, transparent)`,
+                      color: statusColor[lead.app_status] ?? 'var(--fg-subtle)',
+                    }}
                   >
                     {lead.app_status}
                   </span>
@@ -604,34 +610,37 @@ export default function OutreachGeneratorPage() {
     } catch { toast.error('Błąd podczas aktualizacji leada'); setDmSentState('idle') }
   }
 
+  // Compute active node index for the sequence timeline
+  const activeIdx = MESSAGE_TYPE_OPTIONS.findIndex(t => t.id === messageType)
+
   return (
     <div className="max-w-[1100px] space-y-6">
 
       {/* Header */}
       <div>
-        <h1 className="text-[22px] font-bold text-white flex items-center gap-2.5">
-          <Send size={20} className="text-[#E8A838]" />
+        <h1 className="text-[22px] font-bold text-fg flex items-center gap-2.5">
+          <Send size={20} className="text-accent" />
           Outreach Generator
         </h1>
-        <p className="text-[12px] text-white/40 mt-1">
+        <p className="text-[12px] text-muted mt-1">
           Sekwencja 8 punktów kontaktu. Wybierz typ wiadomości i kanał — AI wygeneruje 3 zróżnicowane warianty.
         </p>
       </div>
 
-      {/* Follow-upy na dziś i zaległe */}
-      <div className="bg-card border border-border rounded-[14px] p-5">
+      {/* ── Follow-upy na dziś i zaległe ── */}
+      <div className="card-elevated rounded-[14px] p-5">
         <div className="flex items-center gap-2 mb-4">
-          <Bell size={14} className="text-[#E8A838]" />
-          <p className="text-[13px] font-semibold text-white">Follow-upy na dziś i zaległe</p>
+          <Bell size={14} className="text-accent" />
+          <p className="text-[13px] font-semibold text-fg">Follow-upy na dziś i zaległe</p>
         </div>
         {remindersLoading ? (
           <div className="flex items-center gap-2 py-3">
-            <Loader2 size={13} className="animate-spin text-white/30" />
-            <span className="text-[12px] text-white/30">Ładowanie…</span>
+            <Loader2 size={13} className="animate-spin text-muted" />
+            <span className="text-[12px] text-muted">Ładowanie…</span>
           </div>
         ) : reminders.length === 0 ? (
-          <div className="flex items-center gap-2 py-2 text-[12px] text-white/40">
-            <Check size={13} className="text-green-400" />
+          <div className="flex items-center gap-2 py-2 text-[12px] text-muted">
+            <Check size={13} className="text-success" />
             Brak follow-upów na dziś. Dobra robota.
           </div>
         ) : (
@@ -641,12 +650,19 @@ export default function OutreachGeneratorPage() {
               const isOverdue = r.scheduled_for < today
               const stepLabel = MESSAGE_TYPE_OPTIONS.find(m => m.id === r.message_type)?.label ?? r.message_type
               return (
-                <div key={r.id} className={`flex items-center gap-3 px-4 py-3 rounded-[10px] border transition-colors ${isOverdue ? 'bg-red-500/5 border-red-500/20' : 'bg-white/[0.03] border-white/[0.07]'}`}>
+                <div key={r.id}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-[10px] border transition-colors ${
+                    isOverdue
+                      ? 'bg-danger/[0.05] border-danger/20'
+                      : 'bg-fg/[0.03] border-border'
+                  }`}
+                  style={isOverdue ? { boxShadow: 'inset 2px 0 0 var(--c-red)' } : undefined}
+                >
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-semibold text-white truncate">{r.company}</p>
-                    <p className="text-[11px] text-white/40 mt-0.5">
+                    <p className="text-[13px] font-semibold text-fg truncate">{r.company}</p>
+                    <p className="text-[11px] text-muted mt-0.5">
                       {stepLabel}
-                      <span className={`ml-1.5 ${isOverdue ? 'text-red-400 font-semibold' : 'text-white/30'}`}>
+                      <span className={`ml-1.5 ${isOverdue ? 'text-danger font-semibold' : 'text-subtle'}`}>
                         · {isOverdue ? `zaległe (${r.scheduled_for})` : r.scheduled_for}
                       </span>
                     </p>
@@ -654,7 +670,7 @@ export default function OutreachGeneratorPage() {
                   <button
                     onClick={() => handleMarkSent(r)}
                     disabled={markingId === r.id}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-green-500/10 border border-green-500/25 text-green-400 text-[11px] font-semibold hover:bg-green-500/20 transition-all disabled:opacity-50 flex-shrink-0"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-success/10 border border-success/25 text-success text-[11px] font-semibold hover:bg-success/20 transition-all disabled:opacity-50 flex-shrink-0"
                   >
                     {markingId === r.id
                       ? <Loader2 size={11} className="animate-spin" />
@@ -669,30 +685,33 @@ export default function OutreachGeneratorPage() {
         )}
       </div>
 
-      {/* Lead picker dla sekwencji */}
-      <div className="bg-card border border-border rounded-[14px] p-5 space-y-4">
+      {/* ── Lead picker dla sekwencji ── */}
+      <div className="card-elevated rounded-[14px] p-5 space-y-4">
         <div className="flex items-center gap-2">
-          <Users size={14} className="text-[#E8A838]" />
-          <p className="text-[13px] font-semibold text-white">Wybierz lead do sekwencji</p>
+          <Users size={14} className="text-accent" />
+          <p className="text-[13px] font-semibold text-fg">Wybierz lead do sekwencji</p>
         </div>
         <LeadPicker onSelect={handleLeadSelect} />
         {selectedLead && (
-          <div className="flex items-center justify-between px-4 py-3 rounded-[10px] bg-white/[0.03] border border-white/[0.07]">
+          <div className="flex items-center justify-between px-4 py-3 rounded-[10px] bg-raised border border-border">
             <div>
-              <p className="text-[12px] text-white/50 mb-0.5">Aktywny krok dla <span className="text-white font-semibold">{selectedLead.company}</span></p>
+              <p className="text-[12px] text-muted mb-0.5">
+                Aktywny krok dla <span className="text-fg font-semibold">{selectedLead.company}</span>
+              </p>
               {leadStep ? (
-                <p className="text-[13px] font-semibold text-[#E8A838]">
+                <p className="text-[13px] font-semibold text-accent">
                   {MESSAGE_TYPE_OPTIONS.find(m => m.id === leadStep)?.label ?? leadStep}
                 </p>
               ) : (
-                <p className="text-[12px] text-white/30">Brak aktywnej sekwencji</p>
+                <p className="text-[12px] text-subtle">Brak aktywnej sekwencji</p>
               )}
             </div>
             {!leadStep && (
               <button
                 onClick={handleStartSequence}
                 disabled={startingSeq}
-                className="flex items-center gap-2 px-4 py-2 rounded-[10px] bg-[#E8A838] hover:bg-[#C47D1A] disabled:opacity-50 text-black text-[12px] font-bold transition-all flex-shrink-0"
+                className="flex items-center gap-2 px-4 py-2 rounded-[10px] bg-accent disabled:opacity-50 text-[12px] font-bold transition-all flex-shrink-0 hover:opacity-90 hover:shadow-[var(--glow-teal)]"
+                style={{ color: 'var(--nav-pill-text)' }}
               >
                 {startingSeq
                   ? <Loader2 size={13} className="animate-spin" />
@@ -705,68 +724,143 @@ export default function OutreachGeneratorPage() {
         )}
       </div>
 
-      {/* Sequence Timeline */}
-      <div className="bg-card border border-border rounded-[14px] p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp size={14} className="text-[#E8A838]" />
-          <p className="text-[13px] font-semibold text-white">Sekwencja prospectingowa — 8 punktów kontaktu</p>
+      {/* ── Sequence Timeline — HERO ── */}
+      <div className="card-elevated rounded-[14px] p-5">
+        <div className="flex items-center gap-2 mb-5">
+          <TrendingUp size={14} className="text-accent" />
+          <p className="text-[13px] font-semibold text-fg">Sekwencja prospectingowa — 8 punktów kontaktu</p>
         </div>
-        <div className="flex items-start gap-0 overflow-x-auto pb-1">
-          {MESSAGE_TYPE_OPTIONS.map((t, i, arr) => {
-            const isActive = messageType === t.id
-            const isLeadHere = leadStep === t.id
-            const circleColor = isActive ? '#E8A838' : isLeadHere ? '#4ade80' : undefined
-            return (
-              <div key={t.id} className="flex items-start flex-shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setMessageType(t.id)}
-                  className="flex flex-col items-center w-[100px] group"
-                >
-                  <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold mb-2 flex-shrink-0 transition-all"
-                    style={{
-                      background: circleColor ?? 'rgba(255,255,255,0.06)',
-                      color: circleColor ? '#000' : 'rgba(255,255,255,0.35)',
-                    }}
-                  >
-                    {i + 1}
+
+        {/* Scrollable track with fade edges */}
+        <div className="relative">
+          <div className="overflow-x-auto pb-3 [mask-image:linear-gradient(to_right,transparent_0,black_32px,black_calc(100%-32px),transparent_100%)]">
+            <div className="flex items-start gap-0 min-w-max px-4">
+              {MESSAGE_TYPE_OPTIONS.map((t, i, arr) => {
+                const isActive   = messageType === t.id
+                const isLeadHere = leadStep === t.id
+                const isPast     = i < activeIdx
+                const isFuture   = i > activeIdx
+
+                /* ── node visuals ── */
+                let nodeClass = 'rounded-full flex items-center justify-center font-bold flex-shrink-0 transition-all'
+                let nodeStyle: React.CSSProperties = {}
+                let nodeContent: React.ReactNode
+
+                if (isActive) {
+                  nodeClass += ' w-9 h-9 text-[11px]'
+                  nodeStyle = {
+                    background: 'var(--accent)',
+                    color: 'var(--nav-pill-text)',
+                    boxShadow: 'var(--glow-teal), 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent)',
+                  }
+                  nodeContent = i + 1
+                } else if (isLeadHere) {
+                  nodeClass += ' w-8 h-8 text-[11px]'
+                  nodeStyle = {
+                    background: 'color-mix(in srgb, var(--c-green) 18%, transparent)',
+                    color: 'var(--c-green)',
+                    border: '1.5px solid var(--c-green)',
+                    boxShadow: '0 0 12px color-mix(in srgb, var(--c-green) 40%, transparent)',
+                  }
+                  nodeContent = <Check size={13} />
+                } else if (isPast) {
+                  nodeClass += ' w-7 h-7 text-[10px]'
+                  nodeStyle = {
+                    background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+                    color: 'var(--accent)',
+                    border: '1px solid color-mix(in srgb, var(--accent) 35%, transparent)',
+                  }
+                  nodeContent = <Check size={10} />
+                } else {
+                  nodeClass += ' w-7 h-7 text-[10px]'
+                  nodeStyle = {
+                    background: 'color-mix(in srgb, var(--fg) 5%, transparent)',
+                    color: 'var(--fg-subtle)',
+                    border: '1px solid color-mix(in srgb, var(--border) 80%, transparent)',
+                  }
+                  nodeContent = i + 1
+                }
+
+                /* ── connector ── */
+                const connectorFilled = i < activeIdx
+
+                return (
+                  <div key={t.id} className="flex items-start flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setMessageType(t.id)}
+                      className="flex flex-col items-center w-[108px] group cursor-pointer"
+                    >
+                      <div className={nodeClass} style={nodeStyle}>
+                        {nodeContent}
+                      </div>
+                      <p className={`text-[10px] font-bold text-center leading-tight mt-2 transition-colors ${
+                        isActive ? 'text-accent' : isLeadHere ? 'text-success' : 'text-muted group-hover:text-fg'
+                      }`}>
+                        {t.label.split(' — ')[0]}
+                      </p>
+                      <p className={`text-[9px] text-center mt-0.5 ${
+                        isActive ? 'text-accent/70' : isLeadHere ? 'text-success/70' : 'text-subtle'
+                      }`}>
+                        {t.label.split(' — ')[1] ?? ''}
+                      </p>
+                      <span className={`text-[9px] font-semibold mt-1.5 px-1.5 py-0.5 rounded-full ${
+                        isActive    ? 'bg-accent/15 text-accent'
+                        : isLeadHere ? 'bg-success/15 text-success'
+                        : isFuture   ? 'bg-fg/[0.05] text-subtle'
+                        : 'bg-accent/10 text-accent/60'
+                      }`}>
+                        {t.day}
+                      </span>
+                    </button>
+
+                    {/* Connector line */}
+                    {i < arr.length - 1 && (
+                      <div
+                        className="flex-shrink-0 mt-[17px]"
+                        style={{
+                          width: '24px',
+                          height: '2px',
+                          borderRadius: '1px',
+                          background: connectorFilled
+                            ? 'var(--accent)'
+                            : 'color-mix(in srgb, var(--border) 120%, transparent)',
+                          boxShadow: connectorFilled ? '0 0 6px color-mix(in srgb, var(--accent) 50%, transparent)' : 'none',
+                          transition: 'background 0.2s, box-shadow 0.2s',
+                        }}
+                      />
+                    )}
                   </div>
-                  <p className={`text-[10px] font-bold text-center leading-tight transition-colors ${isActive ? 'text-[#E8A838]' : isLeadHere ? 'text-green-400' : 'text-white/40 group-hover:text-white/70'}`}>{t.label.split(' — ')[0]}</p>
-                  <p className={`text-[9px] text-center mt-0.5 ${isActive ? 'text-[#E8A838]/70' : isLeadHere ? 'text-green-400/70' : 'text-white/25'}`}>{t.label.split(' — ')[1] ?? ''}</p>
-                  <span className={`text-[9px] font-semibold mt-1 px-1.5 py-0.5 rounded-full ${isActive ? 'bg-[#E8A838]/15 text-[#E8A838]' : isLeadHere ? 'bg-green-500/15 text-green-400' : 'bg-white/[0.06] text-white/30'}`}>{t.day}</span>
-                </button>
-                {i < arr.length - 1 && (
-                  <div className="w-4 flex-shrink-0 mt-4 border-t border-dashed border-white/[0.10]" />
-                )}
-              </div>
-            )
-          })}
+                )
+              })}
+            </div>
+          </div>
         </div>
-        <p className="text-[10px] text-white/25 mt-3">
+
+        <p className="text-[10px] text-subtle mt-2">
           Kliknij krok w sekwencji żeby wybrać typ wiadomości do wygenerowania.
         </p>
       </div>
 
-      {/* Form — collapsible */}
-      <div className="bg-card border border-border rounded-[16px] overflow-hidden">
+      {/* ── Form — collapsible ── */}
+      <div className="card-elevated rounded-[16px] overflow-hidden">
 
         {/* Toggle button */}
         <button
           type="button"
           onClick={() => setFormOpen(v => !v)}
-          className="w-full flex items-center justify-between px-6 py-4 hover:bg-white/[0.02] transition-colors"
+          className="w-full flex items-center justify-between px-6 py-4 hover:bg-fg/[0.02] transition-colors"
         >
           <div className="flex flex-col items-start gap-0.5">
-            <span className="text-[14px] font-bold text-white flex items-center gap-2">
-              <Zap size={14} className="text-[#E8A838]" />
+            <span className="text-[14px] font-bold text-fg flex items-center gap-2">
+              <Zap size={14} className="text-accent" />
               Szkic wiadomości AI
             </span>
-            <span className="text-[11px] text-white/35">opcjonalne — AI może pomóc napisać draft</span>
+            <span className="text-[11px] text-subtle">opcjonalne — AI może pomóc napisać draft</span>
           </div>
           {formOpen
-            ? <ChevronUp size={16} className="text-white/30 flex-shrink-0" />
-            : <ChevronDown size={16} className="text-white/30 flex-shrink-0" />
+            ? <ChevronUp size={16} className="text-subtle flex-shrink-0" />
+            : <ChevronDown size={16} className="text-subtle flex-shrink-0" />
           }
         </button>
 
@@ -774,9 +868,9 @@ export default function OutreachGeneratorPage() {
           <div className="border-t border-border p-6 space-y-5">
 
             {/* Warning box */}
-            <div className="flex items-start gap-3 px-4 py-3 rounded-[10px] bg-amber-500/8 border border-amber-500/25">
-              <AlertCircle size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />
-              <p className="text-[12px] font-bold text-amber-300 leading-relaxed">
+            <div className="flex items-start gap-3 px-4 py-3 rounded-[10px] bg-amber/[0.08] border border-amber/25">
+              <AlertCircle size={14} className="text-amber flex-shrink-0 mt-0.5" />
+              <p className="text-[12px] font-bold text-amber leading-relaxed">
                 To szkic generowany przez AI — może zawierać błędy. Przejrzyj i popraw przed wysłaniem.
               </p>
             </div>
@@ -784,143 +878,144 @@ export default function OutreachGeneratorPage() {
             {/* Lead Picker */}
             <LeadPicker onSelect={handleLeadSelect} />
 
-        <div className="border-t border-white/[0.06]" />
+            <div className="border-t border-border" />
 
-        {/* Row 1: Company + Decision Maker */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">
-              Nazwa firmy <span className="text-[#E8A838]">*</span>
-            </label>
-            <input type="text" className={inputCls} placeholder="np. MediaFlow Agency" value={companyName} onChange={e => setCompanyName(e.target.value)} />
-          </div>
-          <div>
-            <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Imię decydenta</label>
-            <input type="text" className={inputCls} placeholder="np. Piotr Nowak" value={decisionMakerName} onChange={e => setDecisionMakerName(e.target.value)} />
-          </div>
-          <div>
-            <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Stanowisko</label>
-            <input type="text" className={inputCls} placeholder="np. CEO / Founder" value={decisionMakerRole} onChange={e => setDecisionMakerRole(e.target.value)} />
-          </div>
-        </div>
-
-        {/* Row 2: URL + Industry + Wysylajacy */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">URL strony firmowej</label>
-            <div className="flex gap-2">
-              <input
-                ref={urlInputRef}
-                type="text"
-                className={inputCls + ' flex-1'}
-                placeholder="https://firma.pl"
-                value={websiteUrl}
-                onChange={e => setWebsiteUrl(e.target.value)}
-              />
-              <button
-                onClick={handleAnalyzeUrl}
-                disabled={urlAnalyzing}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-[#E8A838]/10 border border-[#E8A838]/25 text-[#E8A838] text-[11px] font-semibold hover:bg-[#E8A838]/20 transition-all disabled:opacity-50 whitespace-nowrap flex-shrink-0"
-              >
-                {urlAnalyzing ? <Loader2 size={13} className="animate-spin" /> : <Globe size={13} />}
-                {urlAnalyzing ? 'Analizuję…' : 'Fill'}
-              </button>
+            {/* Row 1: Company + Decision Maker */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block section-label mb-1.5">
+                  Nazwa firmy <span className="text-accent">*</span>
+                </label>
+                <input type="text" className={inputCls} placeholder="np. MediaFlow Agency" value={companyName} onChange={e => setCompanyName(e.target.value)} />
+              </div>
+              <div>
+                <label className="block section-label mb-1.5">Imię decydenta</label>
+                <input type="text" className={inputCls} placeholder="np. Piotr Nowak" value={decisionMakerName} onChange={e => setDecisionMakerName(e.target.value)} />
+              </div>
+              <div>
+                <label className="block section-label mb-1.5">Stanowisko</label>
+                <input type="text" className={inputCls} placeholder="np. CEO / Founder" value={decisionMakerRole} onChange={e => setDecisionMakerRole(e.target.value)} />
+              </div>
             </div>
-          </div>
-          <div>
-            <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Branża / typ firmy</label>
-            <input type="text" className={inputCls} placeholder="np. agencja marketingowa" value={industry} onChange={e => setIndustry(e.target.value)} />
-          </div>
-          <div>
-            <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">
-              <User size={10} className="inline mr-1 mb-0.5" />
-              Podpisuje się
-            </label>
-            <input type="text" className={inputCls} placeholder="Maciek" value={wysylajacy} onChange={e => setWysylajacy(e.target.value)} />
-          </div>
-        </div>
 
-        {/* Row 3: Observations */}
-        <div>
-          <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">
-            Obserwacje o firmie
-            <span className="text-white/20 font-normal normal-case ml-1">(opcjonalnie — daje wiadomościom konkretny kontekst)</span>
-          </label>
-          <textarea
-            className={inputCls}
-            rows={2}
-            placeholder='np. "Nie mają chatbota", "Niedawno zatrudnili handlowca", "Chwalili się wzrostem na LinkedIn"'
-            value={observations}
-            onChange={e => setObservations(e.target.value)}
-          />
-        </div>
+            {/* Row 2: URL + Industry + Wysylajacy */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block section-label mb-1.5">URL strony firmowej</label>
+                <div className="flex gap-2">
+                  <input
+                    ref={urlInputRef}
+                    type="text"
+                    className={inputCls + ' flex-1'}
+                    placeholder="https://firma.pl"
+                    value={websiteUrl}
+                    onChange={e => setWebsiteUrl(e.target.value)}
+                  />
+                  <button
+                    onClick={handleAnalyzeUrl}
+                    disabled={urlAnalyzing}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-accent/10 border border-accent/25 text-accent text-[11px] font-semibold hover:bg-accent/20 transition-all disabled:opacity-50 whitespace-nowrap flex-shrink-0"
+                  >
+                    {urlAnalyzing ? <Loader2 size={13} className="animate-spin" /> : <Globe size={13} />}
+                    {urlAnalyzing ? 'Analizuję…' : 'Fill'}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="block section-label mb-1.5">Branża / typ firmy</label>
+                <input type="text" className={inputCls} placeholder="np. agencja marketingowa" value={industry} onChange={e => setIndustry(e.target.value)} />
+              </div>
+              <div>
+                <label className="block section-label mb-1.5">
+                  <User size={10} className="inline mr-1 mb-0.5" />
+                  Podpisuje się
+                </label>
+                <input type="text" className={inputCls} placeholder="Maciek" value={wysylajacy} onChange={e => setWysylajacy(e.target.value)} />
+              </div>
+            </div>
 
-        {/* Row 4: Context (for po_ofercie/reengagement) */}
-        {needsContext && (
-          <div>
-            <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">
-              Kontekst <span className="text-[#E8A838]">*</span>
-              <span className="text-white/20 font-normal normal-case ml-1">
-                {messageType === 'reengagement'
-                  ? '(wymagane — nowy haczyk / powód powrotu)'
-                  : '(opcjonalnie — np. otworzył cennik wielokrotnie)'}
-              </span>
-            </label>
-            <textarea
-              className={inputCls}
-              rows={2}
-              placeholder={
-                messageType === 'reengagement'
-                  ? 'np. "Dodaliśmy moduł X", "Widziałem że zatrudnili handlowca"'
-                  : 'np. "Otworzył ofertę 5 razy, wracał do sekcji cennika"'
+            {/* Row 3: Observations */}
+            <div>
+              <label className="block section-label mb-1.5">
+                Obserwacje o firmie
+                <span className="text-subtle font-normal normal-case ml-1">(opcjonalnie — daje wiadomościom konkretny kontekst)</span>
+              </label>
+              <textarea
+                className={inputCls}
+                rows={2}
+                placeholder='np. "Nie mają chatbota", "Niedawno zatrudnili handlowca", "Chwalili się wzrostem na LinkedIn"'
+                value={observations}
+                onChange={e => setObservations(e.target.value)}
+              />
+            </div>
+
+            {/* Row 4: Context (for po_ofercie/reengagement) */}
+            {needsContext && (
+              <div>
+                <label className="block section-label mb-1.5">
+                  Kontekst <span className="text-accent">*</span>
+                  <span className="text-subtle font-normal normal-case ml-1">
+                    {messageType === 'reengagement'
+                      ? '(wymagane — nowy haczyk / powód powrotu)'
+                      : '(opcjonalnie — np. otworzył cennik wielokrotnie)'}
+                  </span>
+                </label>
+                <textarea
+                  className={inputCls}
+                  rows={2}
+                  placeholder={
+                    messageType === 'reengagement'
+                      ? 'np. "Dodaliśmy moduł X", "Widziałem że zatrudnili handlowca"'
+                      : 'np. "Otworzył ofertę 5 razy, wracał do sekcji cennika"'
+                  }
+                  value={context}
+                  onChange={e => setContext(e.target.value)}
+                />
+              </div>
+            )}
+
+            {/* Row 5: Channel */}
+            <div>
+              <label className="block section-label mb-2">Kanał wysyłki</label>
+              <div className="flex flex-wrap gap-2">
+                {CHANNEL_OPTIONS.map(ch => (
+                  <button
+                    key={ch.id}
+                    type="button"
+                    onClick={() => setChannel(ch.id)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-[10px] border text-[12px] font-semibold transition-all ${
+                      channel === ch.id
+                        ? 'bg-accent/15 border-accent/40 text-accent'
+                        : 'bg-fg/[0.03] border-fg/[0.08] text-muted hover:border-fg/20 hover:text-fg'
+                    }`}
+                  >
+                    {ch.label}
+                    <span className={`text-[10px] ${channel === ch.id ? 'text-accent/70' : 'text-subtle'}`}>{ch.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Selected type summary */}
+            <div className="px-3 py-2 rounded-[8px] bg-raised border border-border flex items-center gap-2">
+              <span className="section-label">Generuję:</span>
+              <span className="text-[11px] font-semibold text-accent">{typeMeta.label}</span>
+              <span className="text-subtle text-[10px]">{typeMeta.day}</span>
+              <span className="text-subtle text-[10px] ml-auto">{typeMeta.angle}</span>
+            </div>
+
+            {/* Generate */}
+            <button
+              onClick={handleGenerate}
+              disabled={!canGenerate}
+              className="w-full flex items-center justify-center gap-2.5 py-3 rounded-[12px] bg-accent disabled:opacity-40 disabled:cursor-not-allowed text-[14px] font-bold transition-all hover:opacity-90 hover:shadow-[var(--glow-teal)]"
+              style={{ color: 'var(--nav-pill-text)' }}
+            >
+              {generating
+                ? <><Loader2 size={16} className="animate-spin" /> Generuję 3 warianty…</>
+                : <><Zap size={16} /> Generuj 3 warianty</>
               }
-              value={context}
-              onChange={e => setContext(e.target.value)}
-            />
-          </div>
-        )}
-
-        {/* Row 5: Channel */}
-        <div>
-          <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-2">Kanał wysyłki</label>
-          <div className="flex flex-wrap gap-2">
-            {CHANNEL_OPTIONS.map(ch => (
-              <button
-                key={ch.id}
-                type="button"
-                onClick={() => setChannel(ch.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-[10px] border text-[12px] font-semibold transition-all ${
-                  channel === ch.id
-                    ? 'bg-[#E8A838]/15 border-[#E8A838]/40 text-[#E8A838]'
-                    : 'bg-white/[0.03] border-white/[0.08] text-white/45 hover:border-white/20 hover:text-white/80'
-                }`}
-              >
-                {ch.label}
-                <span className={`text-[10px] ${channel === ch.id ? 'text-[#E8A838]/70' : 'text-white/25'}`}>{ch.desc}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Selected type summary */}
-        <div className="px-3 py-2 rounded-[8px] bg-white/[0.03] border border-white/[0.06] flex items-center gap-2">
-          <span className="text-[10px] text-white/30 uppercase tracking-wide">Generuję:</span>
-          <span className="text-[11px] font-semibold text-[#E8A838]">{typeMeta.label}</span>
-          <span className="text-[10px] text-white/30">{typeMeta.day}</span>
-          <span className="text-[10px] text-white/20 ml-auto">{typeMeta.angle}</span>
-        </div>
-
-        {/* Generate */}
-        <button
-          onClick={handleGenerate}
-          disabled={!canGenerate}
-          className="w-full flex items-center justify-center gap-2.5 py-3 rounded-[12px] bg-[#E8A838] hover:bg-[#C47D1A] disabled:opacity-40 disabled:cursor-not-allowed text-black text-[14px] font-bold transition-all shadow-lg shadow-[#E8A838]/15"
-        >
-          {generating
-            ? <><Loader2 size={16} className="animate-spin" /> Generuję 3 warianty…</>
-            : <><Zap size={16} /> Generuj 3 warianty</>
-          }
-        </button>
+            </button>
 
           </div>
         )}
@@ -938,31 +1033,31 @@ export default function OutreachGeneratorPage() {
         <>
           {/* Banners */}
           {result._demo && (
-            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-[10px] bg-amber-500/8 border border-amber-500/20 text-amber-400 text-[12px]">
+            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-[10px] bg-amber/[0.08] border border-amber/20 text-amber text-[12px]">
               <AlertCircle size={13} className="flex-shrink-0" />
-              <span>Tryb demo — wiadomości są przykładowe. Dodaj <code className="bg-white/10 px-1 py-0.5 rounded text-[11px]">OPENAI_API_KEY</code> aby generować spersonalizowane teksty.</span>
+              <span>Tryb demo — wiadomości są przykładowe. Dodaj <code className="bg-fg/10 px-1 py-0.5 rounded text-[11px]">OPENAI_API_KEY</code> aby generować spersonalizowane teksty.</span>
             </div>
           )}
           {result._warned && !result._demo && (
-            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-[10px] bg-amber-500/8 border border-amber-500/20 text-amber-400 text-[12px]">
+            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-[10px] bg-amber/[0.08] border border-amber/20 text-amber text-[12px]">
               <AlertCircle size={13} className="flex-shrink-0" />
               <span>Walidacja nie przeszła w pełni — sprawdź wiadomości przed wysłaniem.</span>
             </div>
           )}
           {!result._demo && !result._brainUsed && (
-            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-[10px] bg-amber-500/8 border border-amber-500/20 text-amber-400 text-[12px]">
+            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-[10px] bg-amber/[0.08] border border-amber/20 text-amber text-[12px]">
               <Brain size={13} className="flex-shrink-0" />
               <span>
                 Company Brain nie jest uzupełniony — jakość outputu będzie niższa.{' '}
-                <Link href="/company-brain/dna" className="underline underline-offset-2 hover:text-amber-300">Uzupełnij teraz →</Link>
+                <Link href="/company-brain/dna" className="underline underline-offset-2 hover:text-fg transition-colors">Uzupełnij teraz →</Link>
               </span>
             </div>
           )}
 
           {/* Type header */}
           <div className="flex items-center gap-2">
-            <span className="text-[12px] font-bold text-white/60">{result.typLabel}</span>
-            <span className="text-[11px] text-white/30">— {MESSAGE_TYPE_META[result.typ].angle}</span>
+            <span className="text-[12px] font-bold text-muted">{result.typLabel}</span>
+            <span className="text-[11px] text-subtle">— {MESSAGE_TYPE_META[result.typ].angle}</span>
           </div>
 
           {/* Variant cards */}
@@ -974,29 +1069,29 @@ export default function OutreachGeneratorPage() {
 
           {/* ICP */}
           {result.icp && (
-            <div className="bg-card border border-border rounded-[14px] overflow-hidden">
+            <div className="card-elevated rounded-[14px] overflow-hidden">
               <button
                 type="button"
                 onClick={() => setShowIcp(v => !v)}
-                className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-white/[0.02] transition-colors"
+                className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-fg/[0.02] transition-colors"
               >
                 <div className="flex items-center gap-2.5">
-                  <TrendingUp size={14} className="text-[#E8A838]" />
-                  <span className="text-[13px] font-semibold text-white">Analiza ICP</span>
+                  <TrendingUp size={14} className="text-accent" />
+                  <span className="text-[13px] font-semibold text-fg">Analiza ICP</span>
                   <IcpBadge fit={result.icp.fit} />
-                  <span className="text-[12px] font-bold text-white/50">{result.icp.score}/10</span>
+                  <span className="text-[12px] font-bold text-muted">{result.icp.score}/10</span>
                 </div>
-                {showIcp ? <ChevronUp size={14} className="text-white/30" /> : <ChevronDown size={14} className="text-white/30" />}
+                {showIcp ? <ChevronUp size={14} className="text-subtle" /> : <ChevronDown size={14} className="text-subtle" />}
               </button>
               {showIcp && (
                 <div className="px-5 pb-4 border-t border-border pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <p className="text-[10px] font-semibold text-white/30 uppercase tracking-wide mb-1">Dopasowanie do ICP</p>
-                    <p className="text-[13px] text-white/70 leading-relaxed">{result.icp.reason}</p>
+                    <p className="section-label mb-1">Dopasowanie do ICP</p>
+                    <p className="text-[13px] text-muted leading-relaxed">{result.icp.reason}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-semibold text-white/30 uppercase tracking-wide mb-1">Główny ból</p>
-                    <p className="text-[13px] text-white/70 leading-relaxed">{result.icp.pain_point}</p>
+                    <p className="section-label mb-1">Główny ból</p>
+                    <p className="text-[13px] text-muted leading-relaxed">{result.icp.pain_point}</p>
                   </div>
                 </div>
               )}
@@ -1028,7 +1123,7 @@ export default function OutreachGeneratorPage() {
           <button
             onClick={handleGenerate}
             disabled={generating}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white/40 text-[12px] hover:text-white hover:bg-white/[0.07] transition-all"
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-fg/[0.04] border border-fg/[0.08] text-muted text-[12px] hover:text-fg hover:bg-fg/[0.07] transition-all"
           >
             <Zap size={13} /> Generuj jeszcze raz (inne wersje)
           </button>

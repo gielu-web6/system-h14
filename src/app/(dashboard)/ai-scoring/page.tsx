@@ -78,31 +78,31 @@ function dbToScoredLead(row: Record<string, unknown>): ScoredLead {
 // ─── UI components ────────────────────────────────────────────────────────────
 
 function ScoreBadge({ label }: { label: 'hot' | 'warm' | 'cold' }) {
-  if (label === 'hot')  return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 text-[10px] font-bold"><Flame size={9}/>Hot</span>
-  if (label === 'warm') return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-400 text-[10px] font-bold"><Thermometer size={9}/>Warm</span>
-  return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400 text-[10px] font-bold"><Snowflake size={9}/>Cold</span>
+  if (label === 'hot')  return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-danger/15 text-danger text-[10px] font-bold" style={{ boxShadow: '0 0 8px rgba(232,64,64,0.25)' }}><Flame size={9}/>Hot</span>
+  if (label === 'warm') return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber/15 text-amber text-[10px] font-bold"><Thermometer size={9}/>Warm</span>
+  return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-info/15 text-info text-[10px] font-bold"><Snowflake size={9}/>Cold</span>
 }
 
 function ScoreBar({ value, max = 100 }: { value: number; max?: number }) {
   const pct = Math.min(100, (value / max) * 100)
   const color = max === 100
-    ? (value >= 70 ? '#ef4444' : value >= 40 ? '#f97316' : '#3b82f6')
-    : '#6366f1'
+    ? (value >= 70 ? 'var(--c-red)' : value >= 40 ? 'var(--c-amber)' : 'var(--c-blue)')
+    : 'var(--accent)'
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full">
+      <div className="flex-1 h-1.5 bg-fg/[0.06] rounded-full">
         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
       </div>
-      <span className="text-[11px] font-bold text-white w-7 text-right">{value}</span>
+      <span className="text-[11px] font-bold text-fg w-7 text-right">{value}</span>
     </div>
   )
 }
 
 const CRITERIA = [
-  { key: 'icpScore',       label: 'Dopasowanie do ICP',  color: '#6366f1', desc: 'Branża, wielkość firmy, stanowisko decydenta' },
-  { key: 'signalsScore',   label: 'Sygnały zakupowe',    color: '#f59e0b', desc: 'Aktywność sugerująca intencję zakupową' },
-  { key: 'activityScore',  label: 'Aktywność online',    color: '#22c55e', desc: 'Aktywność na LinkedIn/IG — wyższy = łatwiejszy DM' },
-  { key: 'potentialScore', label: 'Potencjał projektu',  color: '#a78bfa', desc: 'Szacowany budżet i zakres projektu' },
+  { key: 'icpScore',       label: 'Dopasowanie do ICP',  color: 'var(--c-violet)', desc: 'Branża, wielkość firmy, stanowisko decydenta' },
+  { key: 'signalsScore',   label: 'Sygnały zakupowe',    color: 'var(--c-amber)',  desc: 'Aktywność sugerująca intencję zakupową' },
+  { key: 'activityScore',  label: 'Aktywność online',    color: 'var(--c-green)',  desc: 'Aktywność na LinkedIn/IG — wyższy = łatwiejszy DM' },
+  { key: 'potentialScore', label: 'Potencjał projektu',  color: 'var(--c-violet)', desc: 'Szacowany budżet i zakres projektu' },
 ] as const
 
 // ─── Score all (batch) ────────────────────────────────────────────────────────
@@ -257,11 +257,11 @@ export default function AiScoringPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-[20px] font-bold text-white flex items-center gap-2">
+          <h1 className="text-[20px] font-bold text-fg flex items-center gap-2">
             <BrainCircuit size={20} className="text-accent" />
             AI Scoring Leadów
           </h1>
-          <p className="text-[12px] text-white/40 mt-0.5">
+          <p className="text-[12px] text-muted mt-0.5">
             {loading ? 'Ładowanie…' : `${scored}/${total} ocenionych · ${unscored.length} czeka na scoring`}
           </p>
         </div>
@@ -270,24 +270,25 @@ export default function AiScoringPage() {
           <div className="flex items-center gap-2">
             {batchRunning ? (
               <>
-                <span className="text-[12px] text-white/50 flex items-center gap-1.5">
-                  <Loader2 size={12} className="animate-spin" />
+                <span className="text-[12px] text-muted flex items-center gap-1.5">
+                  <Loader2 size={12} className="animate-spin text-accent" />
                   {batchProgress.done}/{batchProgress.total} leadów…
                 </span>
                 <button onClick={stopBatch}
-                  className="px-3 py-1.5 rounded-[8px] bg-red-500/15 border border-red-500/30 text-red-400 text-[12px] font-medium hover:bg-red-500/20 transition-all">
+                  className="px-3 py-1.5 rounded-[8px] bg-danger/15 border border-danger/30 text-danger text-[12px] font-medium hover:bg-danger/20 transition-all">
                   Zatrzymaj
                 </button>
               </>
             ) : (
               <>
                 <button onClick={() => void loadLeads()}
-                  className="p-1.5 rounded-[8px] bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-white transition-all" title="Odśwież">
+                  className="p-1.5 rounded-[8px] bg-fg/[0.05] border border-fg/[0.08] text-muted hover:text-fg transition-all" title="Odśwież">
                   <RefreshCw size={14} />
                 </button>
                 {unscored.length > 0 && (
                   <button onClick={() => void runBatchScoring()}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-accent hover:opacity-90 text-white text-[12px] font-bold transition-all shadow-lg shadow-indigo-500/20">
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-accent hover:opacity-90 hover:shadow-[var(--glow-teal)] text-[12px] font-bold transition-all"
+                    style={{ color: 'var(--nav-pill-text)' }}>
                     <Play size={13} /> Oceń wszystkich bez scoringu ({unscored.length})
                   </button>
                 )}
@@ -299,19 +300,19 @@ export default function AiScoringPage() {
 
       {/* Loading */}
       {loading && (
-        <div className="flex items-center gap-3 p-4 rounded-[12px] bg-white/[0.03] border border-white/[0.07]">
-          <div className="w-4 h-4 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
-          <p className="text-[13px] text-white/40">Ładowanie leadów…</p>
+        <div className="flex items-center gap-3 p-4 rounded-[12px] bg-raised border border-border">
+          <div className="w-4 h-4 border-2 border-fg/20 border-t-accent rounded-full animate-spin" />
+          <p className="text-[13px] text-muted">Ładowanie leadów…</p>
         </div>
       )}
 
       {/* Empty state */}
       {!loading && total === 0 && (
-        <div className="flex items-center gap-3 p-4 rounded-[12px] bg-white/[0.03] border border-white/[0.07]">
-          <Users size={16} className="text-white/30 flex-shrink-0" />
+        <div className="flex items-center gap-3 p-4 rounded-[12px] bg-raised border border-border">
+          <Users size={16} className="text-subtle flex-shrink-0" />
           <div>
-            <p className="text-[13px] font-semibold text-white/60">Brak leadów</p>
-            <p className="text-[11px] text-white/30">Dodaj leadów w zakładce Leady, AI oceni ich automatycznie.</p>
+            <p className="text-[13px] font-semibold text-fg">Brak leadów</p>
+            <p className="text-[11px] text-muted">Dodaj leadów w zakładce Leady, AI oceni ich automatycznie.</p>
           </div>
         </div>
       )}
@@ -321,69 +322,69 @@ export default function AiScoringPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4">
 
           {/* Methodology */}
-          <div className="bg-card border border-white/[0.07] rounded-[14px] p-5">
-            <p className="text-[14px] font-semibold text-white mb-1">Metodologia scoringu</p>
-            <p className="text-[12px] text-white/40 mb-4">4 kryteria po max 25 pkt = 100 pkt łącznie</p>
+          <div className="card-elevated rounded-[14px] p-5">
+            <p className="text-[14px] font-semibold text-fg mb-1">Metodologia scoringu</p>
+            <p className="text-[12px] text-muted mb-4">4 kryteria po max 25 pkt = 100 pkt łącznie</p>
             <div className="space-y-3">
               {CRITERIA.map(c => (
-                <div key={c.key} className="p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.05]">
+                <div key={c.key} className="p-3 rounded-[10px] bg-raised border border-border">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: c.color }} />
-                      <span className="text-[12px] font-semibold text-white">{c.label}</span>
+                      <span className="text-[12px] font-semibold text-fg">{c.label}</span>
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: c.color + '20', color: c.color }}>max 25</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `color-mix(in srgb, ${c.color} 14%, transparent)`, color: c.color }}>max 25</span>
                   </div>
-                  <p className="text-[11px] text-white/45 ml-4">{c.desc}</p>
+                  <p className="text-[11px] text-muted ml-4">{c.desc}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Distribution */}
-          <div className="bg-card border border-white/[0.07] rounded-[14px] p-5 flex flex-col">
-            <p className="text-[14px] font-semibold text-white mb-1">Rozkład bazy</p>
-            <p className="text-[12px] text-white/40 mb-4">{scored} z {total} leadów ocenionych</p>
+          <div className="card-elevated rounded-[14px] p-5 flex flex-col">
+            <p className="text-[14px] font-semibold text-fg mb-1">Rozkład bazy</p>
+            <p className="text-[12px] text-muted mb-4">{scored} z {total} leadów ocenionych</p>
 
             {scored > 0 && (
               <div className="space-y-3 mb-4">
                 {[
-                  { icon: Flame, color: 'text-red-400', bar: '#ef4444', count: hot, label: 'Hot' },
-                  { icon: Thermometer, color: 'text-orange-400', bar: '#f97316', count: warm, label: 'Warm' },
-                  { icon: Snowflake, color: 'text-blue-400', bar: '#3b82f6', count: cold, label: 'Cold' },
+                  { icon: Flame,      color: 'text-danger', bar: 'var(--c-red)',   count: hot,  label: 'Hot' },
+                  { icon: Thermometer,color: 'text-amber',  bar: 'var(--c-amber)', count: warm, label: 'Warm' },
+                  { icon: Snowflake,  color: 'text-info',   bar: 'var(--c-blue)',  count: cold, label: 'Cold' },
                 ].map(({ icon: Icon, color, bar, count, label }) => (
                   <div key={label} className="flex items-center gap-2">
                     <Icon size={12} className={`${color} flex-shrink-0`} />
-                    <div className="flex-1 h-2 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div className="flex-1 h-2 bg-fg/[0.06] rounded-full overflow-hidden">
                       <div className="h-full rounded-full" style={{ width: `${scored ? (count / scored) * 100 : 0}%`, background: bar }} />
                     </div>
-                    <span className="text-[11px] text-white/50 w-6 text-right">{count}</span>
+                    <span className="text-[11px] text-muted w-6 text-right">{count}</span>
                   </div>
                 ))}
               </div>
             )}
 
             {unscored.length > 0 && (
-              <div className="mt-auto p-3 rounded-[10px] bg-amber-500/[0.07] border border-amber-500/20">
+              <div className="mt-auto p-3 rounded-[10px] bg-amber/[0.07] border border-amber/20">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <Clock size={12} className="text-amber-400" />
-                  <p className="text-[12px] font-semibold text-amber-400">{unscored.length} leadów bez scoringu</p>
+                  <Clock size={12} className="text-amber" />
+                  <p className="text-[12px] font-semibold text-amber">{unscored.length} leadów bez scoringu</p>
                 </div>
-                <p className="text-[10px] text-white/40">Kliknij &quot;Oceń wszystkich&quot; aby uruchomić batch scoring</p>
+                <p className="text-[10px] text-muted">Kliknij &quot;Oceń wszystkich&quot; aby uruchomić batch scoring</p>
               </div>
             )}
 
             {scored > 0 && (
-              <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/[0.07]">
+              <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-border">
                 {[
-                  { icon: Flame, color: 'text-red-400', count: hot, label: 'Hot leads' },
-                  { icon: Thermometer, color: 'text-orange-400', count: warm, label: 'Warm' },
-                  { icon: Snowflake, color: 'text-blue-400', count: cold, label: 'Cold' },
+                  { icon: Flame,      color: 'text-danger', count: hot,  label: 'Hot leads' },
+                  { icon: Thermometer,color: 'text-amber',  count: warm, label: 'Warm' },
+                  { icon: Snowflake,  color: 'text-info',   count: cold, label: 'Cold' },
                 ].map(({ icon: Icon, color, count, label }) => (
                   <div key={label} className="text-center">
                     <Icon size={16} className={`${color} mx-auto mb-1`} />
-                    <p className="text-[16px] font-bold text-white">{count}</p>
-                    <p className="text-[9px] text-white/40 uppercase tracking-wide">{label}</p>
+                    <p className="text-[16px] font-bold text-fg num">{count}</p>
+                    <p className="text-[9px] text-subtle uppercase tracking-wide">{label}</p>
                   </div>
                 ))}
               </div>
@@ -394,15 +395,15 @@ export default function AiScoringPage() {
 
       {/* Leads table */}
       {!loading && total > 0 && (
-        <div className="bg-card border border-white/[0.07] rounded-[14px] overflow-hidden">
-          <div className="px-5 py-4 border-b border-white/[0.07] flex items-center justify-between">
+        <div className="card-elevated rounded-[14px] overflow-hidden">
+          <div className="px-5 py-4 border-b border-border flex items-center justify-between">
             <div>
-              <p className="text-[14px] font-semibold text-white">Wszystkie leady</p>
-              <p className="text-[12px] text-white/40 mt-0.5">Posortowane od najwyższego score</p>
+              <p className="text-[14px] font-semibold text-fg">Wszystkie leady</p>
+              <p className="text-[12px] text-muted mt-0.5">Posortowane od najwyższego score</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-[1fr_140px_80px_80px_36px] gap-2 px-5 py-2 border-b border-white/[0.05] text-[10px] font-semibold text-white/30 uppercase tracking-wide">
+          <div className="grid grid-cols-[1fr_140px_80px_80px_36px] gap-2 px-5 py-2 border-b border-border-s text-[10px] font-semibold text-subtle uppercase tracking-wide">
             <span>Lead</span>
             <span>Score</span>
             <span className="text-center">Label</span>
@@ -410,7 +411,7 @@ export default function AiScoringPage() {
             <span />
           </div>
 
-          <div className="divide-y divide-white/[0.04]">
+          <div className="divide-y divide-border-s">
             {leads.map((lead) => {
               const isOpen    = expanded === lead.id
               const isScoring = scoring.has(lead.id)
@@ -419,24 +420,24 @@ export default function AiScoringPage() {
               return (
                 <div key={lead.id}>
                   {/* Row */}
-                  <div className="grid grid-cols-[1fr_140px_80px_80px_36px] gap-2 px-5 py-3 items-center hover:bg-white/[0.02] transition-colors">
+                  <div className="grid grid-cols-[1fr_140px_80px_80px_36px] gap-2 px-5 py-3 items-center hover:bg-fg/[0.03] transition-colors">
                     {/* Name */}
                     <button onClick={() => setExpanded(isOpen ? null : lead.id)} className="text-left min-w-0">
-                      <p className="text-[13px] font-semibold text-white truncate">{lead.firstName} {lead.lastName}</p>
-                      <p className="text-[11px] text-white/40 truncate">{lead.position} · {lead.company}</p>
+                      <p className="text-[13px] font-semibold text-fg truncate">{lead.firstName} {lead.lastName}</p>
+                      <p className="text-[11px] text-muted truncate">{lead.position} · {lead.company}</p>
                     </button>
 
                     {/* Score bar */}
                     <button onClick={() => setExpanded(isOpen ? null : lead.id)} className="min-w-0">
                       {hasScore
                         ? <ScoreBar value={lead.aiScore} />
-                        : <span className="text-[11px] text-white/25 italic">nie oceniony</span>
+                        : <span className="text-[11px] text-subtle italic">nie oceniony</span>
                       }
                     </button>
 
                     {/* Label */}
                     <div className="flex justify-center">
-                      {hasScore ? <ScoreBadge label={lead.aiLabel} /> : <span className="text-[10px] text-white/20">—</span>}
+                      {hasScore ? <ScoreBadge label={lead.aiLabel} /> : <span className="text-[10px] text-subtle">—</span>}
                     </div>
 
                     {/* Status */}
@@ -444,9 +445,9 @@ export default function AiScoringPage() {
                       {isScoring ? (
                         <Loader2 size={13} className="animate-spin text-accent" />
                       ) : hasScore ? (
-                        <CheckCircle2 size={13} className="text-green-400" />
+                        <CheckCircle2 size={13} className="text-success" />
                       ) : (
-                        <Clock size={13} className="text-white/20" />
+                        <Clock size={13} className="text-subtle" />
                       )}
                     </div>
 
@@ -455,7 +456,7 @@ export default function AiScoringPage() {
                       onClick={() => void rescoreLead(lead)}
                       disabled={isScoring || batchRunning || isDemoMode()}
                       title={hasScore ? 'Re-score' : 'Oceń teraz'}
-                      className="p-1.5 rounded-[6px] text-white/30 hover:text-accent hover:bg-accent/10 disabled:opacity-30 transition-all"
+                      className="p-1.5 rounded-[6px] text-subtle hover:text-accent hover:bg-accent/10 disabled:opacity-30 transition-all"
                     >
                       <RefreshCw size={12} />
                     </button>
@@ -463,7 +464,7 @@ export default function AiScoringPage() {
 
                   {/* Expanded detail */}
                   {isOpen && (
-                    <div className="px-5 pb-5 pt-2 bg-white/[0.015] border-t border-white/[0.04] space-y-4">
+                    <div className="px-5 pb-5 pt-2 bg-raised border-t border-border-s space-y-4">
 
                       {/* Per-criteria breakdown */}
                       {hasScore && (
@@ -471,12 +472,12 @@ export default function AiScoringPage() {
                           {CRITERIA.map(c => {
                             const val = lead[c.key as keyof ScoredLead] as number
                             return (
-                              <div key={c.key} className="p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.06]">
+                              <div key={c.key} className="p-3 rounded-[10px] bg-fg/[0.04] border border-border">
                                 <div className="flex items-center justify-between mb-2">
-                                  <span className="text-[11px] text-white/50">{c.label}</span>
-                                  <span className="text-[12px] font-bold" style={{ color: c.color }}>{val}/25</span>
+                                  <span className="text-[11px] text-muted">{c.label}</span>
+                                  <span className="text-[12px] font-bold num" style={{ color: c.color }}>{val}/25</span>
                                 </div>
-                                <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                                <div className="h-1.5 bg-fg/[0.06] rounded-full overflow-hidden">
                                   <div className="h-full rounded-full transition-all" style={{ width: `${(val / 25) * 100}%`, background: c.color }} />
                                 </div>
                               </div>
@@ -487,25 +488,25 @@ export default function AiScoringPage() {
 
                       {/* Problem */}
                       {lead.problem && (
-                        <div className="p-3 rounded-[8px] bg-amber-500/[0.07] border border-amber-500/20">
-                          <p className="text-[10px] font-semibold text-amber-400 uppercase tracking-wide mb-1">Zidentyfikowany problem</p>
-                          <p className="text-[12px] text-white/70 leading-snug">{lead.problem}</p>
+                        <div className="p-3 rounded-[8px] bg-amber/[0.07] border border-amber/20">
+                          <p className="text-[10px] font-semibold text-amber uppercase tracking-wide mb-1">Zidentyfikowany problem</p>
+                          <p className="text-[12px] text-fg leading-snug">{lead.problem}</p>
                         </div>
                       )}
 
                       {/* Icebreaker */}
                       {lead.icebreaker && (
-                        <div className="p-3 rounded-[8px] bg-[#6366f1]/[0.08] border border-accent/20">
+                        <div className="p-3 rounded-[8px] bg-accent/[0.08] border border-accent/20">
                           <p className="text-[10px] font-semibold text-accent uppercase tracking-wide mb-1">Icebreaker AI</p>
-                          <p className="text-[12px] text-white/80 leading-snug italic">&quot;{lead.icebreaker}&quot;</p>
+                          <p className="text-[12px] text-fg leading-snug italic">&quot;{lead.icebreaker}&quot;</p>
                         </div>
                       )}
 
                       {/* Reasoning */}
                       {lead.reasoning && (
-                        <div className="p-3 rounded-[8px] bg-white/[0.03] border border-white/[0.06]">
-                          <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1">Uzasadnienie AI</p>
-                          <p className="text-[12px] text-white/55 leading-snug">{lead.reasoning}</p>
+                        <div className="p-3 rounded-[8px] bg-fg/[0.04] border border-border">
+                          <p className="text-[10px] font-semibold text-subtle uppercase tracking-wide mb-1">Uzasadnienie AI</p>
+                          <p className="text-[12px] text-muted leading-snug">{lead.reasoning}</p>
                         </div>
                       )}
 
@@ -524,7 +525,7 @@ export default function AiScoringPage() {
                       )}
 
                       {lead.scoredAt && (
-                        <p className="text-[10px] text-white/20 text-right">
+                        <p className="text-[10px] text-subtle text-right">
                           Ostatni scoring: {new Date(lead.scoredAt).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })}
                         </p>
                       )}

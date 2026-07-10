@@ -2,13 +2,12 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Zap, Eye, EyeOff, ArrowRight, Play } from 'lucide-react'
+import { Zap, Eye, EyeOff, ArrowRight } from 'lucide-react'
 import { USERS, DEMO_PASSWORD } from '@/lib/userStore'
 import { useAppUser } from '@/contexts/UserContext'
 
-// Separate real users from the demo account
-const REAL_USERS = USERS.filter(u => u.id !== 'demo')
-const DEMO_USER  = USERS.find(u => u.id === 'demo')!
+// Only non-demo, non-sales accounts visible on login
+const REAL_USERS = USERS.filter(u => u.id !== 'demo' && u.role !== 'sales')
 
 export default function LoginPage() {
   const router = useRouter()
@@ -17,7 +16,6 @@ export default function LoginPage() {
   const [password, setPassword]         = useState('')
   const [showPass, setShowPass]         = useState(false)
   const [loadingLogin, setLoadingLogin] = useState(false)
-  const [loadingDemo, setLoadingDemo]   = useState(false)
   const [error, setError]               = useState('')
   const passwordRef = useRef<HTMLInputElement>(null)
 
@@ -39,14 +37,8 @@ export default function LoginPage() {
     setLoadingLogin(true)
     await new Promise(r => setTimeout(r, 600))
     switchUser(selectedUser)
-    router.push('/dashboard')
-  }
-
-  const handleDemoLogin = async () => {
-    setLoadingDemo(true)
-    await new Promise(r => setTimeout(r, 500))
-    switchUser('demo')
-    router.push('/dashboard')
+    const selectedRole = REAL_USERS.find(u => u.id === selectedUser)?.role
+    router.push(selectedRole === 'allegro' ? '/tasks' : '/dashboard')
   }
 
   return (
@@ -74,42 +66,6 @@ export default function LoginPage() {
             <p className="text-[14px] text-white/45 leading-relaxed">
               Wybierz swój profil i wpisz hasło<br />aby wejść do systemu.
             </p>
-          </div>
-
-          {/* ── Demo account card ─────────────────────────────── */}
-          <div className="bg-[#0d1f12] border border-[#22c55e]/25 rounded-[16px] p-5 shadow-2xl shadow-black/40">
-            <div className="flex items-center gap-3 mb-3">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-[14px] font-bold flex-shrink-0"
-                style={{ background: DEMO_USER.color + '25', border: `2px solid ${DEMO_USER.color}`, color: DEMO_USER.color }}
-              >
-                {DEMO_USER.initials}
-              </div>
-              <div>
-                <p className="text-[14px] font-semibold text-white leading-tight">Konto Demo</p>
-                <p className="text-[11px] text-white/40 leading-tight">Wejdź z przykładowymi danymi — bez hasła</p>
-              </div>
-              <span className="ml-auto px-2 py-0.5 rounded-full bg-[#22c55e]/15 text-[#22c55e] text-[10px] font-bold uppercase tracking-wide">Demo</span>
-            </div>
-            <button
-              type="button"
-              onClick={handleDemoLogin}
-              disabled={loadingDemo || loadingLogin}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] bg-[#22c55e]/90 hover:bg-[#22c55e] disabled:opacity-60 text-white text-[13px] font-semibold transition-all shadow-lg shadow-green-500/20"
-            >
-              {loadingDemo ? (
-                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Ładowanie...</>
-              ) : (
-                <><Play size={13} fill="white" /> Wejdź do Demo</>
-              )}
-            </button>
-          </div>
-
-          {/* ── Divider ───────────────────────────────────────── */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-white/[0.06]" />
-            <span className="text-[11px] text-white/25">lub zaloguj się na swoje konto</span>
-            <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
 
           {/* ── Real accounts card ────────────────────────────── */}
@@ -190,7 +146,7 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                disabled={loadingLogin || loadingDemo}
+                disabled={loadingLogin}
                 className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[10px] mt-1 bg-[#6366f1] hover:bg-[#5254cc] disabled:opacity-60 text-white text-[14px] font-semibold transition-all shadow-lg shadow-indigo-500/25"
               >
                 {loadingLogin ? (

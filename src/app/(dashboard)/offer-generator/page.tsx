@@ -5,7 +5,7 @@ import {
   FileText, ChevronRight, ChevronLeft, Loader2, Sparkles,
   Check, Copy, ExternalLink, AlertCircle, Plus, X, Trash2,
   Pencil, Eye, Clock, Send, ArrowLeft, RefreshCw,
-  Building2, Tag, Calendar, CreditCard,
+  Building2, Tag, Calendar, CreditCard, Flame,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
@@ -43,13 +43,13 @@ const PROJECT_TYPES = [
 ]
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  draft:      { label: 'Szkic',         color: 'bg-white/[0.07] text-white/50' },
-  sent:       { label: 'Wysłana',        color: 'bg-blue-500/15 text-blue-400' },
-  viewed:     { label: 'Otwarta',        color: 'bg-amber-500/15 text-amber-400' },
-  cta_clicked:{ label: 'CTA kliknięte', color: 'bg-orange-500/15 text-orange-400' },
-  accepted:   { label: 'Zaakceptowana', color: 'bg-green-500/15 text-green-400' },
-  rejected:   { label: 'Odrzucona',     color: 'bg-red-500/15 text-red-400' },
-  expired:    { label: 'Wygasła',       color: 'bg-white/[0.05] text-white/30 line-through' },
+  draft:      { label: 'Szkic',         color: 'bg-fg/[0.07] text-muted' },
+  sent:       { label: 'Wysłana',        color: 'bg-info/15 text-info' },
+  viewed:     { label: 'Otwarta',        color: 'bg-amber/15 text-amber' },
+  cta_clicked:{ label: 'CTA kliknięte', color: 'bg-amber/20 text-amber' },
+  accepted:   { label: 'Zaakceptowana', color: 'bg-success/15 text-success' },
+  rejected:   { label: 'Odrzucona',     color: 'bg-danger/15 text-danger' },
+  expired:    { label: 'Wygasła',       color: 'bg-fg/[0.05] text-subtle line-through' },
 }
 
 // ─── Demo / CRM data ──────────────────────────────────────────────────────────
@@ -389,13 +389,41 @@ function OfferList({
     toast.success('Link skopiowany!')
   }
 
+  // Metrics
+  const activeOffers = offers.filter(o => !['draft', 'rejected', 'expired'].includes(o.effective_status))
+  const waitingContact = offers.filter(o => o.view_count > 0 && !['accepted', 'rejected', 'expired'].includes(o.effective_status))
+  const totalValue = offers
+    .filter(o => !['rejected', 'expired'].includes(o.effective_status))
+    .reduce((sum, o) => sum + (o.pricing_variants?.[o.pricing_variants.length - 1]?.price ?? 0), 0)
+
+  // Temperature
+  function getTemp(o: OfferListItem): 'hot' | 'warm' | 'cold' | 'accepted' | 'rejected' | 'draft' | 'expired' {
+    if (o.effective_status === 'accepted') return 'accepted'
+    if (o.effective_status === 'rejected') return 'rejected'
+    if (o.effective_status === 'expired') return 'expired'
+    if (o.effective_status === 'draft') return 'draft'
+    if (o.time_on_pricing >= 120) return 'hot'
+    if (o.view_count > 0) return 'warm'
+    return 'cold'
+  }
+
+  const TEMP_STRIP: Record<string, string> = {
+    hot:      'var(--c-amber)',
+    warm:     'color-mix(in srgb, var(--c-amber) 45%, transparent)',
+    cold:     'color-mix(in srgb, var(--c-blue) 50%, transparent)',
+    accepted: 'var(--c-green)',
+    rejected: 'var(--c-red)',
+    draft:    'var(--border)',
+    expired:  'var(--border)',
+  }
+
   const FILTERS = [
-    { key: 'all', label: 'Wszystkie' },
-    { key: 'draft', label: 'Szkice' },
-    { key: 'sent', label: 'Wysłane' },
-    { key: 'viewed', label: 'Otwarte' },
-    { key: 'cta_clicked', label: 'Zainteresowane' },
-    { key: 'accepted', label: 'Zaakceptowane' },
+    { key: 'all',        label: 'Wszystkie' },
+    { key: 'draft',      label: 'Szkice' },
+    { key: 'sent',       label: 'Wysłane' },
+    { key: 'viewed',     label: 'Otwarte' },
+    { key: 'cta_clicked',label: 'Zainteresowane' },
+    { key: 'accepted',   label: 'Zaakceptowane' },
   ]
 
   return (
@@ -403,163 +431,178 @@ function OfferList({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[20px] font-bold text-white flex items-center gap-2.5">
-            <FileText size={18} className="text-[#E8A838]" /> Generator Ofert AI
+          <h1 className="text-[20px] font-bold text-fg flex items-center gap-2.5">
+            <FileText size={18} className="text-amber" /> Generator Ofert AI
           </h1>
-          <p className="text-[12px] text-white/35 mt-0.5">Oferty z trackingiem otwarć i czasu na sekcjach</p>
+          <p className="text-[12px] text-muted mt-0.5">Oferty z trackingiem otwarć i czasu na sekcjach</p>
         </div>
         <button
           onClick={onNew}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-[10px] bg-[#E8A838] hover:bg-[#d4952e] text-black text-[13px] font-bold transition-all"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-[10px] bg-amber hover:opacity-90 hover:shadow-[var(--glow-amber)] text-[13px] font-bold transition-all"
+          style={{ color: 'var(--nav-pill-text)' }}
         >
           <Plus size={14} /> Nowa oferta
         </button>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex items-center gap-1.5 flex-wrap">
-        {FILTERS.map(f => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`px-3 py-1.5 rounded-[8px] text-[12px] font-semibold transition-all ${
-              filter === f.key ? 'bg-[#E8A838]/20 text-[#E8A838] border border-[#E8A838]/30' : 'bg-white/[0.04] text-white/40 hover:text-white/60 border border-transparent'
-            }`}
-          >
-            {f.label}
-            {f.key !== 'all' && (
-              <span className="ml-1.5 text-[10px] opacity-60">
-                {offers.filter(o => o.effective_status === f.key).length}
-              </span>
-            )}
-          </button>
-        ))}
+      {/* Metrics bar */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="kpi-card p-4" style={{ '--card-accent': 'var(--c-amber)' } as React.CSSProperties}>
+          <p className="section-label mb-1">Aktywne oferty</p>
+          <p className="num text-[22px] font-bold text-fg">{activeOffers.length}</p>
+        </div>
+        <div className="kpi-card p-4" style={{ '--card-accent': 'var(--c-blue)' } as React.CSSProperties}>
+          <p className="section-label mb-1">Czeka na kontakt</p>
+          <p className="num text-[22px] font-bold text-fg">{waitingContact.length}</p>
+        </div>
+        <div className="kpi-card p-4" style={{ '--card-accent': 'var(--c-green)' } as React.CSSProperties}>
+          <p className="section-label mb-1">Wartość w ofertach</p>
+          <p className="num text-[22px] font-bold text-fg">{totalValue > 0 ? `${fmt(totalValue)} PLN` : '—'}</p>
+        </div>
       </div>
 
-      {/* Table */}
+      {/* Filter segmented control */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {FILTERS.map(f => {
+          const count = f.key === 'all' ? offers.length : offers.filter(o => o.effective_status === f.key).length
+          const isActive = filter === f.key
+          return (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12px] font-semibold transition-all ${
+                isActive
+                  ? 'bg-amber/20 text-amber border border-amber/30'
+                  : 'bg-fg/[0.04] text-muted hover:text-fg border border-transparent'
+              }`}
+            >
+              {f.label}
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                isActive ? 'bg-amber/20 text-amber' : 'bg-fg/[0.06] text-subtle'
+              }`}>{count}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* List */}
       {loading ? (
         <div className="flex items-center justify-center h-40">
-          <Loader2 size={22} className="animate-spin text-white/30" />
+          <Loader2 size={22} className="animate-spin text-amber" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-48 text-center">
-          <FileText size={32} className="text-white/10 mb-3" />
-          <p className="text-[13px] text-white/30">
+        <div className="card-elevated rounded-[14px] flex flex-col items-center justify-center h-48 text-center">
+          <FileText size={32} className="text-subtle mb-3" />
+          <p className="text-[13px] text-muted">
             {filter === 'all' ? 'Brak ofert — kliknij "Nowa oferta" aby zacząć' : 'Brak ofert w tym filtrze'}
           </p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {filtered.map(offer => {
             const st = getStatusCfg(offer.effective_status)
             const total = offer.pricing_variants?.[offer.pricing_variants.length - 1]?.price ?? 0
+            const temp = getTemp(offer)
+            const isHot = temp === 'hot'
             return (
               <div
                 key={offer.id}
-                className="bg-[#0f1a30] border border-white/[0.07] rounded-[14px] overflow-hidden hover:border-white/[0.12] transition-all group"
+                className="card-elevated rounded-[14px] overflow-hidden relative"
               >
-                <div className="px-5 py-4 flex items-center gap-4">
-                  {/* Client */}
+                {/* Left accent strip */}
+                <div
+                  className="absolute left-0 top-0 bottom-0 w-[3px]"
+                  style={{ background: TEMP_STRIP[temp] }}
+                />
+
+                <div className="pl-5 pr-5 py-4 flex items-start gap-4">
+                  {/* Main info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2.5 mb-1">
-                      <p className="text-[14px] font-bold text-white truncate">{offer.company_name}</p>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${st.color}`}>{st.label}</span>
+                      {isHot && <Flame size={13} className="text-amber flex-shrink-0" />}
+                      <p className="text-[14px] font-bold text-fg truncate">{offer.company_name}</p>
+                      <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold ${st.color}`}>{st.label}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-[11px] text-white/35">
+                    <div className="flex items-center gap-3 text-[11px] text-muted flex-wrap">
                       {offer.project_type && <span>{offer.project_type}</span>}
-                      {total > 0 && <span className="text-[#E8A838]/70 font-semibold">{fmt(total)} PLN</span>}
+                      {total > 0 && <span className="text-amber font-semibold num">{fmt(total)} PLN</span>}
                       <span>{new Date(offer.created_at).toLocaleDateString('pl-PL')}</span>
                       {offer.expires_at && (
-                        <span className={new Date(offer.expires_at) < new Date() ? 'text-red-400/60' : ''}>
+                        <span className={new Date(offer.expires_at) < new Date() ? 'text-danger' : 'text-subtle'}>
                           Ważna do {new Date(offer.expires_at).toLocaleDateString('pl-PL')}
                         </span>
                       )}
                     </div>
+
+                    {/* Tracking row */}
+                    <div className="flex items-center gap-4 mt-2.5 flex-wrap">
+                      <div className="flex items-center gap-1 text-[11px]">
+                        <Eye size={11} className={offer.view_count > 0 ? 'text-amber' : 'text-subtle'} />
+                        <span className={`num ${offer.view_count > 0 ? 'text-amber font-semibold' : 'text-subtle'}`}>{offer.view_count}×</span>
+                        <span className="text-subtle ml-0.5">otwarć</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px]">
+                        <Clock size={11} className="text-subtle" />
+                        <span className="text-muted">
+                          {offer.last_viewed_at
+                            ? formatDistanceToNow(new Date(offer.last_viewed_at), { locale: pl, addSuffix: true })
+                            : '—'}
+                        </span>
+                      </div>
+                      <div className={`flex items-center gap-1 text-[11px] ${offer.time_on_pricing >= 120 ? 'text-amber font-bold' : 'text-subtle'}`}>
+                        <CreditCard size={11} className="flex-shrink-0" />
+                        <span className="num">{offer.time_on_pricing > 0 ? fmtTime(offer.time_on_pricing) : '—'}</span>
+                        <span className="text-subtle font-normal ml-0.5">cennik</span>
+                      </div>
+                      {offer.cta_clicked && (
+                        <div className="flex items-center gap-1 text-[11px] text-success">
+                          <Check size={11} />
+                          <span>CTA kliknięte</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Hot insight */}
+                    {isHot && (
+                      <p className="text-[11px] text-amber mt-2 font-medium">
+                        Spędził {fmtTime(offer.time_on_pricing)} na cenniku — najlepszy moment żeby zadzwonić.
+                      </p>
+                    )}
                   </div>
 
-                  {/* Tracking stats */}
-                  <div className="hidden lg:flex items-center gap-5">
-                    {/* Views */}
-                    <div className="flex items-center gap-1.5 text-[12px]">
-                      <Eye size={13} className="text-white/25" />
-                      <span className={offer.view_count > 0 ? 'text-white/70 font-semibold' : 'text-white/25'}>
-                        {offer.view_count}×
-                      </span>
-                    </div>
-
-                    {/* Last viewed */}
-                    <div className="flex items-center gap-1.5 text-[12px] w-24">
-                      <Clock size={13} className="text-white/25" />
-                      <span className="text-white/40 truncate">
-                        {offer.last_viewed_at
-                          ? formatDistanceToNow(new Date(offer.last_viewed_at), { locale: pl, addSuffix: true })
-                          : '—'}
-                      </span>
-                    </div>
-
-                    {/* Pricing time */}
-                    <div className={`flex items-center gap-1.5 text-[12px] w-16 ${offer.time_on_pricing >= 120 ? 'text-red-400 font-bold' : 'text-white/40'}`}>
-                      <CreditCard size={13} className="opacity-60 flex-shrink-0" />
-                      <span>{offer.time_on_pricing > 0 ? fmtTime(offer.time_on_pricing) : '—'}</span>
-                    </div>
-
-                    {/* CTA */}
-                    <div className="w-5 flex justify-center">
-                      {offer.cta_clicked
-                        ? <Check size={14} className="text-green-400" />
-                        : <X size={14} className="text-white/20" />}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* Actions — always visible */}
+                  <div className="flex items-center gap-1.5 flex-shrink-0 mt-0.5">
                     <button
                       onClick={() => copyLink(offer.public_slug)}
-                      className="p-2 rounded-[8px] bg-white/[0.05] text-white/40 hover:text-white transition-all"
+                      className="p-2 rounded-[8px] bg-fg/[0.04] border border-border text-muted hover:text-fg transition-all"
                       title="Kopiuj link"
                     >
-                      {copied === offer.public_slug ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
+                      {copied === offer.public_slug ? <Check size={13} className="text-success" /> : <Copy size={13} />}
                     </button>
                     <a
                       href={`/offer/${offer.public_slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 rounded-[8px] bg-white/[0.05] text-white/40 hover:text-white transition-all"
+                      className="p-2 rounded-[8px] bg-fg/[0.04] border border-border text-muted hover:text-fg transition-all"
                       title="Podgląd oferty"
                     >
                       <ExternalLink size={13} />
                     </a>
                     <button
                       onClick={() => onEdit(offer)}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-[8px] bg-white/[0.05] text-white/50 hover:text-white text-[11px] font-semibold transition-all"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-[8px] bg-amber/15 text-amber hover:bg-amber/25 text-[11px] font-semibold transition-all"
                     >
                       <Pencil size={11} /> Edytuj
                     </button>
                     <button
                       onClick={() => onDuplicate(offer)}
-                      className="p-2 rounded-[8px] bg-white/[0.05] text-white/30 hover:text-white/60 transition-all"
+                      className="p-2 rounded-[8px] bg-fg/[0.04] border border-border text-subtle hover:text-muted transition-all"
                       title="Duplikuj"
                     >
                       <RefreshCw size={12} />
                     </button>
                   </div>
                 </div>
-
-                {/* Tracking callout — shown when offer was viewed */}
-                {offer.view_count > 0 && offer.last_viewed_at && (
-                  <div className="px-5 py-3 flex items-center gap-3 border-t border-[#E8A838]/20 bg-[#E8A838]/[0.05]">
-                    <div className="w-2 h-2 rounded-full bg-[#E8A838] animate-pulse flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-semibold text-[#E8A838]">
-                        Oferta otwarta {offer.view_count} {offer.view_count === 1 ? 'raz' : 'razy'}, ostatnio {formatLastViewed(offer.last_viewed_at)}
-                      </p>
-                      <p className="text-[11px] text-white/50 mt-0.5">
-                        Wiesz kiedy klient otworzył ofertę. Najlepszy moment żeby zadzwonić.
-                        {offer.time_on_pricing > 60 && <span className="text-amber-400 font-semibold ml-1">· {fmtTime(offer.time_on_pricing)} na cenniku</span>}
-                      </p>
-                    </div>
-                  </div>
-                )}
               </div>
             )
           })}

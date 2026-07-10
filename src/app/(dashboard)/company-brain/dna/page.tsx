@@ -168,7 +168,7 @@ function mergeDNADraft(current: DNA, draft: DNA): DNA {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-[12px] font-semibold text-white/60 uppercase tracking-wide">{label}</label>
+      <label className="text-[12px] font-semibold text-muted uppercase tracking-wide">{label}</label>
       {children}
     </div>
   )
@@ -183,7 +183,7 @@ function Input({ value, onChange, placeholder, type = 'text' }: {
       value={value}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white placeholder:text-white/25 focus:outline-none focus:border-accent/50 transition-colors"
+      className="w-full bg-raised border border-fg/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-fg placeholder:text-subtle focus:outline-none focus:border-pink/50 transition-colors"
     />
   )
 }
@@ -197,7 +197,7 @@ function Textarea({ value, onChange, placeholder, rows = 3 }: {
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows}
-      className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white placeholder:text-white/25 focus:outline-none focus:border-accent/50 transition-colors resize-none"
+      className="w-full bg-raised border border-fg/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-fg placeholder:text-subtle focus:outline-none focus:border-pink/50 transition-colors resize-none"
     />
   )
 }
@@ -221,18 +221,18 @@ function TagList({ items, onChange, placeholder }: {
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add() } }}
           placeholder={placeholder ?? 'Wpisz i naciśnij Enter…'}
-          className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[12px] text-white placeholder:text-white/25 focus:outline-none focus:border-accent/50 transition-colors"
+          className="flex-1 bg-raised border border-fg/[0.08] rounded-[8px] px-3 py-2 text-[12px] text-fg placeholder:text-subtle focus:outline-none focus:border-pink/50 transition-colors"
         />
-        <button onClick={add} className="p-2 rounded-[8px] bg-white/[0.05] border border-white/[0.08] text-white/40 hover:text-white transition-colors">
+        <button onClick={add} className="p-2 rounded-[8px] bg-fg/[0.05] border border-fg/[0.08] text-subtle hover:text-fg transition-colors">
           <Plus size={14} />
         </button>
       </div>
       {items.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {items.map((item, i) => (
-            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-accent/15 border border-accent/25 text-[11px] text-accent">
+            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-pink/15 border border-pink/25 text-[11px] text-pink">
               {item}
-              <button onClick={() => onChange(items.filter((_, j) => j !== i))} className="hover:text-white transition-colors">
+              <button onClick={() => onChange(items.filter((_, j) => j !== i))} className="hover:opacity-60 transition-opacity">
                 <X size={10} />
               </button>
             </span>
@@ -296,16 +296,16 @@ function AIInterviewTab({ onDNASaved }: { onDNASaved: () => void }) {
 
   if (loading) return (
     <div className="flex items-center gap-3 py-8 justify-center">
-      <Loader2 size={16} className="animate-spin text-white/40" />
-      <span className="text-[13px] text-white/40">Analizuję brakującą wiedzę…</span>
+      <Loader2 size={16} className="animate-spin text-pink" />
+      <span className="text-[13px] text-muted">Analizuję brakującą wiedzę…</span>
     </div>
   )
 
   if (questions.length === 0) return (
     <div className="py-10 text-center space-y-3">
-      <CheckCircle2 size={32} className="text-green-400 mx-auto" />
-      <p className="text-[14px] font-semibold text-white">DNA jest kompletne!</p>
-      <p className="text-[12px] text-white/40">Wszystkie kluczowe informacje zostały uzupełnione.</p>
+      <CheckCircle2 size={32} className="text-success mx-auto" />
+      <p className="text-[14px] font-semibold text-fg">DNA jest kompletne!</p>
+      <p className="text-[12px] text-muted">Wszystkie kluczowe informacje zostały uzupełnione.</p>
     </div>
   )
 
@@ -313,47 +313,48 @@ function AIInterviewTab({ onDNASaved }: { onDNASaved: () => void }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 p-3 rounded-[10px] bg-[#6366f1]/[0.07] border border-accent/20">
-        <MessageSquare size={14} className="text-accent flex-shrink-0" />
-        <p className="text-[12px] text-white/60">
-          <span className="text-accent font-semibold">{questions.length} pytań</span> o brakującą wiedzę.
+      <div className="flex items-center gap-2 p-3 rounded-[10px] bg-pink/[0.07] border border-pink/20">
+        <MessageSquare size={14} className="text-pink flex-shrink-0" />
+        <p className="text-[12px] text-muted">
+          <span className="text-pink font-semibold">{questions.length} pytań</span> o brakującą wiedzę.
           Odpowiedz na te które znasz — AI automatycznie uzupełni DNA.
         </p>
       </div>
 
       {categories.map(category => (
         <div key={category}>
-          <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-2">{category}</p>
+          <p className="text-[11px] font-semibold text-subtle uppercase tracking-wide mb-2">{category}</p>
           <div className="space-y-2">
             {questions.filter(q => q.category === category).map(q => (
-              <div key={q.field} className="bg-white/[0.03] border border-white/[0.07] rounded-[12px] overflow-hidden">
+              <div key={q.field} className="bg-raised border border-border rounded-[12px] overflow-hidden">
                 <button
                   onClick={() => setExpanded(expanded === q.field ? null : q.field)}
-                  className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-white/[0.02] transition-colors"
+                  className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-fg/[0.03] transition-colors"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-medium text-white">{q.question}</p>
-                    {q.hint && <p className="text-[11px] text-white/35 mt-0.5 italic">{q.hint}</p>}
+                    <p className="text-[13px] font-medium text-fg">{q.question}</p>
+                    {q.hint && <p className="text-[11px] text-subtle mt-0.5 italic">{q.hint}</p>}
                   </div>
                   {expanded === q.field
-                    ? <ChevronUp size={13} className="text-white/30 flex-shrink-0 mt-0.5" />
-                    : <ChevronDown size={13} className="text-white/30 flex-shrink-0 mt-0.5" />
+                    ? <ChevronUp size={13} className="text-subtle flex-shrink-0 mt-0.5" />
+                    : <ChevronDown size={13} className="text-subtle flex-shrink-0 mt-0.5" />
                   }
                 </button>
 
                 {expanded === q.field && (
-                  <div className="px-4 pb-4 border-t border-white/[0.05] pt-3 space-y-2">
+                  <div className="px-4 pb-4 border-t border-border-s pt-3 space-y-2">
                     <textarea
                       value={answers[q.field] ?? ''}
                       onChange={e => setAnswers(a => ({ ...a, [q.field]: e.target.value }))}
                       placeholder={`Twoja odpowiedź… (${q.hint})`}
                       rows={4}
-                      className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[12px] text-white placeholder:text-white/25 focus:outline-none focus:border-accent/50 transition-colors resize-none"
+                      className="w-full bg-fg/[0.04] border border-fg/[0.08] rounded-[8px] px-3 py-2 text-[12px] text-fg placeholder:text-subtle focus:outline-none focus:border-pink/50 transition-colors resize-none"
                     />
                     <button
                       onClick={() => void saveAnswer(q)}
                       disabled={saving[q.field] || !answers[q.field]?.trim()}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-[7px] bg-accent hover:opacity-90 disabled:opacity-40 text-white text-[12px] font-semibold transition-all"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-[7px] bg-pink hover:opacity-90 disabled:opacity-40 text-[12px] font-semibold transition-all"
+                      style={{ color: 'var(--nav-pill-text)' }}
                     >
                       {saving[q.field]
                         ? <><Loader2 size={12} className="animate-spin" /> Zapisuję…</>
@@ -494,8 +495,8 @@ export default function DNAEditorPage() {
 
   if (loading) return (
     <div className="flex items-center gap-3 p-4">
-      <Loader2 size={16} className="animate-spin text-white/40" />
-      <span className="text-[13px] text-white/40">Ładowanie DNA…</span>
+      <Loader2 size={16} className="animate-spin text-pink" />
+      <span className="text-[13px] text-muted">Ładowanie DNA…</span>
     </div>
   )
 
@@ -504,17 +505,17 @@ export default function DNAEditorPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-[20px] font-bold text-white flex items-center gap-2">
-            <Brain size={20} className="text-accent" /> Company DNA Editor
+          <h1 className="text-[20px] font-bold text-fg flex items-center gap-2">
+            <Brain size={20} className="text-pink" /> Company DNA Editor
           </h1>
-          <p className="text-[12px] text-white/40 mt-0.5">Profil firmy zasilany automatycznie z plików kontekstowych</p>
+          <p className="text-[12px] text-muted mt-0.5">Profil firmy zasilany automatycznie z plików kontekstowych</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => void syncFromFiles()}
             disabled={syncing}
             title="Zaciągnij dane ze wszystkich przetworzonych plików"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-white/[0.05] border border-white/[0.08] hover:bg-white/[0.08] disabled:opacity-50 text-white/60 hover:text-white text-[12px] font-semibold transition-all"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-fg/[0.05] border border-fg/[0.08] hover:bg-fg/[0.08] disabled:opacity-50 text-muted hover:text-fg text-[12px] font-semibold transition-all"
           >
             {syncing ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
             {syncing ? 'Synchronizuję…' : 'Sync z plików'}
@@ -522,7 +523,8 @@ export default function DNAEditorPage() {
           <button
             onClick={() => void save()}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 rounded-[10px] bg-accent hover:opacity-90 disabled:opacity-50 text-white text-[13px] font-bold transition-all shadow-lg shadow-indigo-500/20"
+            className="flex items-center gap-2 px-4 py-2 rounded-[10px] bg-pink hover:opacity-90 hover:shadow-[var(--glow-pink)] disabled:opacity-50 text-[13px] font-bold transition-all"
+            style={{ color: 'var(--nav-pill-text)' }}
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
             {saving ? 'Zapisuję…' : 'Zapisz DNA'}
@@ -531,19 +533,19 @@ export default function DNAEditorPage() {
       </div>
 
       {/* Fill from URL */}
-      <div className="flex items-center gap-2 px-3 py-2 rounded-[12px] bg-white/[0.02] border border-white/[0.07]">
-        <Globe size={14} className="text-white/30 flex-shrink-0" />
+      <div className="flex items-center gap-2 px-3 py-2 rounded-[12px] bg-raised border border-border">
+        <Globe size={14} className="text-subtle flex-shrink-0" />
         <input
           value={urlInput}
           onChange={e => setUrlInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') void fillFromUrl() }}
           placeholder="https://strona-klienta.pl — AI wypełni DNA na podstawie strony"
-          className="flex-1 bg-transparent text-[13px] text-white placeholder:text-white/25 focus:outline-none min-w-0"
+          className="flex-1 bg-transparent text-[13px] text-fg placeholder:text-subtle focus:outline-none min-w-0"
         />
         <button
           onClick={() => void fillFromUrl()}
           disabled={urlFilling || !urlInput.trim()}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-white/[0.06] border border-white/[0.1] hover:bg-white/[0.1] disabled:opacity-40 text-white/80 text-[12px] font-semibold transition-all whitespace-nowrap"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-pink/[0.12] border border-pink/25 hover:bg-pink/20 hover:shadow-[var(--glow-pink)] disabled:opacity-40 text-pink text-[12px] font-semibold transition-all whitespace-nowrap"
         >
           {urlFilling
             ? <><Loader2 size={12} className="animate-spin" /> Analizuję…</>
@@ -554,28 +556,29 @@ export default function DNAEditorPage() {
 
       {/* Draft applied banner */}
       {draftApplied && (
-        <div className="flex items-center gap-2 p-3 rounded-[10px] bg-green-500/[0.08] border border-green-500/20 text-green-400 text-[12px]">
+        <div className="flex items-center gap-2 p-3 rounded-[10px] bg-success/[0.08] border border-success/20 text-success text-[12px]">
           <CheckCircle2 size={14} className="flex-shrink-0" />
           <span>
-            Szkic ze strony wczytany — AI uzupełnił puste pola. Przejrzyj każdą zakładkę i kliknij <strong className="text-green-300">Zapisz DNA</strong>.
+            Szkic ze strony wczytany — AI uzupełnił puste pola. Przejrzyj każdą zakładkę i kliknij <strong className="text-success">Zapisz DNA</strong>.
           </span>
-          <button onClick={() => setDraftApplied(false)} className="ml-auto text-green-400/60 hover:text-green-400 transition-colors">
+          <button onClick={() => setDraftApplied(false)} className="ml-auto text-success/60 hover:text-success transition-colors">
             <X size={13} />
           </button>
         </div>
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 flex-wrap bg-white/[0.03] border border-white/[0.07] rounded-[12px] p-1">
+      <div className="flex gap-1 flex-wrap bg-raised border border-border rounded-[12px] p-1">
         {TABS.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12px] font-medium transition-all ${
               tab === t.id
-                ? 'bg-accent text-white shadow'
-                : 'text-white/40 hover:text-white/70 hover:bg-white/[0.04]'
+                ? 'bg-pink shadow-[var(--glow-pink)]'
+                : 'text-subtle hover:text-muted hover:bg-fg/[0.04]'
             }`}
+            style={tab === t.id ? { color: 'var(--nav-pill-text)' } : undefined}
           >
             <t.icon size={13} />
             {t.label}
@@ -584,7 +587,7 @@ export default function DNAEditorPage() {
       </div>
 
       {/* Tab content */}
-      <div className="bg-card border border-white/[0.07] rounded-[14px] p-6">
+      <div className="card-elevated rounded-[14px] p-6">
 
         {/* ── AI INTERVIEW ── */}
         {tab === 'interview' && (
@@ -594,7 +597,7 @@ export default function DNAEditorPage() {
         {/* ── BASICS ── */}
         {tab === 'basics' && (
           <div className="space-y-5">
-            <p className="text-[13px] font-semibold text-white/60 uppercase tracking-wide">Podstawy firmy</p>
+            <p className="text-[13px] font-semibold text-subtle uppercase tracking-wide">Podstawy firmy</p>
             <div className="grid grid-cols-2 gap-4">
               <Field label="Nazwa firmy"><Input value={dna.company_name} onChange={set('company_name')} placeholder="AM Automations" /></Field>
               <Field label="Tagline"><Input value={dna.company_tagline} onChange={set('company_tagline')} placeholder="Automatyzujemy sprzedaż B2B" /></Field>
@@ -615,10 +618,10 @@ export default function DNAEditorPage() {
         {tab === 'services' && (
           <div className="space-y-5">
             <div className="flex items-center justify-between">
-              <p className="text-[13px] font-semibold text-white/60 uppercase tracking-wide">Usługi i oferta</p>
+              <p className="text-[13px] font-semibold text-subtle uppercase tracking-wide">Usługi i oferta</p>
               <button
                 onClick={() => set('services')([...dna.services, { name: '', description: '', price_range: '', delivery_time: '', usp: '' }])}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-white/[0.05] border border-white/[0.08] text-white/60 text-[12px] hover:text-white transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-fg/[0.05] border border-fg/[0.08] text-muted text-[12px] hover:text-fg transition-all"
               >
                 <Plus size={12} /> Dodaj usługę
               </button>
@@ -636,10 +639,10 @@ export default function DNAEditorPage() {
             <Field label="Dodatkowe USP"><TagList items={dna.secondary_usps} onChange={set('secondary_usps')} placeholder="np. płatność po odbiorze" /></Field>
 
             {dna.services.map((s, i) => (
-              <div key={i} className="p-4 rounded-[10px] bg-white/[0.03] border border-white/[0.06] space-y-3">
+              <div key={i} className="p-4 rounded-[10px] bg-raised border border-border space-y-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-[12px] font-semibold text-white">Usługa {i + 1}</p>
-                  <button onClick={() => set('services')(dna.services.filter((_, j) => j !== i))} className="text-white/30 hover:text-red-400 transition-colors">
+                  <p className="text-[12px] font-semibold text-fg">Usługa {i + 1}</p>
+                  <button onClick={() => set('services')(dna.services.filter((_, j) => j !== i))} className="text-subtle hover:text-danger transition-colors">
                     <X size={13} />
                   </button>
                 </div>
@@ -662,7 +665,7 @@ export default function DNAEditorPage() {
         {/* ── ICP ── */}
         {tab === 'icp' && (
           <div className="space-y-5">
-            <p className="text-[13px] font-semibold text-white/60 uppercase tracking-wide">Idealny klient (ICP)</p>
+            <p className="text-[13px] font-semibold text-subtle uppercase tracking-wide">Idealny klient (ICP)</p>
             <Field label="Opis ICP (pełny)">
               <Textarea value={dna.icp_description} onChange={set('icp_description')}
                 placeholder="CEO lub Founder agencji marketingowej B2B, 10-50 pracowników, 2M+ PLN przychodu..." rows={4} />
@@ -676,8 +679,8 @@ export default function DNAEditorPage() {
             <Field label="Główne bóle klienta"><TagList items={dna.icp_pain_points} onChange={set('icp_pain_points')} placeholder="np. brak systemu do zarządzania leadami" /></Field>
             <Field label="Główne cele klienta"><TagList items={dna.icp_goals} onChange={set('icp_goals')} placeholder="np. skalowanie sprzedaży bez powiększania zespołu" /></Field>
             <Field label="Sygnały zakupowe (triggery)"><TagList items={dna.icp_buying_triggers} onChange={set('icp_buying_triggers')} placeholder="np. nowy wspólnik w firmie" /></Field>
-            <div className="p-3 rounded-[10px] bg-red-500/[0.07] border border-red-500/20">
-              <p className="text-[11px] font-semibold text-red-400 uppercase tracking-wide mb-2">Red flags — kogo NIE chcemy</p>
+            <div className="p-3 rounded-[10px] bg-danger/[0.07] border border-danger/20">
+              <p className="text-[11px] font-semibold text-danger uppercase tracking-wide mb-2">Red flags — kogo NIE chcemy</p>
               <TagList items={dna.icp_red_flags} onChange={set('icp_red_flags')} placeholder="np. firmy poniżej 1M PLN przychodu" />
             </div>
           </div>
@@ -686,7 +689,7 @@ export default function DNAEditorPage() {
         {/* ── SALES ── */}
         {tab === 'sales' && (
           <div className="space-y-5">
-            <p className="text-[13px] font-semibold text-white/60 uppercase tracking-wide">Sprzedaż i lejek</p>
+            <p className="text-[13px] font-semibold text-subtle uppercase tracking-wide">Sprzedaż i lejek</p>
             <div className="grid grid-cols-3 gap-4">
               <Field label="Avg. cykl sprzedaży (dni)"><Input value={dna.avg_sales_cycle_days} onChange={set('avg_sales_cycle_days')} type="number" placeholder="21" /></Field>
               <Field label="Wskaźnik zamknięć (%)"><Input value={dna.close_rate_percent} onChange={set('close_rate_percent')} type="number" placeholder="25" /></Field>
@@ -698,19 +701,19 @@ export default function DNAEditorPage() {
             {/* Objections */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-[12px] font-semibold text-white/60 uppercase tracking-wide">Bank objekcji</p>
+                <p className="text-[12px] font-semibold text-subtle uppercase tracking-wide">Bank objekcji</p>
                 <button
                   onClick={() => set('top_objections')([...dna.top_objections, { objection: '', best_response: '', frequency: 'medium' }])}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-[6px] bg-white/[0.05] border border-white/[0.08] text-white/50 text-[11px] hover:text-white transition-all"
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-[6px] bg-fg/[0.05] border border-fg/[0.08] text-subtle text-[11px] hover:text-fg transition-all"
                 >
                   <Plus size={11} /> Dodaj objekcję
                 </button>
               </div>
               {dna.top_objections.map((obj, i) => (
-                <div key={i} className="p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.06] space-y-2">
+                <div key={i} className="p-3 rounded-[10px] bg-raised border border-border space-y-2">
                   <div className="flex items-center justify-between">
-                    <p className="text-[11px] text-white/40">Objekcja {i + 1}</p>
-                    <button onClick={() => set('top_objections')(dna.top_objections.filter((_, j) => j !== i))} className="text-white/20 hover:text-red-400 transition-colors"><X size={12} /></button>
+                    <p className="text-[11px] text-subtle">Objekcja {i + 1}</p>
+                    <button onClick={() => set('top_objections')(dna.top_objections.filter((_, j) => j !== i))} className="text-subtle hover:text-danger transition-colors"><X size={12} /></button>
                   </div>
                   <Input value={obj.objection} onChange={v => set('top_objections')(dna.top_objections.map((x, j) => j === i ? { ...x, objection: v } : x))} placeholder='np. "Za drogo"' />
                   <Textarea value={obj.best_response} onChange={v => set('top_objections')(dna.top_objections.map((x, j) => j === i ? { ...x, best_response: v } : x))} placeholder="Najlepsza odpowiedź na tę objekcję..." rows={2} />
@@ -721,19 +724,19 @@ export default function DNAEditorPage() {
             {/* Competitors */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-[12px] font-semibold text-white/60 uppercase tracking-wide">Konkurenci</p>
+                <p className="text-[12px] font-semibold text-subtle uppercase tracking-wide">Konkurenci</p>
                 <button
                   onClick={() => set('main_competitors')([...dna.main_competitors, { name: '', weakness: '', how_we_win: '' }])}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-[6px] bg-white/[0.05] border border-white/[0.08] text-white/50 text-[11px] hover:text-white transition-all"
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-[6px] bg-fg/[0.05] border border-fg/[0.08] text-subtle text-[11px] hover:text-fg transition-all"
                 >
                   <Plus size={11} /> Dodaj konkurenta
                 </button>
               </div>
               {dna.main_competitors.map((c, i) => (
-                <div key={i} className="p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.06] space-y-2">
+                <div key={i} className="p-3 rounded-[10px] bg-raised border border-border space-y-2">
                   <div className="flex items-center justify-between">
-                    <p className="text-[11px] text-white/40">Konkurent {i + 1}</p>
-                    <button onClick={() => set('main_competitors')(dna.main_competitors.filter((_, j) => j !== i))} className="text-white/20 hover:text-red-400 transition-colors"><X size={12} /></button>
+                    <p className="text-[11px] text-subtle">Konkurent {i + 1}</p>
+                    <button onClick={() => set('main_competitors')(dna.main_competitors.filter((_, j) => j !== i))} className="text-subtle hover:text-danger transition-colors"><X size={12} /></button>
                   </div>
                   <Input value={c.name} onChange={v => set('main_competitors')(dna.main_competitors.map((x, j) => j === i ? { ...x, name: v } : x))} placeholder="Nazwa konkurenta" />
                   <div className="grid grid-cols-2 gap-2">
@@ -749,13 +752,13 @@ export default function DNAEditorPage() {
         {/* ── CONTENT ── */}
         {tab === 'content' && (
           <div className="space-y-5">
-            <p className="text-[13px] font-semibold text-white/60 uppercase tracking-wide">Strategia contentu</p>
+            <p className="text-[13px] font-semibold text-subtle uppercase tracking-wide">Strategia contentu</p>
             <div className="grid grid-cols-2 gap-4">
               <Field label="Archetyp komunikacji">
                 <select
                   value={dna.content_archetype}
                   onChange={e => set('content_archetype')(e.target.value)}
-                  className="w-full bg-white/[0.05] border border-white/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-white focus:outline-none focus:border-accent/50"
+                  className="w-full bg-raised border border-fg/[0.08] rounded-[8px] px-3 py-2 text-[13px] text-fg focus:outline-none focus:border-pink/50"
                 >
                   <option value="" className="bg-bg">Wybierz archetyp…</option>
                   {['Ekspert', 'Budowniczy', 'Prowokator', 'Opiekun', 'Innowator', 'Lider', 'Edukator'].map(a => (
@@ -781,29 +784,29 @@ export default function DNAEditorPage() {
         {/* ── PROOF ── */}
         {tab === 'proof' && (
           <div className="space-y-5">
-            <p className="text-[13px] font-semibold text-white/60 uppercase tracking-wide">Dowody i case studies</p>
+            <p className="text-[13px] font-semibold text-subtle uppercase tracking-wide">Dowody i case studies</p>
             <div className="flex items-center justify-between">
-              <p className="text-[12px] text-white/40">Case studies zasilają generator treści, ofert i outreach AI</p>
+              <p className="text-[12px] text-muted">Case studies zasilają generator treści, ofert i outreach AI</p>
               <button
                 onClick={() => set('case_studies')([...dna.case_studies, { client_industry: '', problem: '', solution: '', result: '', timeframe: '', can_mention: true }])}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-[6px] bg-white/[0.05] border border-white/[0.08] text-white/50 text-[11px] hover:text-white transition-all"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-[6px] bg-fg/[0.05] border border-fg/[0.08] text-subtle text-[11px] hover:text-fg transition-all"
               >
                 <Plus size={11} /> Dodaj case study
               </button>
             </div>
             {dna.case_studies.map((cs, i) => (
-              <div key={i} className="p-4 rounded-[10px] bg-white/[0.03] border border-white/[0.06] space-y-3">
+              <div key={i} className="p-4 rounded-[10px] bg-raised border border-border space-y-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-[12px] font-semibold text-white">Case study {i + 1}</p>
+                  <p className="text-[12px] font-semibold text-fg">Case study {i + 1}</p>
                   <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-1.5 text-[11px] text-white/40 cursor-pointer">
+                    <label className="flex items-center gap-1.5 text-[11px] text-muted cursor-pointer">
                       <input type="checkbox" checked={cs.can_mention}
                         onChange={e => set('case_studies')(dna.case_studies.map((x, j) => j === i ? { ...x, can_mention: e.target.checked } : x))}
                         className="w-3 h-3 rounded"
                       />
                       Można wspominać
                     </label>
-                    <button onClick={() => set('case_studies')(dna.case_studies.filter((_, j) => j !== i))} className="text-white/20 hover:text-red-400 transition-colors"><X size={13} /></button>
+                    <button onClick={() => set('case_studies')(dna.case_studies.filter((_, j) => j !== i))} className="text-subtle hover:text-danger transition-colors"><X size={13} /></button>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -823,7 +826,7 @@ export default function DNAEditorPage() {
         {/* ── METRICS ── */}
         {tab === 'metrics' && (
           <div className="space-y-5">
-            <p className="text-[13px] font-semibold text-white/60 uppercase tracking-wide">Metryki i cele</p>
+            <p className="text-[13px] font-semibold text-subtle uppercase tracking-wide">Metryki i cele</p>
             <div className="grid grid-cols-2 gap-4">
               <Field label="Cel miesięczny (PLN)"><Input value={dna.monthly_revenue_target} onChange={set('monthly_revenue_target')} type="number" placeholder="50000" /></Field>
               <Field label="Bieżący przychód (PLN)"><Input value={dna.monthly_revenue_current} onChange={set('monthly_revenue_current')} type="number" placeholder="30000" /></Field>
@@ -837,7 +840,7 @@ export default function DNAEditorPage() {
         {/* ── PREVIEW ── */}
         {tab === 'preview' && (
           <div className="space-y-4">
-            <p className="text-[13px] font-semibold text-white/60 uppercase tracking-wide">Przegląd kompletności</p>
+            <p className="text-[13px] font-semibold text-subtle uppercase tracking-wide">Przegląd kompletności</p>
             {[
               { label: 'Nazwa i opis firmy',    done: !!(dna.company_name && dna.company_description) },
               { label: 'Przynajmniej 1 usługa', done: dna.services.length > 0 },
@@ -851,12 +854,12 @@ export default function DNAEditorPage() {
               { label: 'Filary contentu',       done: dna.content_pillars.length > 0 },
               { label: 'Proces sprzedaży',      done: dna.sales_process.length > 0 },
             ].map(({ label, done }) => (
-              <div key={label} className="flex items-center gap-3 p-2.5 rounded-[8px] bg-white/[0.03] border border-white/[0.05]">
+              <div key={label} className="flex items-center gap-3 p-2.5 rounded-[8px] bg-raised border border-border">
                 {done
-                  ? <CheckCircle2 size={14} className="text-green-400 flex-shrink-0" />
-                  : <ChevronRight size={14} className="text-white/25 flex-shrink-0" />
+                  ? <CheckCircle2 size={14} className="text-success flex-shrink-0" />
+                  : <ChevronRight size={14} className="text-subtle flex-shrink-0" />
                 }
-                <span className={`text-[12px] ${done ? 'text-white/70' : 'text-white/35'}`}>{label}</span>
+                <span className={`text-[12px] ${done ? 'text-muted' : 'text-subtle'}`}>{label}</span>
               </div>
             ))}
           </div>
@@ -868,7 +871,8 @@ export default function DNAEditorPage() {
         <button
           onClick={() => void save()}
           disabled={saving}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-accent hover:opacity-90 disabled:opacity-50 text-white text-[13px] font-bold transition-all"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-pink hover:opacity-90 hover:shadow-[var(--glow-pink)] disabled:opacity-50 text-[13px] font-bold transition-all"
+          style={{ color: 'var(--nav-pill-text)' }}
         >
           {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           {saving ? 'Zapisuję…' : 'Zapisz DNA'}

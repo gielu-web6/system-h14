@@ -5,6 +5,7 @@ import {
   Flame, Thermometer, Snowflake, X, Phone, Mail, Calendar,
   FileText, MessageSquare, DollarSign, User, Building2, Tag, CheckCircle2,
   Loader2, AlertCircle, Send, ExternalLink, Check, Trash2,
+  TrendingUp, KanbanSquare,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -26,7 +27,7 @@ export const STAGE_CONFIG: Record<DealStage, { label: string; color: string; bg:
   odpowiedz:            { label: 'Odpowiedź',           color: '#a78bfa', bg: 'rgba(167,139,250,0.1)' },
   rozmowa_umowiona:     { label: 'Rozmowa umówiona',    color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
   diagnoza_zrobiona:    { label: 'Diagnoza zrobiona',   color: '#fb923c', bg: 'rgba(251,146,60,0.1)' },
-  oferta_prezentowana:  { label: 'Oferta prezentowana', color: '#6366f1', bg: 'rgba(99,102,241,0.1)' },
+  oferta_prezentowana:  { label: 'Oferta prezentowana', color: '#8f7bff', bg: 'rgba(143,123,255,0.1)' },
   negocjacje:           { label: 'Negocjacje',          color: '#ec4899', bg: 'rgba(236,72,153,0.1)' },
   wygrana:              { label: 'WYGRANA',             color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
   przegrana:            { label: 'PRZEGRANA',           color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
@@ -34,10 +35,17 @@ export const STAGE_CONFIG: Record<DealStage, { label: string; color: string; bg:
 }
 
 const STAGE_ORDER: DealStage[] = [
-  'nowy_lead', 'dm_wyslany', 'odpowiedz', 'rozmowa_umowiona',
-  'diagnoza_zrobiona', 'oferta_prezentowana', 'negocjacje',
+  'nowy_lead', 'rozmowa_umowiona',
+  'oferta_prezentowana', 'negocjacje',
   'wygrana', 'przegrana', 'nie_teraz',
 ]
+
+// Presentation split — pure visual, dealsByStage uses STAGE_ORDER
+const ACTIVE_STAGES: DealStage[] = [
+  'nowy_lead', 'rozmowa_umowiona',
+  'oferta_prezentowana', 'negocjacje',
+]
+const TERMINAL_STAGES: DealStage[] = ['wygrana', 'przegrana', 'nie_teraz']
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -108,12 +116,40 @@ function getDealContact(deal: Deal): ContactData {
   }
 }
 
+function getUserNotes(rawNotes: string | null | undefined): string {
+  if (!rawNotes) return ''
+  try {
+    const p = JSON.parse(rawNotes)
+    return p._n ?? ''
+  } catch {
+    return rawNotes.startsWith('{') ? '' : rawNotes
+  }
+}
+
 // ─── Badge helpers ────────────────────────────────────────────────────────────
 
 function ScoreBadge({ score }: { score?: 'hot' | 'warm' | 'cold' | null }) {
-  if (score === 'hot')  return <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 text-[9px] font-bold uppercase tracking-wide"><Flame size={8}/>Hot</span>
-  if (score === 'warm') return <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-orange-500/15 text-orange-400 text-[9px] font-bold uppercase tracking-wide"><Thermometer size={8}/>Warm</span>
-  if (score === 'cold') return <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400 text-[9px] font-bold uppercase tracking-wide"><Snowflake size={8}/>Cold</span>
+  if (score === 'hot')  return (
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide"
+      style={{ background: 'color-mix(in srgb, var(--c-red) 14%, transparent)', color: 'var(--c-red)' }}>
+      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--c-red)', boxShadow: '0 0 5px var(--c-red)' }} />
+      <Flame size={8}/>Hot
+    </span>
+  )
+  if (score === 'warm') return (
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide"
+      style={{ background: 'color-mix(in srgb, var(--c-amber) 14%, transparent)', color: 'var(--c-amber)' }}>
+      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--c-amber)', boxShadow: '0 0 5px var(--c-amber)' }} />
+      <Thermometer size={8}/>Warm
+    </span>
+  )
+  if (score === 'cold') return (
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide"
+      style={{ background: 'color-mix(in srgb, var(--c-blue) 14%, transparent)', color: 'var(--c-blue)' }}>
+      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--c-blue)', boxShadow: '0 0 5px var(--c-blue)' }} />
+      <Snowflake size={8}/>Cold
+    </span>
+  )
   return null
 }
 
@@ -144,23 +180,23 @@ function DealCard({ deal, onClick }: { deal: Deal; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="w-full text-left p-3 rounded-[10px] bg-[#1a2239] border border-white/[0.07] hover:border-white/15 hover:bg-[#1e2a45] transition-all group"
+      className="w-full text-left card-elevated is-interactive p-3 rounded-[10px] group"
     >
       <div className="flex items-start justify-between mb-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           <div className="w-7 h-7 rounded-[8px] bg-accent/20 flex items-center justify-center text-[11px] font-bold text-accent flex-shrink-0">
             {initials}
           </div>
           <div className="min-w-0">
-            <p className="text-[12px] font-semibold text-white truncate leading-tight">{displayName}</p>
-            {personName && <p className="text-[10px] text-white/40 truncate">{companyName}</p>}
+            <p className="text-[12px] font-semibold text-fg truncate leading-tight">{displayName}</p>
+            {personName && <p className="text-[10px] text-muted truncate">{companyName}</p>}
           </div>
         </div>
         <ScoreBadge score={c.ai_score_label} />
       </div>
       <div className="flex items-center justify-between mt-2">
-        <span className="text-[11px] font-semibold text-accent">{formatPLN(deal.value)}</span>
-        <span className="text-[10px] text-white/30">{dateStr}</span>
+        <span className="text-[11px] font-semibold text-accent num">{formatPLN(deal.value)}</span>
+        <span className="text-[10px] text-muted">{dateStr}</span>
       </div>
     </button>
   )
@@ -182,6 +218,7 @@ type EditForm = {
   project_scope: string
   next_step: string
   last_contact_date: string
+  user_notes: string
 }
 
 function DealModal({
@@ -228,6 +265,7 @@ function DealModal({
     project_scope: ic.project_scope ?? '',
     next_step: ic.next_step ?? '',
     last_contact_date: ic.last_contact_date ?? '',
+    user_notes: getUserNotes((initialDeal as Record<string, unknown>).notes as string),
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [showCloseConfirm, setShowCloseConfirm] = useState(false)
@@ -256,6 +294,7 @@ function DealModal({
       project_scope: ec.project_scope ?? '',
       next_step: ec.next_step ?? '',
       last_contact_date: deal.last_contact_date ?? '',
+      user_notes: getUserNotes((deal as Record<string, unknown>).notes as string),
     })
     setErrors({})
     setEditMode(true)
@@ -303,15 +342,11 @@ function DealModal({
         ai_score_label:   form.ai_score_label,
         ai_score_num:     form.ai_score_num,
       }
-      const existingNotes = (deal as Record<string, unknown>).notes as string ?? ''
-      let userNotes = ''
-      try { const p = JSON.parse(existingNotes); userNotes = p._n ?? '' } catch { userNotes = existingNotes.startsWith('{') ? '' : existingNotes }
-
       const safeUpdates: Partial<Deal> = {
         title: form.title.trim() || deal.title,
         stage: form.stage,
         value: form.value,
-        notes: buildNotes(contactData, userNotes),
+        notes: buildNotes(contactData, form.user_notes),
         // also try real columns if they exist in DB
         contact_name:      form.contact_name.trim() || null,
         contact_position:  form.contact_position.trim() || null,
@@ -385,22 +420,22 @@ function DealModal({
   }
 
   const inputCls = (err?: string) =>
-    `w-full px-3 py-2 rounded-[8px] bg-bg border text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all ${err ? 'border-red-500/50' : 'border-white/[0.1]'}`
+    `w-full px-3 py-2 rounded-[8px] bg-bg border text-fg text-[13px] placeholder:text-subtle focus:outline-none focus:border-accent/50 transition-all ${err ? 'border-danger/50' : 'border-border'}`
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-end">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
-      <div className="relative z-10 w-full sm:max-w-[480px] h-full bg-sidebar sm:border-l border-white/[0.08] overflow-y-auto shadow-2xl">
+      <div className="relative z-10 w-full sm:max-w-[480px] h-full bg-card border-l border-border overflow-y-auto" style={{ boxShadow: '-8px 0 40px rgba(0,0,0,0.40)' }}>
 
         {/* Confirm close with unsaved changes */}
         {showCloseConfirm && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-            <div className="bg-sidebar border border-white/[0.1] rounded-[16px] p-6 max-w-[280px] w-full">
-              <p className="text-[14px] font-semibold text-white mb-2">Niezapisane zmiany</p>
-              <p className="text-[12px] text-white/50 mb-4">Masz niezapisane zmiany. Zamknąć bez zapisu?</p>
+            <div className="bg-card border border-border rounded-[16px] p-6 max-w-[280px] w-full">
+              <p className="text-[14px] font-semibold text-fg mb-2">Niezapisane zmiany</p>
+              <p className="text-[12px] text-muted mb-4">Masz niezapisane zmiany. Zamknąć bez zapisu?</p>
               <div className="flex gap-2">
                 <button onClick={() => setShowCloseConfirm(false)}
-                  className="flex-1 py-2 rounded-[8px] bg-white/[0.06] text-white/70 text-[12px] font-medium hover:bg-white/[0.1] transition-all">
+                  className="flex-1 py-2 rounded-[8px] bg-raised border border-border text-muted text-[12px] font-medium hover:text-fg transition-all">
                   Wróć
                 </button>
                 <button onClick={onClose}
@@ -413,14 +448,14 @@ function DealModal({
         )}
 
         {/* Header */}
-        <div className="sticky top-0 bg-sidebar/95 backdrop-blur border-b border-white/[0.07] p-5 flex items-start justify-between">
+        <div className="sticky top-0 bg-card/95 backdrop-blur border-b border-border p-5 flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-[12px] bg-accent/20 flex items-center justify-center text-[14px] font-bold text-accent">
               {initials}
             </div>
             <div>
-              <p className="text-[15px] font-bold text-white">{displayName}</p>
-              <p className="text-[12px] text-white/40">{deal.title} · {dc.contact_position || '—'}</p>
+              <p className="text-[15px] font-bold text-fg">{displayName}</p>
+              <p className="text-[12px] text-muted">{deal.title} · {dc.contact_position || '—'}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -430,7 +465,7 @@ function DealModal({
                 Edytuj
               </button>
             )}
-            <button onClick={handleClose} className="p-1.5 rounded-[8px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all">
+            <button onClick={handleClose} className="p-1.5 rounded-[8px] text-muted hover:text-fg hover:bg-raised transition-all">
               <X size={16} />
             </button>
           </div>
@@ -442,7 +477,7 @@ function DealModal({
             <>
               {/* Contact */}
               <div>
-                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Kontakt</p>
+                <p className="section-label mb-2">Kontakt</p>
                 <div className="space-y-2">
                   <div>
                     <input value={form.contact_name} onChange={sf('contact_name')}
@@ -459,16 +494,16 @@ function DealModal({
 
               {/* Stage */}
               <div>
-                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Etap pipeline</p>
+                <p className="section-label mb-2">Etap pipeline</p>
                 <select value={form.stage} onChange={sf('stage')}
-                  className="w-full px-3 py-2 rounded-[8px] bg-bg border border-white/[0.1] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all">
+                  className="w-full px-3 py-2 rounded-[8px] bg-bg border border-border text-fg text-[13px] focus:outline-none focus:border-accent/50 transition-all">
                   {STAGE_ORDER.map(s => <option key={s} value={s}>{STAGE_CONFIG[s].label}</option>)}
                 </select>
               </div>
 
               {/* Score + value */}
               <div>
-                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Score i wartość</p>
+                <p className="section-label mb-2">Score i wartość</p>
                 <div className="grid grid-cols-3 gap-2">
                   <select value={form.ai_score_label} onChange={sf('ai_score_label')}
                     className="px-3 py-2 rounded-[8px] bg-bg border border-white/[0.1] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all">
@@ -491,7 +526,7 @@ function DealModal({
 
               {/* Contact info */}
               <div>
-                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Dane kontaktowe</p>
+                <p className="section-label mb-2">Dane kontaktowe</p>
                 <div className="space-y-2">
                   <div>
                     <input type="email" value={form.contact_email} onChange={sf('contact_email')} placeholder="Email"
@@ -501,7 +536,7 @@ function DealModal({
                   <input type="tel" value={form.contact_phone} onChange={sf('contact_phone')} placeholder="Telefon"
                     className={inputCls()} />
                   <select value={form.contact_segment} onChange={sf('contact_segment')}
-                    className="w-full px-3 py-2 rounded-[8px] bg-bg border border-white/[0.1] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all">
+                    className="w-full px-3 py-2 rounded-[8px] bg-bg border border-border text-fg text-[13px] focus:outline-none focus:border-accent/50 transition-all">
                     <option value="">— segment —</option>
                     {SEGMENTS.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
                   </select>
@@ -510,34 +545,43 @@ function DealModal({
 
               {/* Project scope */}
               <div>
-                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Zakres projektu</p>
+                <p className="section-label mb-2">Zakres projektu</p>
                 <textarea value={form.project_scope} onChange={sf('project_scope')} rows={3}
                   placeholder="Opisz zakres projektu…"
-                  className="w-full px-3 py-2 rounded-[8px] bg-bg border border-white/[0.1] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all resize-none" />
+                  className="w-full px-3 py-2 rounded-[8px] bg-bg border border-border text-fg text-[13px] placeholder:text-subtle focus:outline-none focus:border-accent/50 transition-all resize-none" />
               </div>
 
               {/* Next step */}
               <div>
-                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Następny krok</p>
+                <p className="section-label mb-2">Następny krok</p>
                 <input value={form.next_step} onChange={sf('next_step')} placeholder="Co dalej?"
                   className={inputCls()} />
               </div>
 
               {/* Last contact */}
               <div>
-                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Ostatni kontakt</p>
+                <p className="section-label mb-2">Ostatni kontakt</p>
                 <input type="date" value={form.last_contact_date} onChange={sf('last_contact_date')}
                   className={inputCls()} />
+              </div>
+
+              {/* Notes */}
+              <div>
+                <p className="section-label mb-2">Notatki</p>
+                <textarea value={form.user_notes} onChange={sf('user_notes')} rows={3}
+                  placeholder="Dodaj notatki…"
+                  className="w-full px-3 py-2 rounded-[8px] bg-bg border border-border text-fg text-[13px] placeholder:text-subtle focus:outline-none focus:border-accent/50 transition-all resize-none" />
               </div>
 
               {/* Save / Cancel */}
               <div className="flex gap-2 pt-2">
                 <button type="button" onClick={cancelEdit} disabled={saving}
-                  className="flex-1 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white/50 text-[13px] font-medium hover:bg-white/[0.08] hover:text-white transition-all disabled:opacity-50">
+                  className="flex-1 py-2.5 rounded-[10px] bg-raised border border-border text-muted text-[13px] font-medium hover:text-fg transition-all disabled:opacity-50">
                   Anuluj
                 </button>
                 <button type="button" onClick={handleSave} disabled={saving}
-                  className="flex-1 py-2.5 rounded-[10px] bg-accent text-white text-[13px] font-bold hover:opacity-90 disabled:opacity-60 transition-all shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2">
+                  className="flex-1 py-2.5 rounded-[10px] bg-accent text-[13px] font-bold hover:opacity-90 disabled:opacity-60 transition-all shadow-lg flex items-center justify-center gap-2"
+                  style={{ color: 'var(--nav-pill-text)', boxShadow: 'var(--glow-teal)' }}>
                   {saving ? <><Loader2 size={13} className="animate-spin" /> Zapisuję...</> : 'Zapisz zmiany'}
                 </button>
               </div>
@@ -547,7 +591,7 @@ function DealModal({
             <>
               {/* Stage change */}
               <div>
-                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2">Etap pipeline</p>
+                <p className="section-label mb-2">Etap pipeline</p>
                 <div className="flex items-center gap-2">
                   <select
                     value={deal.stage}
@@ -566,20 +610,20 @@ function DealModal({
               {/* Score + value */}
               <div className="flex items-center gap-2">
                 <ScoreBadge score={dc.ai_score_label} />
-                {dc.ai_score_num != null && <span className="text-[11px] text-white/40">Score: {dc.ai_score_num}/100</span>}
+                {dc.ai_score_num != null && <span className="text-[11px] text-muted">Score: {dc.ai_score_num}/100</span>}
               </div>
 
-              <div className="flex items-center gap-2 p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.06]">
+              <div className="flex items-center gap-2 p-3 rounded-[10px] bg-raised border border-border">
                 <DollarSign size={15} className="text-accent" />
                 <div>
-                  <p className="text-[10px] text-white/40">Wartość projektu</p>
-                  <p className="text-[16px] font-bold text-white">{formatPLN(deal.value)}</p>
+                  <p className="text-[10px] text-muted">Wartość projektu</p>
+                  <p className="text-[16px] font-bold text-fg">{formatPLN(deal.value)}</p>
                 </div>
               </div>
 
               {/* Contact info */}
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide">Dane kontaktowe</p>
+                <p className="section-label">Dane kontaktowe</p>
                 <div className="grid grid-cols-1 gap-2">
                   {[
                     { icon: User,      label: dc.contact_position || '—' },
@@ -589,8 +633,8 @@ function DealModal({
                     { icon: Tag,       label: dc.contact_segment || '—' },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-2 text-[12px]">
-                      <item.icon size={13} className="text-white/30 flex-shrink-0" />
-                      <span className="text-white/60">{item.label}</span>
+                      <item.icon size={13} className="text-subtle flex-shrink-0" />
+                      <span className="text-muted">{item.label}</span>
                     </div>
                   ))}
                 </div>
@@ -598,40 +642,43 @@ function DealModal({
 
               {/* Scope */}
               {dc.project_scope && (
-                <div className="p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.06]">
-                  <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1">Zakres projektu</p>
-                  <p className="text-[13px] text-white/75">{dc.project_scope}</p>
+                <div className="p-3 rounded-[10px] bg-raised border border-border">
+                  <p className="section-label mb-1">Zakres projektu</p>
+                  <p className="text-[13px] text-fg">{dc.project_scope}</p>
                 </div>
               )}
 
               {/* Next step */}
               {dc.next_step && (
-                <div className="p-3 rounded-[10px] bg-[#6366f1]/[0.08] border border-accent/20">
+                <div className="p-3 rounded-[10px] border border-accent/20" style={{ background: 'color-mix(in srgb, var(--c-violet) 8%, transparent)' }}>
                   <p className="text-[10px] font-semibold text-accent/70 uppercase tracking-wide mb-1">Następny krok</p>
-                  <p className="text-[13px] text-white/80">{dc.next_step}</p>
+                  <p className="text-[13px] text-fg">{dc.next_step}</p>
                 </div>
               )}
 
               {/* Last contact */}
               {dc.last_contact_date && (
-                <div className="flex items-center gap-2 text-[12px] text-white/40">
+                <div className="flex items-center gap-2 text-[12px] text-muted">
                   <Calendar size={13} />
                   Ostatni kontakt: {new Date(dc.last_contact_date).toLocaleDateString('pl-PL')}
                 </div>
               )}
 
               {/* Notes */}
-              {deal.notes && (
-                <div className="p-3 rounded-[10px] bg-white/[0.03] border border-white/[0.05]">
-                  <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1">Notatki</p>
-                  <p className="text-[12px] text-white/65 whitespace-pre-wrap">{deal.notes}</p>
-                </div>
-              )}
+              {(() => {
+                const userNotes = getUserNotes((deal as Record<string, unknown>).notes as string)
+                return userNotes ? (
+                  <div className="p-3 rounded-[10px] bg-raised border border-border">
+                    <p className="section-label mb-1">Notatki</p>
+                    <p className="text-[12px] text-muted whitespace-pre-wrap">{userNotes}</p>
+                  </div>
+                ) : null
+              })()}
 
               {/* Services */}
               {allServices.length > 0 && (
                 <div>
-                  <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-2">Przypisane usługi</p>
+                  <p className="section-label mb-2">Przypisane usługi</p>
                   <div className="flex flex-wrap gap-1.5">
                     {allServices.map(s => {
                       const assigned = (deal.service_ids ?? []).includes(s.id)
@@ -640,7 +687,7 @@ function DealModal({
                           className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all ${
                             assigned
                               ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
-                              : 'bg-white/[0.04] border-white/[0.08] text-white/35 hover:border-white/20 hover:text-white/60'
+                              : 'bg-raised border-border text-subtle hover:border-accent/30 hover:text-muted'
                           }`}>
                           {assigned && <Check size={9} className="inline mr-1" />}{s.name}
                         </button>
@@ -653,7 +700,7 @@ function DealModal({
               {/* Actions */}
               <div className="grid grid-cols-2 gap-2 pt-2">
                 <button onClick={() => { setShowDM(v => !v); if (!showDM) generateDM() }}
-                  className="flex items-center justify-center gap-1.5 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.07] text-white/60 text-[12px] font-medium hover:bg-white/[0.08] hover:text-white transition-all">
+                  className="flex items-center justify-center gap-1.5 py-2 rounded-[8px] bg-raised border border-border text-muted text-[12px] font-medium hover:text-fg transition-all">
                   <MessageSquare size={13} /> Generuj DM
                 </button>
                 <button onClick={() => router.push('/offer-generator')}
@@ -671,7 +718,7 @@ function DealModal({
               ) : (
                 <div className="flex items-center gap-2">
                   <button onClick={() => setConfirmDelete(false)}
-                    className="flex-1 py-2 rounded-[8px] border border-white/10 text-white/40 text-[11px] hover:bg-white/[0.04] transition-all">
+                    className="flex-1 py-2 rounded-[8px] border border-border text-muted text-[11px] hover:bg-raised transition-all">
                     Anuluj
                   </button>
                   <button onClick={handleDelete} disabled={deleting}
@@ -684,9 +731,9 @@ function DealModal({
 
               {/* Inline DM panel */}
               {showDM && (
-                <div className="rounded-[12px] bg-white/[0.03] border border-white/[0.07] p-4 space-y-3">
+                <div className="rounded-[12px] bg-raised border border-border p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <p className="text-[12px] font-semibold text-white">2 warianty DM</p>
+                    <p className="text-[12px] font-semibold text-fg">2 warianty DM</p>
                     {dmLoading && <Loader2 size={13} className="animate-spin text-accent" />}
                   </div>
                   {dmVariants.map((v, idx) => v && (
@@ -694,17 +741,17 @@ function DealModal({
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-bold text-accent uppercase">Wariant {idx === 0 ? 'A' : 'B'}</span>
                         <button onClick={() => copyDM(idx)}
-                          className="flex items-center gap-1 px-2 py-0.5 rounded-[6px] bg-white/[0.05] text-white/50 text-[10px] hover:text-white transition-all">
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-[6px] bg-card border border-border text-muted text-[10px] hover:text-fg transition-all">
                           {dmCopied === idx ? <><CheckCircle2 size={10} className="text-green-400" /> Skopiowano</> : <><Send size={10} /> Kopiuj</>}
                         </button>
                       </div>
-                      <div className="p-3 rounded-[8px] bg-[#6366f1]/[0.07] border border-[#6366f1]/15">
-                        <pre className="text-[12px] text-white/75 whitespace-pre-wrap font-sans leading-relaxed">{v.message}</pre>
+                      <div className="p-3 rounded-[8px]" style={{ background: 'color-mix(in srgb, var(--c-violet) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--c-violet) 15%, transparent)' }}>
+                        <pre className="text-[12px] text-muted whitespace-pre-wrap font-sans leading-relaxed">{v.message}</pre>
                       </div>
                     </div>
                   ))}
                   {!dmLoading && dmVariants.every(v => v === null) && (
-                    <button onClick={generateDM} className="w-full py-2 rounded-[8px] bg-accent text-white text-[12px] font-bold hover:opacity-90 transition-all">
+                    <button onClick={generateDM} className="w-full py-2 rounded-[8px] bg-accent text-[12px] font-bold hover:opacity-90 transition-all" style={{ color: 'var(--nav-pill-text)' }}>
                       Generuj ponownie
                     </button>
                   )}
@@ -799,13 +846,13 @@ function NewDealModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-[480px] bg-sidebar border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.07]">
+      <div className="relative z-10 w-full max-w-[480px] bg-card border border-border rounded-[18px] shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-border">
           <div>
-            <p className="text-[15px] font-bold text-white">Nowy deal</p>
-            <p className="text-[11px] text-white/40 mt-0.5">Dodaj deal do pipeline CRM</p>
+            <p className="text-[15px] font-bold text-fg">Nowy deal</p>
+            <p className="text-[11px] text-muted mt-0.5">Dodaj deal do pipeline CRM</p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-[8px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all">
+          <button onClick={onClose} className="p-1.5 rounded-[8px] text-muted hover:text-fg hover:bg-raised transition-all">
             <X size={16} />
           </button>
         </div>
@@ -815,8 +862,8 @@ function NewDealModal({
             <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
               <CheckCircle2 size={22} className="text-green-400" />
             </div>
-            <p className="text-[15px] font-semibold text-white">Deal dodany!</p>
-            <p className="text-[12px] text-white/40">{form.company} pojawił się w pipeline</p>
+            <p className="text-[15px] font-semibold text-fg">Deal dodany!</p>
+            <p className="text-[12px] text-muted">{form.company} pojawił się w pipeline</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -827,57 +874,57 @@ function NewDealModal({
             )}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Imię i Nazwisko</label>
+                <label className="block section-label mb-1.5">Imię i Nazwisko</label>
                 <input value={form.contactName} onChange={set('contactName')} placeholder="Jan Kowalski"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
+                  className="w-full px-3 py-2 rounded-[8px] bg-raised border border-border text-fg text-[13px] placeholder:text-subtle focus:outline-none focus:border-accent/50 transition-all" />
               </div>
               <div>
-                <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Firma *</label>
+                <label className="block section-label mb-1.5">Firma *</label>
                 <input value={form.company} onChange={set('company')} required placeholder="Nazwa firmy"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
+                  className="w-full px-3 py-2 rounded-[8px] bg-raised border border-border text-fg text-[13px] placeholder:text-subtle focus:outline-none focus:border-accent/50 transition-all" />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Stanowisko</label>
+                <label className="block section-label mb-1.5">Stanowisko</label>
                 <input value={form.position} onChange={set('position')} placeholder="CEO / Marketing Manager"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
+                  className="w-full px-3 py-2 rounded-[8px] bg-raised border border-border text-fg text-[13px] placeholder:text-subtle focus:outline-none focus:border-accent/50 transition-all" />
               </div>
               <div>
-                <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Wartość (PLN)</label>
+                <label className="block section-label mb-1.5">Wartość (PLN)</label>
                 <input value={form.value} onChange={set('value')} type="number" placeholder="15000"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
+                  className="w-full px-3 py-2 rounded-[8px] bg-raised border border-border text-fg text-[13px] placeholder:text-subtle focus:outline-none focus:border-accent/50 transition-all" />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Email</label>
+                <label className="block section-label mb-1.5">Email</label>
                 <input value={form.email} onChange={set('email')} type="email" placeholder="jan@firma.pl"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
+                  className="w-full px-3 py-2 rounded-[8px] bg-raised border border-border text-fg text-[13px] placeholder:text-subtle focus:outline-none focus:border-accent/50 transition-all" />
               </div>
               <div>
-                <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Telefon</label>
+                <label className="block section-label mb-1.5">Telefon</label>
                 <input value={form.phone} onChange={set('phone')} placeholder="+48 500 000 000"
-                  className="w-full px-3 py-2 rounded-[8px] bg-white/[0.04] border border-white/[0.08] text-white text-[13px] placeholder:text-white/20 focus:outline-none focus:border-accent/50 transition-all" />
+                  className="w-full px-3 py-2 rounded-[8px] bg-raised border border-border text-fg text-[13px] placeholder:text-subtle focus:outline-none focus:border-accent/50 transition-all" />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Etap pipeline</label>
+                <label className="block section-label mb-1.5">Etap pipeline</label>
                 <select value={form.stage} onChange={set('stage')}
-                  className="w-full px-3 py-2 rounded-[8px] bg-bg border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all">
+                  className="w-full px-3 py-2 rounded-[8px] bg-bg border border-border text-fg text-[13px] focus:outline-none focus:border-accent/50 transition-all">
                   {STAGE_ORDER.filter(s => s !== 'przegrana').map(s => (
                     <option key={s} value={s}>{STAGE_CONFIG[s].label}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5">Segment</label>
+                <label className="block section-label mb-1.5">Segment</label>
                 <select value={form.segment} onChange={set('segment')}
-                  className="w-full px-3 py-2 rounded-[8px] bg-bg border border-white/[0.08] text-white text-[13px] focus:outline-none focus:border-accent/50 transition-all">
+                  className="w-full px-3 py-2 rounded-[8px] bg-bg border border-border text-fg text-[13px] focus:outline-none focus:border-accent/50 transition-all">
                   {SEGMENTS.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
                 </select>
               </div>
@@ -885,11 +932,12 @@ function NewDealModal({
 
             <div className="flex gap-2 pt-2">
               <button type="button" onClick={onClose}
-                className="flex-1 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white/50 text-[13px] font-medium hover:bg-white/[0.08] hover:text-white transition-all">
+                className="flex-1 py-2.5 rounded-[10px] bg-raised border border-border text-muted text-[13px] font-medium hover:text-fg transition-all">
                 Anuluj
               </button>
               <button type="submit" disabled={saving}
-                className="flex-1 py-2.5 rounded-[10px] bg-accent text-white text-[13px] font-bold hover:opacity-90 disabled:opacity-60 transition-all shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2">
+                className="flex-1 py-2.5 rounded-[10px] bg-accent text-[13px] font-bold hover:opacity-90 disabled:opacity-60 transition-all flex items-center justify-center gap-2"
+                style={{ color: 'var(--nav-pill-text)', boxShadow: 'var(--glow-teal)' }}>
                 {saving ? <><Loader2 size={13} className="animate-spin" /> Zapisuję...</> : 'Dodaj deal'}
               </button>
             </div>
@@ -1052,6 +1100,10 @@ export default function PipelinePage() {
     .filter(d => d.stage === 'wygrana')
     .reduce((sum, d) => sum + (d.value ?? 0), 0)
 
+  const lostValue = deals
+    .filter(d => d.stage === 'przegrana')
+    .reduce((sum, d) => sum + (d.value ?? 0), 0)
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -1069,64 +1121,159 @@ export default function PipelinePage() {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3 flex-shrink-0">
+    <div className="flex flex-col gap-4">
+
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 flex-shrink-0">
         <div>
-          <h1 className="text-[20px] font-bold text-white">Pipeline CRM</h1>
-          <p className="text-[12px] text-white/40 mt-0.5">
-            {deals.length} dealów · aktywny:{' '}
-            <span className="text-white/60 font-semibold">{totalValue.toLocaleString('pl-PL')} PLN</span>
-            <span className="hidden sm:inline">{' · '}wygrane:{' '}
-            <span className="text-green-400 font-semibold">{wonValue.toLocaleString('pl-PL')} PLN</span></span>
-          </p>
+          <h1 className="text-[22px] font-bold text-fg leading-tight"
+            style={{ fontFamily: 'var(--font-syne, var(--font-sans))' }}>
+            Pipeline CRM
+          </h1>
+          <p className="text-[12px] text-muted mt-0.5">Zarządzaj dealami i śledź postęp sprzedaży</p>
         </div>
         <button
           onClick={() => setShowNewDeal(true)}
-          className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-accent/10 border border-accent/30 text-accent text-[12px] font-medium hover:bg-accent/20 transition-all"
+          className="self-start sm:self-auto flex items-center gap-1.5 px-4 py-2 rounded-[9px]
+            bg-accent text-[12.5px] font-semibold
+            hover:opacity-90 hover:shadow-[var(--glow-teal)] transition-all"
+          style={{ color: 'var(--nav-pill-text)' }}
         >
           + Nowy deal
         </button>
       </div>
 
-      {/* Kanban board */}
-      <div className="flex-1 overflow-x-auto pb-4">
-        <div className="flex gap-3 h-full" style={{ minWidth: `${STAGE_ORDER.length * 230}px` }}>
-          {STAGE_ORDER.map((stage) => {
+      {/* ── Metrics bar ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-shrink-0">
+        <div className="kpi-card p-4" style={{ '--card-accent': 'var(--accent)' } as React.CSSProperties}>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="kpi-icon w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0">
+              <TrendingUp size={13} className="text-accent" />
+            </div>
+            <span className="section-label">Wartość pipeline</span>
+          </div>
+          <p className="text-[20px] font-bold text-accent num leading-none">
+            {totalValue.toLocaleString('pl-PL')}
+            <span className="text-[11px] font-normal text-muted ml-1">PLN</span>
+          </p>
+        </div>
+
+        <div className="kpi-card p-4" style={{ '--card-accent': 'var(--c-green)' } as React.CSSProperties}>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="kpi-icon w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0">
+              <CheckCircle2 size={13} style={{ color: 'var(--c-green)' }} />
+            </div>
+            <span className="section-label">Wygrane</span>
+          </div>
+          <p className="text-[20px] font-bold num leading-none" style={{ color: 'var(--c-green)' }}>
+            {wonValue.toLocaleString('pl-PL')}
+            <span className="text-[11px] font-normal text-muted ml-1">PLN</span>
+          </p>
+        </div>
+
+        <div className="kpi-card p-4" style={{ '--card-accent': 'var(--accent)' } as React.CSSProperties}>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="kpi-icon w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0">
+              <KanbanSquare size={13} className="text-accent" />
+            </div>
+            <span className="section-label">Deale</span>
+          </div>
+          <p className="text-[20px] font-bold text-fg num leading-none">
+            {deals.length}
+            <span className="text-[11px] font-normal text-muted ml-1">razem</span>
+          </p>
+        </div>
+
+        <div className="kpi-card p-4" style={{ '--card-accent': 'var(--c-red)' } as React.CSSProperties}>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="kpi-icon w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0">
+              <AlertCircle size={13} style={{ color: 'var(--c-red)' }} />
+            </div>
+            <span className="section-label">Przegrane</span>
+          </div>
+          <p className="text-[20px] font-bold num leading-none" style={{ color: 'var(--c-red)' }}>
+            {lostValue.toLocaleString('pl-PL')}
+            <span className="text-[11px] font-normal text-muted ml-1">PLN</span>
+          </p>
+        </div>
+      </div>
+
+      {/* ── Active Kanban ── */}
+      <div className="overflow-x-auto pb-2">
+        <div className="flex gap-3" style={{ minHeight: 480 }}>
+          {ACTIVE_STAGES.map((stage) => {
             const config = STAGE_CONFIG[stage]
             const stageDeals = dealsByStage[stage]
             const stageValue = stageDeals.reduce((s, d) => s + (d.value ?? 0), 0)
-
             return (
-              <div key={stage} className="flex flex-col w-[220px] flex-shrink-0">
-                <div
-                  className="flex items-center justify-between px-3 py-2 rounded-[10px] mb-2 flex-shrink-0"
-                  style={{ background: config.bg }}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-[12px] font-semibold" style={{ color: config.color }}>
-                      {config.label}
-                    </span>
-                    <span
-                      className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
-                      style={{ background: config.color + '25', color: config.color }}
-                    >
+              <div key={stage} className="flex flex-col flex-1 min-w-[230px] rounded-[12px] bg-raised border border-border p-2.5 gap-2">
+                {/* Column header */}
+                <div className="flex items-center justify-between flex-shrink-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                      style={{ background: config.color }} />
+                    <span className="text-[11.5px] font-semibold text-fg leading-none">{config.label}</span>
+                    <span className="px-1.5 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[9px] font-bold num"
+                      style={{ background: config.color + '22', color: config.color }}>
                       {stageDeals.length}
                     </span>
                   </div>
                   {stageValue > 0 && (
-                    <span className="text-[9px] font-semibold" style={{ color: config.color + 'aa' }}>
+                    <span className="text-[9px] font-medium text-muted num">
                       {(stageValue / 1000).toFixed(0)}k
                     </span>
                   )}
                 </div>
-
-                <div className="flex-1 space-y-2 overflow-y-auto">
+                {/* Cards */}
+                <div className="flex-1 flex flex-col gap-1.5 overflow-y-auto">
                   {stageDeals.map((deal) => (
                     <DealCard key={deal.id} deal={deal} onClick={() => setSelectedDeal(deal)} />
                   ))}
                   {stageDeals.length === 0 && (
-                    <div className="text-center py-6 text-[11px] text-white/20">Brak dealów</div>
+                    <div className="flex items-center justify-center min-h-[80px] rounded-[8px] border border-dashed border-border">
+                      <span className="text-[12px] text-subtle">—</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* ── Terminal / Zakończone ── */}
+      <div>
+        <p className="section-label mb-2">Zakończone</p>
+        <div className="flex gap-3">
+          {TERMINAL_STAGES.map((stage) => {
+            const config = STAGE_CONFIG[stage]
+            const stageDeals = dealsByStage[stage]
+            const stageValue = stageDeals.reduce((s, d) => s + (d.value ?? 0), 0)
+            return (
+              <div key={stage}
+                className="flex flex-col flex-1 min-w-[200px] max-w-[340px] rounded-[12px] border border-border p-2.5 gap-1.5"
+                style={{ background: 'color-mix(in srgb, var(--bg-raised) 55%, var(--bg))' }}>
+                {/* Compact header */}
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <span className="w-1 h-1 rounded-full flex-shrink-0"
+                    style={{ background: config.color, opacity: 0.7 }} />
+                  <span className="text-[10.5px] font-semibold text-muted">{config.label}</span>
+                  <span className="text-[9px] text-subtle num">
+                    ({stageDeals.length}{stageValue > 0 ? ` · ${(stageValue / 1000).toFixed(0)}k` : ''})
+                  </span>
+                </div>
+                {/* Compact cards */}
+                <div className="flex flex-col gap-1.5">
+                  {stageDeals.slice(0, 5).map((deal) => (
+                    <DealCard key={deal.id} deal={deal} onClick={() => setSelectedDeal(deal)} />
+                  ))}
+                  {stageDeals.length > 5 && (
+                    <p className="text-[10px] text-subtle text-center py-1">+{stageDeals.length - 5} więcej</p>
+                  )}
+                  {stageDeals.length === 0 && (
+                    <div className="flex items-center justify-center py-4">
+                      <span className="text-[11px] text-subtle">—</span>
+                    </div>
                   )}
                 </div>
               </div>

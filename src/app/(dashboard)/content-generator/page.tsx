@@ -34,9 +34,9 @@ function CopyBtn({ text, label = 'Kopiuj' }: { text: string; label?: string }) {
   return (
     <button
       onClick={handle}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-white/[0.05] border border-white/[0.09] text-white/55 text-[11px] font-medium hover:bg-white/[0.09] hover:text-white transition-all"
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-fg/[0.05] border border-fg/[0.09] text-muted text-[11px] font-medium hover:bg-fg/[0.09] hover:text-fg transition-all"
     >
-      {copied ? <><Check size={12} className="text-green-400" /> Skopiowano</> : <><Copy size={12} /> {label}</>}
+      {copied ? <><Check size={12} className="text-success" /> Skopiowano</> : <><Copy size={12} /> {label}</>}
     </button>
   )
 }
@@ -71,24 +71,24 @@ function CalendarDatePicker({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-[300px] bg-sidebar border border-white/[0.1] rounded-[18px] shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.07]">
-          <p className="text-[13px] font-bold text-white">Wybierz datę publikacji</p>
-          <button onClick={onClose} className="p-1 rounded-[6px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all"><X size={14} /></button>
+      <div className="relative z-10 w-[300px] card-elevated rounded-[18px] shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+          <p className="text-[13px] font-bold text-fg">Wybierz datę publikacji</p>
+          <button onClick={onClose} className="p-1 rounded-[6px] text-subtle hover:text-fg hover:bg-fg/[0.06] transition-all"><X size={14} /></button>
         </div>
 
         <div className="p-4">
           {/* Month nav */}
           <div className="flex items-center justify-between mb-3">
-            <button onClick={prevMonth} className="p-1.5 rounded-[6px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all"><ChevronLeft size={13} /></button>
-            <p className="text-[12px] font-semibold text-white capitalize">{monthName}</p>
-            <button onClick={nextMonth} className="p-1.5 rounded-[6px] text-white/40 hover:text-white hover:bg-white/[0.06] transition-all"><ChevronRight size={13} /></button>
+            <button onClick={prevMonth} className="p-1.5 rounded-[6px] text-subtle hover:text-fg hover:bg-fg/[0.06] transition-all"><ChevronLeft size={13} /></button>
+            <p className="text-[12px] font-semibold text-fg capitalize">{monthName}</p>
+            <button onClick={nextMonth} className="p-1.5 rounded-[6px] text-subtle hover:text-fg hover:bg-fg/[0.06] transition-all"><ChevronRight size={13} /></button>
           </div>
 
           {/* Day headers */}
           <div className="grid grid-cols-7 mb-1">
             {['Pn','Wt','Śr','Cz','Pt','Sb','Nd'].map(d => (
-              <div key={d} className="text-center text-[9px] font-semibold text-white/25 py-1">{d}</div>
+              <div key={d} className="text-center text-[9px] font-semibold text-subtle py-1">{d}</div>
             ))}
           </div>
 
@@ -105,11 +105,12 @@ function CalendarDatePicker({
                   onClick={() => setSelected(dateStr)}
                   className={`h-8 rounded-[6px] text-[11px] font-medium transition-all ${
                     isSelected
-                      ? 'bg-accent text-white font-bold shadow-md shadow-indigo-500/30'
+                      ? 'bg-violet font-bold shadow-[var(--glow-violet)]'
                       : isToday
-                      ? 'bg-accent/20 text-accent border border-accent/40'
-                      : 'text-white/60 hover:bg-white/[0.07] hover:text-white'
+                      ? 'bg-violet/20 text-violet border border-violet/40'
+                      : 'text-muted hover:bg-fg/[0.07] hover:text-fg'
                   }`}
+                  style={isSelected ? { color: 'var(--nav-pill-text)' } : undefined}
                 >
                   {day}
                 </button>
@@ -118,15 +119,16 @@ function CalendarDatePicker({
           </div>
 
           {selected && (
-            <div className="mt-4 pt-3 border-t border-white/[0.07]">
-              <p className="text-[11px] text-white/40 mb-3">
-                Data: <span className="text-white font-semibold">
+            <div className="mt-4 pt-3 border-t border-border">
+              <p className="text-[11px] text-muted mb-3">
+                Data: <span className="text-fg font-semibold">
                   {new Date(selected + 'T12:00:00').toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </span>
               </p>
               <button
                 onClick={() => onSelect(selected)}
-                className="w-full py-2.5 rounded-[10px] bg-accent text-white text-[13px] font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-[10px] bg-accent text-[13px] font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                style={{ color: 'var(--nav-pill-text)' }}
               >
                 <CalendarPlus size={14} /> Zapisz do kalendarza
               </button>
@@ -183,9 +185,9 @@ function SaveToCalendarBtn({
   }
 
   if (saved) return (
-    <div className="flex items-center gap-2 text-[12px] text-green-400">
+    <div className="flex items-center gap-2 text-[12px] text-success">
       <Check size={13} /> Zapisano
-      <Link href="/content-calendar" className="underline underline-offset-2 hover:text-green-300">→ Kalendarz</Link>
+      <Link href="/content-calendar" className="underline underline-offset-2 hover:text-success">→ Kalendarz</Link>
     </div>
   )
   return (
@@ -193,7 +195,7 @@ function SaveToCalendarBtn({
       <button
         onClick={() => setShowPicker(true)}
         disabled={saving}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-green-500/10 border border-green-500/25 text-green-400 text-[11px] font-semibold hover:bg-green-500/20 transition-all disabled:opacity-50"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-success/10 border border-success/25 text-success text-[11px] font-semibold hover:bg-success/20 transition-all disabled:opacity-50"
       >
         {saving ? <Loader2 size={11} className="animate-spin" /> : <CalendarPlus size={11} />}
         Zapisz do kalendarza
@@ -227,6 +229,12 @@ function TopicSuggestions({ onSelect, channel }: { onSelect: (t: string) => void
   const [loading, setLoading] = useState(false)
   const [loaded, setLoaded] = useState(false)
 
+  const isLinkedIn = channel === 'linkedin'
+  const chipClass = isLinkedIn
+    ? 'bg-info/10 border border-info/25 text-info hover:bg-info/20 hover:border-info/40'
+    : 'bg-violet/10 border border-violet/25 text-violet hover:bg-violet/20 hover:border-violet/40'
+  const iconClass = isLinkedIn ? 'text-info' : 'text-violet'
+
   const load = async () => {
     if (loaded) return
     setLoading(true)
@@ -252,7 +260,7 @@ function TopicSuggestions({ onSelect, channel }: { onSelect: (t: string) => void
     return (
       <button
         onClick={load}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-accent/10 border border-accent/25 text-accent text-[11px] font-medium hover:bg-accent/20 transition-all"
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[11px] font-medium transition-all ${chipClass}`}
       >
         <Lightbulb size={11} /> Sugestie tematów z Bazy Wiedzy
       </button>
@@ -261,7 +269,7 @@ function TopicSuggestions({ onSelect, channel }: { onSelect: (t: string) => void
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-[11px] text-white/40">
+      <div className="flex items-center gap-2 text-[11px] text-muted">
         <Loader2 size={11} className="animate-spin" /> Analizuję Bazę Wiedzy...
       </div>
     )
@@ -270,22 +278,22 @@ function TopicSuggestions({ onSelect, channel }: { onSelect: (t: string) => void
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <Lightbulb size={11} className="text-accent" />
-        <p className="text-[11px] text-white/50">Sugestie na podstawie Twojej Bazy Wiedzy — kliknij aby użyć:</p>
+        <Lightbulb size={11} className={iconClass} />
+        <p className="text-[11px] text-muted">Sugestie na podstawie Twojej Bazy Wiedzy — kliknij aby użyć:</p>
       </div>
       <div className="flex flex-wrap gap-2">
         {topics.map((t, i) => (
           <button
             key={i}
             onClick={() => onSelect(t)}
-            className="px-3 py-1.5 rounded-[8px] bg-accent/10 border border-accent/20 text-accent text-[11px] font-medium hover:bg-accent/20 hover:border-accent/40 transition-all text-left"
+            className={`px-3 py-1.5 rounded-[8px] text-[11px] font-medium transition-all text-left ${chipClass}`}
           >
             {t}
           </button>
         ))}
         <button
           onClick={() => { setLoaded(false); setTopics([]) }}
-          className="px-2 py-1.5 rounded-[8px] text-white/30 text-[11px] hover:text-white hover:bg-white/[0.05] transition-all"
+          className="px-2 py-1.5 rounded-[8px] text-subtle text-[11px] hover:text-fg hover:bg-fg/[0.05] transition-all"
         >
           <RefreshCw size={10} />
         </button>
@@ -338,27 +346,27 @@ function InstagramTab() {
 
   return (
     <div className="space-y-5">
-      <div className="p-5 rounded-[14px] bg-card border border-white/[0.07] space-y-4">
+      <div className="card-elevated rounded-[14px] p-5 space-y-4">
 
         {/* Topic suggestions */}
         <TopicSuggestions channel="instagram" onSelect={setTopic} />
 
         {/* Topic */}
         <div>
-          <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-2">
+          <label className="block text-[11px] font-semibold text-muted uppercase tracking-wide mb-2">
             Temat karuzeli *
           </label>
           <input
             value={topic}
             onChange={e => setTopic(e.target.value)}
             placeholder="np. 5 błędów w zarządzaniu leadami"
-            className="w-full px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-accent/60 transition-all"
+            className="w-full px-3.5 py-2.5 rounded-[10px] bg-raised border border-fg/[0.08] text-fg placeholder:text-subtle text-[13px] focus:outline-none focus:border-violet/50 transition-all"
           />
         </div>
 
         {/* Slide count */}
         <div>
-          <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-2">
+          <label className="block text-[11px] font-semibold text-muted uppercase tracking-wide mb-2">
             Liczba slajdów (obrazków) w karuzeli
           </label>
           <div className="flex items-center gap-2 flex-wrap">
@@ -368,20 +376,21 @@ function InstagramTab() {
                 onClick={() => setSlideCount(n)}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-[8px] text-[12px] font-semibold transition-all ${
                   slideCount === n
-                    ? 'bg-accent text-white shadow-md shadow-indigo-500/20'
-                    : 'bg-white/[0.05] border border-white/[0.08] text-white/50 hover:text-white hover:bg-white/[0.09]'
+                    ? 'bg-violet shadow-[var(--glow-violet)]'
+                    : 'bg-fg/[0.05] border border-fg/[0.08] text-muted hover:text-fg hover:bg-fg/[0.09]'
                 }`}
+                style={slideCount === n ? { color: 'var(--nav-pill-text)' } : undefined}
               >
                 <Layers size={10} /> {n}
               </button>
             ))}
           </div>
-          <p className="mt-1.5 text-[10px] text-white/30">Każdy slajd = osobny tekst + opis grafiki</p>
+          <p className="mt-1.5 text-[10px] text-subtle">Każdy slajd = osobny tekst + opis grafiki</p>
         </div>
 
         {/* Content description */}
         <div>
-          <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-2">
+          <label className="block text-[11px] font-semibold text-muted uppercase tracking-wide mb-2">
             Treść karuzeli – co ma się znaleźć?
           </label>
           <textarea
@@ -389,14 +398,15 @@ function InstagramTab() {
             onChange={e => setContentDesc(e.target.value)}
             rows={3}
             placeholder="Opisz co dokładnie ma być na slajdach – punkty, fakty, przykłady, storytelling..."
-            className="w-full px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-accent/60 transition-all resize-none"
+            className="w-full px-3.5 py-2.5 rounded-[10px] bg-raised border border-fg/[0.08] text-fg placeholder:text-subtle text-[13px] focus:outline-none focus:border-violet/50 transition-all resize-none"
           />
         </div>
 
         <button
           onClick={handleGenerate}
           disabled={loading || !topic.trim()}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-accent hover:opacity-90 disabled:opacity-60 text-white text-[13px] font-semibold transition-all shadow-lg shadow-indigo-500/20"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-violet hover:opacity-90 disabled:opacity-60 text-[13px] font-semibold transition-all hover:shadow-[var(--glow-violet)]"
+          style={{ color: 'var(--nav-pill-text)' }}
         >
           {loading ? (
             <><Loader2 size={15} className="animate-spin" /> AI generuje karuzele ({slideCount} slajdów)...</>
@@ -404,23 +414,26 @@ function InstagramTab() {
             <><Sparkles size={15} /> Generuj karuzele {slideCount} slajdów</>
           )}
         </button>
-        {error && <p className="text-[12px] text-red-400">{error}</p>}
+        {error && <p className="text-[12px] text-danger">{error}</p>}
       </div>
 
       {result && (
-        <div className="p-5 rounded-[14px] bg-card border border-accent/30 space-y-4">
+        <div
+          className="card-elevated rounded-[14px] p-5 space-y-4"
+          style={{ '--card-accent': 'var(--c-violet)' } as React.CSSProperties}
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center">
-                <Sparkles size={12} className="text-accent" />
+              <div className="w-6 h-6 rounded-full bg-violet/20 flex items-center justify-center">
+                <Sparkles size={12} className="text-violet" />
               </div>
-              <p className="text-[13px] font-semibold text-white">{result.title}</p>
-              <span className="px-2 py-0.5 rounded-full bg-accent/15 text-accent text-[10px] font-semibold">{slideCount} slajdów</span>
+              <p className="text-[13px] font-semibold text-fg">{result.title}</p>
+              <span className="px-2 py-0.5 rounded-full bg-violet/15 text-violet text-[10px] font-semibold">{slideCount} slajdów</span>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleGenerate}
-                className="flex items-center gap-1 px-2 py-1 rounded-[6px] text-white/40 text-[11px] hover:text-white hover:bg-white/[0.06] transition-all"
+                className="flex items-center gap-1 px-2 py-1 rounded-[6px] text-subtle text-[11px] hover:text-fg hover:bg-fg/[0.06] transition-all"
               >
                 <RefreshCw size={11} /> Regeneruj
               </button>
@@ -428,28 +441,28 @@ function InstagramTab() {
           </div>
 
           {result.hook && (
-            <div className="p-3 rounded-[10px] bg-accent/10 border border-accent/30">
-              <p className="text-[10px] font-semibold text-accent uppercase tracking-wide mb-1">Hook (slajd 1)</p>
-              <p className="text-[13px] text-white font-semibold leading-snug">{result.hook}</p>
+            <div className="p-3 rounded-[10px] bg-violet/10 border border-violet/30">
+              <p className="text-[10px] font-semibold text-violet uppercase tracking-wide mb-1">Hook (slajd 1)</p>
+              <p className="text-[13px] text-fg font-semibold leading-snug">{result.hook}</p>
             </div>
           )}
 
-          <div className="bg-sidebar border border-white/[0.07] rounded-[10px] p-4">
-            <p className="text-[10px] font-semibold text-white/35 uppercase tracking-wide mb-2">Treść karuzeli ({slideCount} slajdów)</p>
-            <pre className="text-[12px] text-white/70 leading-relaxed whitespace-pre-wrap font-sans">{result.content_body}</pre>
+          <div className="bg-raised border border-border rounded-[10px] p-4">
+            <p className="text-[10px] font-semibold text-subtle uppercase tracking-wide mb-2">Treść karuzeli ({slideCount} slajdów)</p>
+            <pre className="text-[12px] text-muted leading-relaxed whitespace-pre-wrap font-sans">{result.content_body}</pre>
           </div>
 
           {result.cta && (
-            <div className="p-3 rounded-[10px] bg-green-500/10 border border-green-500/25">
-              <p className="text-[10px] font-semibold text-green-400 uppercase tracking-wide mb-1">CTA (ostatni slajd)</p>
-              <p className="text-[12px] text-white/70">{result.cta}</p>
+            <div className="p-3 rounded-[10px] bg-success/10 border border-success/25">
+              <p className="text-[10px] font-semibold text-success uppercase tracking-wide mb-1">CTA (ostatni slajd)</p>
+              <p className="text-[12px] text-muted">{result.cta}</p>
             </div>
           )}
 
           {result.hashtags?.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {result.hashtags.map(h => (
-                <span key={h} className="px-2 py-0.5 rounded-full bg-accent/10 text-accent text-[10px] font-medium">{h}</span>
+                <span key={h} className="px-2 py-0.5 rounded-full bg-violet/10 text-violet text-[10px] font-medium">{h}</span>
               ))}
             </div>
           )}
@@ -463,8 +476,8 @@ function InstagramTab() {
               <SaveToCalendarBtn title={topic} result={result} />
             </div>
             <div className="flex items-center gap-1.5">
-              <Brain size={10} className="text-[#E8A838]/60" />
-              <span className="text-[10px] text-white/30">Ten output powstał na bazie DNA Twojej firmy (ton, ICP, strategia)</span>
+              <Brain size={10} className="text-amber" />
+              <span className="text-[10px] text-subtle">Ten output powstał na bazie DNA Twojej firmy (ton, ICP, strategia)</span>
             </div>
           </div>
         </div>
@@ -533,11 +546,11 @@ function LinkedInTab() {
 
   return (
     <div className="space-y-5">
-      <div className="p-5 rounded-[14px] bg-card border border-white/[0.07] space-y-4">
+      <div className="card-elevated rounded-[14px] p-5 space-y-4">
 
         {/* LinkedIn profile URL */}
         <div>
-          <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-2">
+          <label className="block text-[11px] font-semibold text-muted uppercase tracking-wide mb-2">
             Link do Twojego profilu LinkedIn (opcjonalne)
           </label>
           <div className="flex gap-2">
@@ -545,34 +558,34 @@ function LinkedInTab() {
               value={profileUrl}
               onChange={e => setProfileUrl(e.target.value)}
               placeholder="linkedin.com/in/twoj-profil"
-              className="flex-1 px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-[#3b82f6]/60 transition-all"
+              className="flex-1 px-3.5 py-2.5 rounded-[10px] bg-raised border border-fg/[0.08] text-fg placeholder:text-subtle text-[13px] focus:outline-none focus:border-info/50 transition-all"
             />
             <button
               onClick={fetchSuggestions}
               disabled={!profileUrl.trim() || loadingSuggestions}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-[10px] bg-[#3b82f6]/15 border border-[#3b82f6]/30 text-[#93c5fd] text-[12px] font-semibold hover:bg-[#3b82f6]/25 disabled:opacity-40 transition-all whitespace-nowrap"
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-[10px] bg-info/15 border border-info/30 text-info text-[12px] font-semibold hover:bg-info/25 disabled:opacity-40 transition-all whitespace-nowrap"
             >
               {loadingSuggestions ? <><Loader2 size={12} className="animate-spin" /> Analizuję...</> : <><Lightbulb size={12} /> Analizuj profil</>}
             </button>
           </div>
-          <p className="mt-1.5 text-[10px] text-white/25">AI przeanalizuje Twój profil i dopasuje tematy do Twojego języka i branży</p>
+          <p className="mt-1.5 text-[10px] text-subtle">AI przeanalizuje Twój profil i dopasuje tematy do Twojego języka i branży</p>
         </div>
 
         {/* Suggestions */}
         {suggestions.length > 0 && (
           <div className="space-y-2">
-            <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide">3 proponowane tematy (na podstawie profilu + Bazy Wiedzy)</p>
+            <p className="text-[11px] font-semibold text-muted uppercase tracking-wide">3 proponowane tematy (na podstawie profilu + Bazy Wiedzy)</p>
             {suggestions.map((s, i) => (
               <button
                 key={i}
                 onClick={() => setTopic(s.topic)}
-                className="w-full text-left p-3 rounded-[10px] bg-[#3b82f6]/10 border border-[#3b82f6]/20 hover:border-[#3b82f6]/40 hover:bg-[#3b82f6]/15 transition-all group"
+                className="w-full text-left p-3 rounded-[10px] bg-info/10 border border-info/20 hover:border-info/40 hover:bg-info/15 transition-all group"
               >
                 <div className="flex items-start gap-2">
-                  <span className="text-[10px] font-bold text-[#93c5fd] mt-0.5 w-4 flex-shrink-0">{i + 1}.</span>
+                  <span className="text-[10px] font-bold text-info mt-0.5 w-4 flex-shrink-0">{i + 1}.</span>
                   <div>
-                    <p className="text-[12px] font-semibold text-white group-hover:text-[#93c5fd] transition-colors">{s.topic}</p>
-                    {s.rationale && <p className="text-[11px] text-white/40 mt-0.5">{s.rationale}</p>}
+                    <p className="text-[12px] font-semibold text-fg group-hover:text-info transition-colors">{s.topic}</p>
+                    {s.rationale && <p className="text-[11px] text-muted mt-0.5">{s.rationale}</p>}
                   </div>
                 </div>
               </button>
@@ -587,21 +600,22 @@ function LinkedInTab() {
 
         {/* Topic input */}
         <div>
-          <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-2">
+          <label className="block text-[11px] font-semibold text-muted uppercase tracking-wide mb-2">
             Temat / idea posta LinkedIn *
           </label>
           <input
             value={topic}
             onChange={e => setTopic(e.target.value)}
             placeholder="np. case study agencji która zwiększyła reply rate o 300%"
-            className="w-full px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-[#3b82f6]/60 transition-all"
+            className="w-full px-3.5 py-2.5 rounded-[10px] bg-raised border border-fg/[0.08] text-fg placeholder:text-subtle text-[13px] focus:outline-none focus:border-info/50 transition-all"
           />
         </div>
 
         <button
           onClick={handleGenerate}
           disabled={loading || !topic.trim()}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-[#3b82f6] hover:bg-[#2563eb] disabled:opacity-60 text-white text-[13px] font-semibold transition-all"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-info hover:opacity-90 disabled:opacity-60 text-[13px] font-semibold transition-all hover:shadow-[var(--glow-blue)]"
+          style={{ color: 'var(--nav-pill-text)' }}
         >
           {loading ? (
             <><Loader2 size={15} className="animate-spin" /> Generowanie...</>
@@ -609,28 +623,31 @@ function LinkedInTab() {
             <><Sparkles size={15} /> Generuj post LinkedIn</>
           )}
         </button>
-        {error && <p className="mt-3 text-[12px] text-red-400">{error}</p>}
+        {error && <p className="mt-3 text-[12px] text-danger">{error}</p>}
       </div>
 
       {result && (
-        <div className="p-5 rounded-[14px] bg-card border border-blue-500/25 space-y-4">
+        <div
+          className="card-elevated rounded-[14px] p-5 space-y-4"
+          style={{ '--card-accent': 'var(--c-blue)' } as React.CSSProperties}
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Sparkles size={14} className="text-blue-400" />
-              <p className="text-[13px] font-semibold text-white">{result.title}</p>
+              <Sparkles size={14} className="text-info" />
+              <p className="text-[13px] font-semibold text-fg">{result.title}</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] text-white/30">{fullText.length} znaków</span>
+              <span className="text-[11px] text-subtle">{fullText.length} znaków</span>
               <button
                 onClick={handleGenerate}
-                className="flex items-center gap-1 px-2 py-1 rounded-[6px] text-white/40 text-[11px] hover:text-white hover:bg-white/[0.06] transition-all"
+                className="flex items-center gap-1 px-2 py-1 rounded-[6px] text-subtle text-[11px] hover:text-fg hover:bg-fg/[0.06] transition-all"
               >
                 <RefreshCw size={11} /> Regeneruj
               </button>
             </div>
           </div>
-          <div className="bg-sidebar border border-white/[0.07] rounded-[10px] p-4">
-            <pre className="text-[13px] text-white/75 leading-relaxed whitespace-pre-wrap font-sans">
+          <div className="bg-raised border border-border rounded-[10px] p-4">
+            <pre className="text-[13px] text-muted leading-relaxed whitespace-pre-wrap font-sans">
               {fullText}
             </pre>
           </div>
@@ -640,8 +657,8 @@ function LinkedInTab() {
               <SaveToCalendarBtn title={topic} result={result} />
             </div>
             <div className="flex items-center gap-1.5">
-              <Brain size={10} className="text-[#E8A838]/60" />
-              <span className="text-[10px] text-white/30">Ten output powstał na bazie DNA Twojej firmy (ton, ICP, strategia)</span>
+              <Brain size={10} className="text-amber" />
+              <span className="text-[10px] text-subtle">Ten output powstał na bazie DNA Twojej firmy (ton, ICP, strategia)</span>
             </div>
           </div>
         </div>
@@ -690,8 +707,8 @@ function RepurposeTab() {
 
   return (
     <div className="space-y-5">
-      <div className="p-5 rounded-[14px] bg-card border border-white/[0.07]">
-        <label className="block text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-2">
+      <div className="card-elevated rounded-[14px] p-5">
+        <label className="block text-[11px] font-semibold text-muted uppercase tracking-wide mb-2">
           Wklej istniejący post lub tekst
         </label>
         <textarea
@@ -699,12 +716,13 @@ function RepurposeTab() {
           onChange={e => setSource(e.target.value)}
           rows={5}
           placeholder="Wklej tutaj swój post, artykuł lub opis tematu..."
-          className="w-full px-3.5 py-2.5 rounded-[10px] bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/25 text-[13px] focus:outline-none focus:border-accent/60 transition-all resize-none mb-4"
+          className="w-full px-3.5 py-2.5 rounded-[10px] bg-raised border border-fg/[0.08] text-fg placeholder:text-subtle text-[13px] focus:outline-none focus:border-violet/50 transition-all resize-none mb-4"
         />
         <button
           onClick={handleGenerate}
           disabled={loading || !source.trim()}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] hover:from-[#5254cc] hover:to-[#7c3aed] disabled:opacity-60 text-white text-[13px] font-semibold transition-all"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-[10px] bg-violet hover:opacity-90 disabled:opacity-60 text-[13px] font-semibold transition-all hover:shadow-[var(--glow-violet)]"
+          style={{ color: 'var(--nav-pill-text)' }}
         >
           {loading ? (
             <><Loader2 size={15} className="animate-spin" /> Generowanie 5 wersji...</>
@@ -712,14 +730,17 @@ function RepurposeTab() {
             <><Sparkles size={15} /> Repurpose 1→5</>
           )}
         </button>
-        {error && <p className="mt-3 text-[12px] text-red-400">{error}</p>}
+        {error && <p className="mt-3 text-[12px] text-danger">{error}</p>}
       </div>
 
       {versions && (
-        <div className="p-5 rounded-[14px] bg-card border border-[#8b5cf6]/30 space-y-4">
+        <div
+          className="card-elevated rounded-[14px] p-5 space-y-4"
+          style={{ '--card-accent': 'var(--c-violet)' } as React.CSSProperties}
+        >
           <div className="flex items-center gap-2 mb-2">
-            <Sparkles size={14} className="text-[#a78bfa]" />
-            <p className="text-[13px] font-semibold text-white">5 wygenerowanych wersji</p>
+            <Sparkles size={14} className="text-violet" />
+            <p className="text-[13px] font-semibold text-fg">5 wygenerowanych wersji</p>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -729,8 +750,8 @@ function RepurposeTab() {
                 onClick={() => setActiveVersion(i)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12px] font-medium transition-all ${
                   activeVersion === i
-                    ? 'bg-accent/20 border border-accent/40 text-accent'
-                    : 'bg-white/[0.04] border border-white/[0.08] text-white/50 hover:text-white'
+                    ? 'bg-violet/20 border border-violet/40 text-violet'
+                    : 'bg-fg/[0.04] border border-fg/[0.08] text-muted hover:text-fg'
                 }`}
               >
                 <span>{v.icon}</span> {v.format}
@@ -738,11 +759,11 @@ function RepurposeTab() {
             ))}
           </div>
 
-          <div className="bg-sidebar border border-white/[0.07] rounded-[10px] p-4">
-            <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide mb-3">
+          <div className="bg-raised border border-border rounded-[10px] p-4">
+            <p className="text-[11px] font-semibold text-subtle uppercase tracking-wide mb-3">
               {versions[activeVersion].icon} {versions[activeVersion].format}
             </p>
-            <pre className="text-[13px] text-white/75 leading-relaxed whitespace-pre-wrap font-sans">
+            <pre className="text-[13px] text-muted leading-relaxed whitespace-pre-wrap font-sans">
               {[versions[activeVersion].hook, versions[activeVersion].content_body, versions[activeVersion].cta].filter(Boolean).join('\n\n')}
             </pre>
           </div>
@@ -755,8 +776,8 @@ function RepurposeTab() {
               <SaveToCalendarBtn title={versions[activeVersion].title} result={versions[activeVersion]} />
             </div>
             <div className="flex items-center gap-1.5">
-              <Brain size={10} className="text-[#E8A838]/60" />
-              <span className="text-[10px] text-white/30">Ten output powstał na bazie DNA Twojej firmy (ton, ICP, strategia)</span>
+              <Brain size={10} className="text-amber" />
+              <span className="text-[10px] text-subtle">Ten output powstał na bazie DNA Twojej firmy (ton, ICP, strategia)</span>
             </div>
           </div>
         </div>
@@ -779,23 +800,24 @@ export default function ContentGeneratorPage() {
   return (
     <div className="max-w-[1100px] space-y-5">
       <div>
-        <h1 className="text-[20px] font-bold text-white flex items-center gap-2">
-          <Sparkles size={20} className="text-accent" />
+        <h1 className="text-[20px] font-bold text-fg flex items-center gap-2">
+          <Sparkles size={20} className="text-violet" />
           Generator Treści AI
         </h1>
-        <p className="text-[12px] text-white/40 mt-0.5">Generuj posty, karuzele i repurposing z AI — na podstawie Twojej Bazy Wiedzy</p>
+        <p className="text-[12px] text-muted mt-0.5">Generuj posty, karuzele i repurposing z AI — na podstawie Twojej Bazy Wiedzy</p>
       </div>
 
-      <div className="flex flex-wrap gap-2 p-1 bg-white/[0.04] rounded-[12px] border border-white/[0.07]">
+      <div className="flex flex-wrap gap-2 p-1 bg-raised border border-border rounded-[12px]">
         {TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`flex items-center gap-2 px-4 py-2 rounded-[10px] text-[13px] font-medium transition-all ${
               tab === t.id
-                ? 'bg-accent text-white shadow-md shadow-indigo-500/20'
-                : 'text-white/50 hover:text-white hover:bg-white/[0.05]'
+                ? 'bg-violet shadow-[var(--glow-violet)]'
+                : 'text-subtle hover:text-muted hover:bg-fg/[0.05]'
             }`}
+            style={tab === t.id ? { color: 'var(--nav-pill-text)' } : undefined}
           >
             {t.icon} {t.label}
           </button>

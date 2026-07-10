@@ -1,6 +1,6 @@
 // Simple user store — no Supabase Auth, just localStorage
 
-export type UserRole = 'admin' | 'sales'
+export type UserRole = 'admin' | 'sales' | 'allegro'
 
 export interface AppUser {
   id: string
@@ -18,6 +18,7 @@ export const USERS: AppUser[] = [
   { id: 'adrian',     name: 'Adrian',     fullName: 'Adrian',     company: 'AM Automations', initials: 'A', color: '#6366f1', role: 'admin' },
   { id: 'maciek',     name: 'Maciek',     fullName: 'Maciek',     company: 'AM Automations', initials: 'M', color: '#8b5cf6', role: 'admin' },
   { id: 'handlowiec', name: 'Handlowiec', fullName: 'Handlowiec', company: 'AM Automations', initials: 'H', color: '#f59e0b', role: 'sales', password: 'Seba', onboardingCompleted: false },
+  { id: 'patka',      name: 'Patka',      fullName: 'Patka',      company: 'AM Automations', initials: 'P', color: '#f43f5e', role: 'allegro', password: 'Allegro666!' },
   { id: 'demo',       name: 'Demo',       fullName: 'Demo',       company: 'AM Automations', initials: 'D', color: '#22c55e', role: 'admin' },
 ]
 
@@ -56,6 +57,10 @@ export function isAdminUser(): boolean {
 
 export function isSalesUser(): boolean {
   return getCurrentUser()?.role === 'sales'
+}
+
+export function isAllegroUser(): boolean {
+  return getCurrentUser()?.role === 'allegro'
 }
 
 const ONBOARDING_KEY = 'am_onboarding_completed'

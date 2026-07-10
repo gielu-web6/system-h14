@@ -192,20 +192,20 @@ function exportCSV(leads: Lead[]) {
 function ScoreBadge({ label, score }: { label: AiScore; score: number }) {
   if (label === 'hot') return (
     <span
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-danger/15 text-danger text-[10px] font-bold"
+      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-danger/15 text-danger text-[11px] font-bold"
       style={{ boxShadow: '0 0 10px rgba(232,64,64,0.28)' }}
     >
-      <Flame size={9} />{score}
+      <Flame size={10} />{score}
     </span>
   )
   if (label === 'warm') return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber/15 text-amber text-[10px] font-bold">
-      <Thermometer size={9} />{score}
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber/15 text-amber text-[11px] font-bold">
+      <Thermometer size={10} />{score}
     </span>
   )
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-info/15 text-info text-[10px] font-bold">
-      <Snowflake size={9} />{score}
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-info/15 text-info text-[11px] font-bold">
+      <Snowflake size={10} />{score}
     </span>
   )
 }
@@ -1500,7 +1500,7 @@ export default function LeadsPage() {
 
       {/* Table */}
       <div className="card-elevated overflow-hidden">
-        <div className="grid grid-cols-[1fr_140px_110px_90px_80px_80px] gap-4 px-4 py-2.5 border-b border-border text-[10px] font-semibold text-subtle uppercase tracking-wide">
+        <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_100px_90px_80px_68px] gap-3 px-4 py-2.5 border-b border-border text-[10px] font-semibold text-muted uppercase tracking-wide">
           <span>Lead</span>
           <span className="hidden md:block">Firma / Stanowisko</span>
           <span className="hidden lg:block">Segment</span>
@@ -1514,9 +1514,16 @@ export default function LeadsPage() {
             const initials = (lead.firstName[0] ?? '') + (lead.lastName[0] ?? '')
             return (
               <button key={lead.id} onClick={() => setSelected(lead)}
-                className="w-full grid grid-cols-[1fr_140px_110px_90px_80px_80px] gap-4 px-4 py-3 hover:bg-fg/[0.03] transition-all text-left group">
+                className={`w-full grid grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_100px_90px_80px_68px] gap-3 px-4 py-3 transition-all text-left group ${lead.aiLabel === 'hot' ? 'hover:bg-danger/[0.04]' : 'hover:bg-fg/[0.03]'}`}
+                style={lead.aiLabel === 'hot' ? { boxShadow: 'inset 2px 0 0 var(--c-red)' } : undefined}>
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-[8px] bg-accent/20 flex items-center justify-center text-[11px] font-bold text-accent flex-shrink-0">{initials}</div>
+                  <div
+                    className={`w-8 h-8 rounded-[8px] flex items-center justify-center text-[11px] font-bold flex-shrink-0 ${
+                      lead.aiLabel === 'hot'  ? 'bg-danger/15 text-danger' :
+                      lead.aiLabel === 'warm' ? 'bg-amber/15 text-amber'   : 'bg-info/15 text-info'
+                    }`}
+                    style={lead.aiLabel === 'hot' ? { boxShadow: '0 0 8px color-mix(in srgb, var(--c-red) 40%, transparent)' } : undefined}
+                  >{initials}</div>
                   <div className="min-w-0">
                     <p className="text-[13px] font-semibold text-fg truncate">{lead.firstName} {lead.lastName}</p>
                     <p className="text-[11px] text-muted truncate md:hidden">{lead.company}</p>
@@ -1526,8 +1533,8 @@ export default function LeadsPage() {
                   <p className="text-[12px] text-fg/70 truncate">{lead.company}</p>
                   <p className="text-[11px] text-subtle truncate">{lead.position}</p>
                 </div>
-                <div className="hidden lg:flex items-center">
-                  <span className="px-2 py-0.5 rounded-full bg-fg/[0.06] text-muted text-[10px] font-medium">
+                <div className="hidden lg:flex items-center min-w-0">
+                  <span className="px-2 py-0.5 rounded-full bg-fg/[0.06] text-muted text-[10px] font-medium truncate max-w-full block">
                     {segmentLabels[lead.segment] ?? lead.segment}
                   </span>
                 </div>
