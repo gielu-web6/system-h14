@@ -883,22 +883,27 @@ export default function AllegroProduktPage() {
         </button>
       </div>
 
-      {/* KPI bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      {/* KPI — pieniądze (główne) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
-          { label: 'Produkty',       value: totalProducts > 0 ? fmtNum(totalProducts)           : '—' },
-          { label: 'Aktywne',        value: totalProducts > 0 ? fmtNum(activeCount)             : '—' },
-          { label: 'Sprzedane szt.', value: totalProducts > 0 ? fmtNum(totalUnits)             : '—' },
-          { label: 'Przychód',       value: totalProducts > 0 ? fmtPLN(totalRevenue)           : '—' },
-          { label: 'Zysk',           value: totalProducts > 0 ? fmtPLN(totalProfit)            : '—' },
-          { label: 'Śr. marża',      value: withPrice.length  ? avgMarginPct.toFixed(1) + '%' : '—' },
+          { label: 'Przychód',  value: totalProducts > 0 ? fmtPLN(totalRevenue) : '—', cls: 'text-fg' },
+          { label: 'Zysk',      value: totalProducts > 0 ? fmtPLN(totalProfit)  : '—', cls: 'text-fg' },
+          { label: 'Śr. marża', value: withPrice.length  ? avgMarginPct.toFixed(1) + '%' : '—',
+            cls: withPrice.length ? marginColor(avgMarginPct) : 'text-fg' },
         ].map(kpi => (
           <div key={kpi.label} className="kpi-card p-4"
             style={{ '--card-accent': 'var(--group-allegro)' } as React.CSSProperties}>
             <p className="section-label mb-1">{kpi.label}</p>
-            <p className="num text-[18px] font-bold text-fg">{kpi.value}</p>
+            <p className={`num text-[22px] font-bold ${kpi.cls}`}>{kpi.value}</p>
           </div>
         ))}
+      </div>
+
+      {/* KPI — liczniki (drugorzędne) */}
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 px-1">
+        <span className="text-[12px] text-muted">Produkty <b className="text-fg font-semibold num">{totalProducts > 0 ? fmtNum(totalProducts) : '—'}</b></span>
+        <span className="text-[12px] text-muted">Aktywne <b className="text-fg font-semibold num">{totalProducts > 0 ? fmtNum(activeCount) : '—'}</b></span>
+        <span className="text-[12px] text-muted">Sprzedane <b className="text-fg font-semibold num">{totalProducts > 0 ? fmtNum(totalUnits) + ' szt.' : '—'}</b></span>
       </div>
 
       {/* Collapsible calculator */}
