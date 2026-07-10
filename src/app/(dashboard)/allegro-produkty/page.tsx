@@ -24,6 +24,8 @@ interface Product {
   supplier_url: string | null
   purchase_price: number | null
   supplier_shipping: number | null
+  purchase_is_net: boolean
+  vat_pct: number | null
   target_price: number | null
   commission_pct: number | null
   shipping_cost: number | null
@@ -69,6 +71,8 @@ interface MarginInput {
   units_sold?:       number | null
   pitPct?:           number
   healthPct?:        number
+  purchase_is_net?:  boolean
+  vat_pct?:          number | null
 }
 
 interface MarginResult {
@@ -97,9 +101,13 @@ function calcMargin(input: MarginInput): MarginResult {
   const pit_pct    = input.pitPct    ?? 0
   const health_pct = input.healthPct ?? 0
 
+  const isNet       = input.purchase_is_net ?? false
+  const vat         = input.vat_pct ?? 23
+  const grossFactor = isNet ? (1 + vat / 100) : 1
+
   const prowizja    = tp * cpc / 100
   const oplataTrans = tp * TRANSACTION_FEE_PCT / 100
-  const kosztTowaru = pp + ss
+  const kosztTowaru = (pp + ss) * grossFactor
   const zysk        = tp - kosztTowaru - prowizja - oplataTrans - sc
   const marginPct   = tp ? (zysk / tp) * 100 : 0
   const pit         = Math.max(0, zysk) * pit_pct / 100
@@ -178,6 +186,7 @@ function defaultDraft(): ProductDraft {
     name: '', thumbnail_url: null, category: null, sku: null, ean: null,
     supplier: null, supplier_url: null,
     purchase_price: null, supplier_shipping: null,
+    purchase_is_net: false, vat_pct: 23,
     target_price: null, commission_pct: null, shipping_cost: null,
     units_sold: 0, status: 'pomysl',
     offer_title: null, offer_description: null, allegro_url: null, notes: null,
@@ -365,6 +374,32 @@ function ProductModal({ initial, editingId, onClose, onSaved }: {
                     value={draft.supplier_shipping ?? ''} onChange={e => patch({ supplier_shipping: num(e.target.value) })}
                     placeholder="0.00" className={inp} />
                 </div>
+              </div>
+
+              <div>
+                <label className={lbl}>Ceny od dostawcy</label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex rounded-[9px] border border-fg/[0.08] overflow-hidden">
+                    {([[false,'Brutto (z VAT)'],[true,'Netto — dolicz VAT']] as [boolean,string][]).map(([val,label]) => (
+                      <button key={String(val)} type="button" onClick={() => patch({ purchase_is_net: val })}
+                        className={`px-3 py-2 text-[12px] font-medium transition-all ${draft.purchase_is_net === val ? '' : 'text-muted hover:text-fg'}`}
+                        style={draft.purchase_is_net === val ? { background: 'var(--group-allegro)', color: 'var(--nav-pill-text)' } : undefined}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  {draft.purchase_is_net && (
+                    <div className="flex items-center gap-1.5">
+                      <input type="number" min="0" step="0.1" value={draft.vat_pct ?? 23}
+                        onChange={e => patch({ vat_pct: num(e.target.value) })}
+                        className={inp + ' w-20'} />
+                      <span className="text-[12px] text-subtle">% VAT</span>
+                    </div>
+                  )}
+                </div>
+                <p className="mt-1 text-[10px] text-subtle leading-relaxed">
+                  Nie jesteś VATowcem — przy cenie netto od hurtowni doliczamy VAT do kosztu (płacisz brutto). Dotyczy ceny zakupu i dostawy od dostawcy.
+                </p>
               </div>
             </div>
           </div>
@@ -564,6 +599,8 @@ function QuickCalculator({ onAddAsProduct }: {
   const [shipping,  setShipping]  = useState('')
   const [pitPct,    setPitPct]    = useState('12')
   const [healthPct, setHealthPct] = useState('9')
+  const [isNet, setIsNet] = useState(false)
+  const [vat,   setVat]   = useState('23')
 
   const cpc      = category ? (ALLEGRO_COMMISSION[category] ?? 0) : 0
   const tp       = parseFloat(price) || 0
@@ -575,6 +612,8 @@ function QuickCalculator({ onAddAsProduct }: {
     supplier_shipping: parseFloat(suppShip) || 0,
     shipping_cost:     parseFloat(shipping) || 0,
     commission_pct:    cpc,
+    purchase_is_net:   isNet,
+    vat_pct:           parseFloat(vat) || 23,
     pitPct:            parseFloat(pitPct)    || 0,
     healthPct:         parseFloat(healthPct) || 0,
   })
@@ -590,6 +629,8 @@ function QuickCalculator({ onAddAsProduct }: {
       purchase_price:    parseFloat(purchase) || null,
       supplier_shipping: parseFloat(suppShip) || null,
       shipping_cost:     parseFloat(shipping) || null,
+      purchase_is_net:   isNet,
+      vat_pct:           parseFloat(vat) || 23,
     })
   }
 
@@ -647,6 +688,29 @@ function QuickCalculator({ onAddAsProduct }: {
                     onChange={e => setShipping(e.target.value)} placeholder="0.00" className={inp} />
                 </div>
               </div>
+
+              <div>
+                <label className={lbl}>Ceny od dostawcy</label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex rounded-[9px] border border-fg/[0.08] overflow-hidden">
+                    {([[false,'Brutto'],[true,'Netto — dolicz VAT']] as [boolean,string][]).map(([val,label]) => (
+                      <button key={String(val)} type="button" onClick={() => setIsNet(val)}
+                        className={`px-3 py-2 text-[12px] font-medium transition-all ${isNet === val ? '' : 'text-muted hover:text-fg'}`}
+                        style={isNet === val ? { background: 'var(--group-allegro)', color: 'var(--nav-pill-text)' } : undefined}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  {isNet && (
+                    <div className="flex items-center gap-1.5">
+                      <input type="number" min="0" step="0.1" value={vat}
+                        onChange={e => setVat(e.target.value)} className={inp + ' w-20'} />
+                      <span className="text-[12px] text-subtle">% VAT</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={lbl}>PIT (%)</label>
