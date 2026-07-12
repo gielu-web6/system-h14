@@ -216,7 +216,7 @@ function ProductModal({ initial, editingId, onClose, onSaved }: {
   const int    = (v: string) => v === '' ? null : parseInt(v)   || null
   const isEdit = !!editingId
 
-  const marginData = calcMargin(draft)
+  const marginData = calcMargin({ ...draft, pitPct: 12, healthPct: 9 })
   const hasPrice   = (draft.target_price ?? 0) > 0
 
   async function handleSave() {
