@@ -319,18 +319,6 @@ function ProductModal({ initial, editingId, onClose, onSaved }: {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={lbl}>SKU</label>
-                  <input value={draft.sku ?? ''} onChange={e => patch({ sku: e.target.value || null })}
-                    placeholder="np. SON-WH1000XM5-BLK" className={inp} />
-                </div>
-                <div>
-                  <label className={lbl}>EAN</label>
-                  <input value={draft.ean ?? ''} onChange={e => patch({ ean: e.target.value || null })}
-                    placeholder="4548736132528" className={inp} />
-                </div>
-              </div>
             </div>
           </div>
 
@@ -339,11 +327,28 @@ function ProductModal({ initial, editingId, onClose, onSaved }: {
             onClick={() => setShowMore(v => !v)}
             className="text-[12px] font-semibold text-muted hover:text-fg transition-colors flex items-center gap-1"
           >
-            {showMore ? '− Mniej opcji' : '+ Więcej opcji (sourcing, oferta, notatki)'}
+            {showMore ? '− Mniej opcji' : '+ Więcej opcji (identyfikatory, sourcing, oferta, notatki)'}
           </button>
 
           {showMore && (
             <>
+
+          {/* Identyfikatory */}
+          <div>
+            <p className="section-label mb-3" style={{ color: 'var(--group-allegro)' }}>Identyfikatory</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={lbl}>SKU</label>
+                <input value={draft.sku ?? ''} onChange={e => patch({ sku: e.target.value || null })}
+                  placeholder="np. SON-WH1000XM5-BLK" className={inp} />
+              </div>
+              <div>
+                <label className={lbl}>EAN</label>
+                <input value={draft.ean ?? ''} onChange={e => patch({ ean: e.target.value || null })}
+                  placeholder="4548736132528" className={inp} />
+              </div>
+            </div>
+          </div>
 
           {/* Sourcing */}
           <div>
