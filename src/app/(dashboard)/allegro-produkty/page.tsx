@@ -171,6 +171,7 @@ function MarginBreakdown({ data, cpc, withTax }: {
             <span className="text-[12px] font-semibold text-fg">Na rękę / szt.</span>
             <span className={`text-[13px] font-bold num ${marginColor(data.naRekePct)}`}>
               {data.naReke.toFixed(2)} PLN
+              <span className="ml-1.5 text-[11px] font-normal opacity-70">({data.naRekePct.toFixed(1)}%)</span>
             </span>
           </div>
         </>
