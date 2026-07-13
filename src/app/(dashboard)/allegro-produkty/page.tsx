@@ -524,10 +524,20 @@ function ProductModal({ initial, editingId, onClose, onSaved }: {
               {/* Wynik: opis oferty */}
               <div>
                 <label className={lbl}>Opis oferty <span className="normal-case font-normal text-subtle">(wynik)</span></label>
-                <textarea value={draft.offer_description ?? ''} rows={5}
+                <textarea
+                  value={draft.offer_description ?? ''}
                   onChange={e => patch({ offer_description: e.target.value || null })}
                   placeholder="Tu pojawi się wygenerowany opis…"
-                  className={inp + ' resize-none'} />
+                  rows={5}
+                  ref={el => {
+                    if (el) {
+                      el.style.height = 'auto'
+                      el.style.height = el.scrollHeight + 'px'
+                    }
+                  }}
+                  className={inp + ' resize-y overflow-hidden'}
+                  style={{ minHeight: '120px' }}
+                />
               </div>
 
               {/* Link do aukcji */}
