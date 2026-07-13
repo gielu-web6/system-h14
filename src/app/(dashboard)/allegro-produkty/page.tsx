@@ -451,7 +451,7 @@ function ProductModal({ initial, editingId, onClose, onSaved }: {
                 <MarginBreakdown
                   data={marginData}
                   cpc={draft.commission_pct ?? 0}
-                  withTax={false}
+                  withTax={true}
                 />
                 <p className="text-[10px] text-subtle mt-3 leading-relaxed">
                   Prowizje orientacyjne wg kategorii — Allegro zmienia je kilka razy w roku i stosuje progi cenowe.
